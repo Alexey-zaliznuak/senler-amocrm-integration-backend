@@ -10,14 +10,19 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { ResponseTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
+import { UsersController } from './domain/users/users.controller';
+import { UsersModule } from './domain/users/users.module';
+import { IntegrationModule } from './domain/integration/integration.module';
 
 
 @Module({
   imports: [
     LoggingModule.forRoot(winstonOptions),
+    UsersModule,
+    IntegrationModule,
   ],
 
-  controllers: [AppController],
+  controllers: [AppController, UsersController],
 
   providers: [
     AppService,

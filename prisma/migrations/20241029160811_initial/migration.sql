@@ -3,10 +3,11 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "SenlerClientId" TEXT NOT NULL,
-    "SenlerGroupId" TEXT NOT NULL,
-    "SenlerAuth" TEXT NOT NULL,
-    "AmoCrmAuth" TEXT NOT NULL,
+    "AmoAccessToken" TEXT NOT NULL,
+    "AmoRefreshToken" TEXT NOT NULL,
+    "SenlerVkGroupId" TEXT NOT NULL,
+    "SenlerAccessToken" TEXT NOT NULL,
+    "SenlerRefreshToken" TEXT NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -23,16 +24,7 @@ CREATE TABLE "Template" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_SenlerClientId_key" ON "User"("SenlerClientId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_SenlerGroupId_key" ON "User"("SenlerGroupId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_SenlerAuth_key" ON "User"("SenlerAuth");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_AmoCrmAuth_key" ON "User"("AmoCrmAuth");
+CREATE UNIQUE INDEX "User_SenlerVkGroupId_key" ON "User"("SenlerVkGroupId");
 
 -- AddForeignKey
 ALTER TABLE "Template" ADD CONSTRAINT "Template_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
