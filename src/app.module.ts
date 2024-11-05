@@ -10,22 +10,27 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { ResponseTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
-import { UsersController } from './domain/users/users.controller';
 import { UsersModule } from './domain/users/users.module';
 import { IntegrationModule } from './domain/integration/integration.module';
+import { AmoCrmService } from './external/amo-crm/amo-crm.service';
+import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
+import { AxiosModule } from './infrastructure/axios/axios.module';
 
 
 @Module({
   imports: [
-    LoggingModule.forRoot(winstonOptions),
     UsersModule,
     IntegrationModule,
+    AmoCrmModule,
+    AxiosModule,
+    LoggingModule.forRoot(winstonOptions),
   ],
 
-  controllers: [AppController, UsersController],
+  controllers: [AppController],
 
   providers: [
     AppService,
+    AmoCrmService,
     { provide: APP_GUARD, useClass: AuthGuard, },
     { provide: APP_FILTER, useClass: HttpExceptionFilter, },
     { provide: APP_INTERCEPTOR, useClass: ResponseTimeInterceptor, },

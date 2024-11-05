@@ -5,11 +5,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  async getByVkGroupId(vkGroupId: string): Promise<GetUserResponse> {
+  async getByVkGroupId(vkGroupId: string): Promise<any> {
     return await prisma.user.findUnique({
-      include: {
-        senlerIntegrationStepsTemplates: true,
-      },
+      // include: {
+      //   senlerIntegrationStepsTemplates: true,
+      // },
       where: {
         senlerVkGroupId: vkGroupId,
       }
