@@ -19,10 +19,9 @@ export class UsersController {
   // TODO: Auth for vk group id by senler
   @Post("")
   @HttpCode(HttpStatus.CREATED)
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Conflict during creating new user.' })
+  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Conflict when creating new user.' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Success created new user.' })
   async create(@Body() data: CreateUserDto): Promise<any> {
-    // return this.usersService.create(data)
     return this.usersService.create(data)
   }
 }
