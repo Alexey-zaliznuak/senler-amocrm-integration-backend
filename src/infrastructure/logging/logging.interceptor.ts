@@ -7,17 +7,17 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
-import { Request, Response } from 'express';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const req = context.switchToHttp().getRequest<CustomRequest>();
-    const res = context.switchToHttp().getResponse<Response>();
+    const httpContext = context.switchToHttp();
+    const req = httpContext.getRequest<CustomRequest>();
+    const res = httpContext.getResponse();
 
     this.logRequest(req);
 
-    const startTime = Date.now(); // Время начала обработки запроса
+    const startTime = Date.now();
 
     return next.handle().pipe(
       map((data) => {
@@ -28,31 +28,31 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   private logRequest(req: CustomRequest) {
-    req.logger.info('Request received', this._extractLoggableData(req));
+    req.logger.info('Request received', this.extractLoggableData(req));
   }
 
   private logResponse(
     req: CustomRequest,
-    res: Response,
+    res: any,
     startTime: number,
     data: any,
   ) {
     const statusCode = res.statusCode;
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
-    const responseTime = headers['x-response-time'] || `${Date.now() - startTime} ms`;
+    const responseTime = `${Date.now() - startTime} ms`;
 
     req.logger.info('Response sent', {
       statusCode,
       contentLength,
       headers,
       data,
-      req: this._extractLoggableData(req),
+      req: this.extractLoggableData(req),
       responseTime,
     });
   }
 
-  private _extractLoggableData(req: Request): object {
+  private extractLoggableData(req: CustomRequest): object {
     const { method, baseUrl, body, query, params } = req;
     return {
       method,
@@ -60,6 +60,6 @@ export class LoggingInterceptor implements NestInterceptor {
       body,
       query,
       params,
-    }
+    };
   }
 }
