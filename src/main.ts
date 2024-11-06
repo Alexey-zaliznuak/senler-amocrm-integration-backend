@@ -13,11 +13,13 @@ async function bootstrap() {
     .setDescription('Description')
     .setVersion('1.0')
     .addTag('Tag')
-    .addServer(`http://localhost:${PORT}`, "local")
-    .addServer(process.env.DEV_SERVER_URL, "dev server")
-    .build();
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  if (process.env.NODE_ENV === "development") {
+    config.addServer(`http://localhost:${PORT}`, "local")
+    config.addServer(process.env.DEV_SERVER_URL, "dev server")
+  }
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config.build());
   SwaggerModule.setup('api/docs', app, documentFactory);
 
   await app.listen(PORT);
