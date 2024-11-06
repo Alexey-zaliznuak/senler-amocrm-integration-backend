@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, Param, Request, Get, HttpCode } from '@nestjs/common';
 import { IntegrationService } from './integration.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 
@@ -9,12 +9,15 @@ export class IntegrationController {
   ) {}
 
   @Post(':url')
-  @Get(':url')
+  // @Get(':url')
+  @HttpCode(201)
   async handlePostRequest(
-    @Param('url') url: string,
     @Request() req: CustomRequest,
+    @Param('url') url?: string,
     @Body() body?: any,
   ): Promise<any> {
     req.logger.info("New request recieved", { body })
+
+    return {ok : 1}
   }
 }
