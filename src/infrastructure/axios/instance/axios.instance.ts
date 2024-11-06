@@ -49,7 +49,7 @@ export class AxiosService implements OnModuleDestroy {
       return await this.axios.get<T>(url, config);
     }
     finally {
-      this.clearRequestLogger(config.requestId);
+      this.deleteRequestLogger(config.requestId);
     }
   }
 
@@ -60,7 +60,7 @@ export class AxiosService implements OnModuleDestroy {
       return await this.axios.post<T>(url, data, config);
     }
     finally {
-      this.clearRequestLogger(config.requestId);
+      this.deleteRequestLogger(config.requestId);
     }
   }
 
@@ -149,7 +149,7 @@ export class AxiosService implements OnModuleDestroy {
     return loggerData.logger;
   }
 
-  private clearRequestLogger(requestId: string): void {
+  private deleteRequestLogger(requestId: string): void {
     this.requestLoggers.delete(requestId);
   }
 
