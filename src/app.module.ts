@@ -8,7 +8,7 @@ import { LoggingModule } from './infrastructure/logging/logging.module';
 import { AuthGuard } from './infrastructure/auth/auth.guard';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
-import { ResponseTimeInterceptor } from './infrastructure/interceptors';
+import { ProcessTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
 import { UsersModule } from './domain/users/users.module';
 import { AmoCrmService } from './external/amo-crm/amo-crm.service';
@@ -44,8 +44,8 @@ import { IntegrationModule } from './domain/integration/integration.module';
 
     { provide: APP_FILTER, useClass: HttpExceptionFilter, },
 
-    { provide: APP_INTERCEPTOR, useClass: ResponseTimeInterceptor, },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor, },
+    { provide: APP_INTERCEPTOR, useClass: ProcessTimeInterceptor, },
   ],
 })
 export class AppModule {

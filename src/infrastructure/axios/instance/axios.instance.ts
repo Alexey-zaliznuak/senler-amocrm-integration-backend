@@ -29,7 +29,7 @@ export class AxiosService implements OnModuleDestroy {
 
   constructor(
     @Inject("LOGGER") private readonly logger: Logger,
-    options: CreateCustomAxiosInstanceOptions,
+    options: CreateCustomAxiosInstanceOptions = {},
   ) {
     this.defaults = {
       axiosConfig: options.axiosConfig,

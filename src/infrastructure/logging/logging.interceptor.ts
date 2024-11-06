@@ -40,7 +40,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const statusCode = res.statusCode;
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
-    const responseTime = `${Date.now() - startTime} ms`;
+    const processTime = headers['x-process-time'] || `${Date.now() - startTime} ms`;
 
     req.logger.info('Response sent', {
       statusCode,
@@ -48,7 +48,7 @@ export class LoggingInterceptor implements NestInterceptor {
       headers,
       data,
       req: this.extractLoggableData(req),
-      responseTime,
+      processTime,
     });
   }
 

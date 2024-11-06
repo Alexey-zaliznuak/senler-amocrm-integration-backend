@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 @Injectable()
-export class ResponseTimeInterceptor implements NestInterceptor {
+export class ProcessTimeInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     request.startTime = Date.now();
@@ -12,7 +12,7 @@ export class ResponseTimeInterceptor implements NestInterceptor {
       tap(() => {
         const duration = Date.now() - request.startTime;
         const response = context.switchToHttp().getResponse();
-        response.setHeader('X-Response-Time', `${duration}ms`);
+        response.setHeader('X-Process-Time', `${duration}ms`);
       })
     );
   }
