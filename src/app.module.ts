@@ -15,6 +15,7 @@ import { AmoCrmService } from './external/amo-crm/amo-crm.service';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
 import { AxiosModule } from './infrastructure/axios/axios.module';
 import { IntegrationModule } from './domain/integration/integration.module';
+import { ConfigModule } from '@nestjs/config';
 
 
 @Module({
@@ -29,6 +30,8 @@ import { IntegrationModule } from './domain/integration/integration.module';
     // Infrastructure modules
     LoggingModule.forRoot(winstonOptions),
     AxiosModule.forRoot(),
+
+    ConfigModule.forRoot({isGlobal: true,}),
   ],
 
   controllers: [
