@@ -10,11 +10,15 @@ export class WebhooksController {
   @HttpCode(200)
   async handlePostRequest(
     @Request() req: CustomRequest,
-    @Param('url') url?: string,
     @Body() body?: any,
   ): Promise<any> {
-    // req.logger.info("New request recieved", { body })
-
-    return {}
-  }
+    return {
+      vars:
+        [
+          {
+            n:"x-time", v: new Date().getMilliseconds()
+          }
+        ]
+      }
+    }
 }
