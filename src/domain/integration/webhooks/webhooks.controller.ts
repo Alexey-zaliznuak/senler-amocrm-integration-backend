@@ -4,7 +4,9 @@ import { CustomRequest } from 'src/infrastructure/requests';
 
 @Controller('integration/webhooks')
 export class WebhooksController {
-  constructor(private readonly webhooksService: WebhooksService) {}
+  constructor(
+    private readonly webhooksService: WebhooksService
+  ) {}
 
   @Post('/bot_step')
   @HttpCode(201)
@@ -12,6 +14,7 @@ export class WebhooksController {
     @Request() req: CustomRequest,
     @Body() body?: any,
   ): Promise<any> {
+    req.logger.warn("HEADERS", req.headers)
     return {
       vars: [
         { n:"x-time", v: new Date().getMilliseconds() }

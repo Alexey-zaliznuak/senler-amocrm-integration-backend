@@ -32,7 +32,7 @@ const prettyLogFormat = winston.format.combine(
   prettyLogPrintFormat,
 );
 
-export const winstonOptions: winston.LoggerOptions = {
+export const DEFAULT_LOGGING_OPTIONS: winston.LoggerOptions = {
   level: 'info',
   format: baseLogFormat,
   transports: [

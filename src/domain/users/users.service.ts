@@ -16,13 +16,13 @@ export class UsersService {
     })
   }
 
-  async create(data: CreateUserDto): Promise<GetUserResponse> {
+  async create(data: CreateUserDto) {
     await this.validateNewGroupData(data);
 
-    return await prisma.user.create({
-      include: { senlerIntegrationStepsTemplates: true },
-      data
-    })
+    // return await prisma.user.create({
+    //   include: { senlerIntegrationStepsTemplates: true },
+    //   data
+    // })
   }
 
   async validateNewGroupData(data: CreateUserDto) {

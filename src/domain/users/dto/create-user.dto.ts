@@ -1,19 +1,16 @@
 import { BaseUserDto } from './basic-user.dto';
-import { PickType } from "@nestjs/swagger";
+import { ApiProperty, PickType, PartialType } from "@nestjs/swagger";
 import { User } from "@prisma/client";
-
-export type CreateUser = Pick<User,
-  | "amoAccessToken"
-  | "amoRefreshToken"
-  | "senlerAccessToken"
-  | "senlerVkGroupId"
->
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto extends PickType(
   BaseUserDto, [
-    "amoAccessToken",
-    "amoRefreshToken",
     "senlerAccessToken",
     "senlerVkGroupId",
   ] as const
-) implements CreateUser {};
+) {
+  @ApiProperty({description: "Auth token from AmoCRM"})
+  @IsString()
+  @IsNotEmpty()
+  amoAuthToken: string;
+}

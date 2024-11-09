@@ -1,3 +1,4 @@
+import { config } from 'dotenv';
 import { Logger } from 'winston';
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -28,7 +29,7 @@ export class AxiosService implements OnModuleDestroy {
 
 
   constructor(
-    @Inject("LOGGER") private readonly logger: Logger,
+    @Inject("LOGGER_AXIOS") private readonly logger: Logger,
     options: CreateCustomAxiosInstanceOptions = {},
   ) {
     this.defaults = {
@@ -42,25 +43,29 @@ export class AxiosService implements OnModuleDestroy {
     this.setupInterceptors()
   }
 
-  async get<T>(url: string, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<T>> {
-    this.setRequestLogger(url, config);
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const customConfig = this.setRequestId(config)
+
+    this.setRequestLogger(url, customConfig);
 
     try {
       return await this.axios.get<T>(url, config);
     }
     finally {
-      this.deleteRequestLogger(config.requestId);
+      this.deleteRequestLogger(customConfig.requestId);
     }
   }
 
   async post<T>(url: string, data?: any, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<T>> {
-    this.setRequestLogger(url, config);
+    const customConfig = this.setRequestId(config)
+
+    this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.post<T>(url, data, config);
+      return await this.axios.post<T>(url, data, customConfig);
     }
     finally {
-      this.deleteRequestLogger(config.requestId);
+      this.deleteRequestLogger(customConfig.requestId);
     }
   }
 
@@ -135,6 +140,10 @@ export class AxiosService implements OnModuleDestroy {
     );
   }
 
+  private setRequestId(config: AxiosRequestConfig): AxiosRequestConfig & {requestId: string} {
+    return {...config, requestId: this.generateRequestId()}
+  }
+
   private setRequestLogger(url: string, config: CustomAxiosRequestConfig): Logger {
     const logger = this.createChildRequestLogger(url, config.requestId);
     this.requestLoggers.set(config.requestId, { logger, createdAt: Date.now() });
@@ -172,6 +181,8 @@ export class AxiosService implements OnModuleDestroy {
       });
     }, this.cleanupInterval);
   }
+
+  private generateRequestId = (): string => Math.random().toString(16).slice(2);
 
   onModuleDestroy() {
     if (this.cleanupTimer) {

@@ -1,5 +1,6 @@
 import { AxiosError, CreateAxiosDefaults } from "axios";
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
+import { LOGGER } from "src/infrastructure/logging/logging.module";
 
 export const BASE_RETRY_CONFIG = {
   retries: 5,
@@ -17,3 +18,7 @@ export const BASE_RETRY_CONFIG = {
     return statusCode5xx || statusCode429 || networkError || isENOTFOUND;
   }
 }
+
+// Injects
+export const AXIOS_INSTANCE = "AxiosInstance";
+export const LOGGER_AXIOS_INSTANCE = LOGGER + "_" + AXIOS_INSTANCE

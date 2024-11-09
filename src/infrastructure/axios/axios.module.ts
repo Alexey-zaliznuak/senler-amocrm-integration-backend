@@ -4,9 +4,9 @@ import { AxiosRequestConfig } from 'axios';
 import winston, { Logger } from 'winston';
 import { LoggingService } from '../logging/logging.service';
 import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
-import { LOGGER } from '../logging/logging.module';
+import { LOGGER, LoggingModule } from '../logging/logging.module';
+import { AXIOS_INSTANCE, LOGGER_AXIOS_INSTANCE } from './instance/axios.instance.config';
 
-export const AXIOS_INSTANCE = "AxiosInstance";
 
 @Global()
 @Module({})
@@ -14,13 +14,16 @@ export class AxiosModule {
   static forRoot(options?: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
+      imports: [
+        LoggingModule.forFeature("AxiosInstance"),
+      ],
       providers: [
         {
           provide: AXIOS_INSTANCE,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [LOGGER],
+          inject: [LOGGER_AXIOS_INSTANCE],
         },
       ],
       exports: [AXIOS_INSTANCE],
@@ -30,13 +33,16 @@ export class AxiosModule {
   static forFeature(options: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
+      imports: [
+        LoggingModule.forFeature("AxiosInstance"),
+      ],
       providers: [
         {
           provide: AXIOS_INSTANCE,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [LOGGER],
+          inject: [LOGGER_AXIOS_INSTANCE],
         },
       ],
       exports: [AXIOS_INSTANCE],

@@ -2,13 +2,16 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from 
 import { UsersService } from './users.service';
 import { GetUserResponse } from './dto/get-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
-import { CreateUser, CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { AmoCrmService } from 'src/external/amo-crm';
 
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {
-  }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly amoCrmService: AmoCrmService,
+  ) {}
 
   @Get(":vkGroupId")
   // TODO: Auth for vk group id by senler
@@ -22,6 +25,16 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Conflict when creating new user.' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Success created new user.' })
   async create(@Body() data: CreateUserDto): Promise<any> {
+    // this.usersService.create(data)
     return this.usersService.create(data)
+  }
+
+  @Post("/test")
+  // @HttpCode(HttpStatus.CREATED)
+  // @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Conflict when creating new user.' })
+  // @ApiResponse({ status: HttpStatus.CREATED, description: 'Success created new user.' })
+  async test(@Body() data: CreateUserDto): Promise<any> {
+    // this.usersService.create(data)
+    return await this.amoCrmService.getAccessAndRefreshTokens(data.amoAuthToken)
   }
 }
