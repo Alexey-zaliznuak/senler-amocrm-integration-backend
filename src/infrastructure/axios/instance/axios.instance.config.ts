@@ -1,8 +1,12 @@
-import { AxiosError, CreateAxiosDefaults } from "axios";
+import { AxiosError } from "axios";
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
-import { LOGGER } from "src/infrastructure/logging/logging.module";
+import { LoggingService } from "src/infrastructure/logging/logging.service";
 
-export const BASE_RETRY_CONFIG = {
+
+export const AXIOS_INSTANCE = "AxiosInstance";
+export const AXIOS_INSTANCE_LOGGER = LoggingService.buildInjectableNameByContext(AXIOS_INSTANCE)
+
+export const BASE_RETRY_CONFIG: IAxiosRetryConfig = {
   retries: 5,
   retryDelay: (retryCount: number) => {
     const randomFactor = 0.8 + Math.random() * 0.4;
@@ -18,7 +22,3 @@ export const BASE_RETRY_CONFIG = {
     return statusCode5xx || statusCode429 || networkError || isENOTFOUND;
   }
 }
-
-// Injects
-export const AXIOS_INSTANCE = "AxiosInstance";
-export const LOGGER_AXIOS_INSTANCE = LOGGER + "_" + AXIOS_INSTANCE

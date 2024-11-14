@@ -1,20 +1,11 @@
-import { config } from 'dotenv';
 import { Logger } from 'winston';
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
-import { CreateCustomAxiosInstanceOptions } from './axios.instance.dto';
-import { BASE_RETRY_CONFIG } from './axios.instance.config';
+import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
+import { AXIOS_INSTANCE_LOGGER, BASE_RETRY_CONFIG } from './axios.instance.config';
 import { timeToMilliseconds } from 'src/utils';
 
-export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
-  requestId: string;
-};
-
-interface RequestLoggerData {
-  logger: Logger;
-  createdAt: number;
-}
 
 @Injectable()
 export class AxiosService implements OnModuleDestroy {
@@ -27,9 +18,8 @@ export class AxiosService implements OnModuleDestroy {
 
   private cleanupTimer: NodeJS.Timeout;
 
-
   constructor(
-    @Inject("LOGGER_AXIOS") private readonly logger: Logger,
+    @Inject(AXIOS_INSTANCE_LOGGER) private readonly logger: Logger,
     options: CreateCustomAxiosInstanceOptions = {},
   ) {
     this.defaults = {
@@ -57,7 +47,7 @@ export class AxiosService implements OnModuleDestroy {
   }
 
   async post<T>(url: string, data?: any, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const customConfig = this.setRequestId(config)
+    const customConfig = this.setRequestId(config) // TODO: add function build custom request config
 
     this.setRequestLogger(url, customConfig);
 

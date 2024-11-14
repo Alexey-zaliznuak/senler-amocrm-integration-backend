@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable()
 export class ProcessTimeInterceptor implements NestInterceptor {
@@ -13,6 +13,14 @@ export class ProcessTimeInterceptor implements NestInterceptor {
         const duration = Date.now() - request.startTime;
         const response = context.switchToHttp().getResponse();
         response.setHeader('X-Process-Time', `${duration}ms`);
+      }),
+
+      catchError((error) => {
+        const duration = Date.now() - request.startTime;
+        const response = context.switchToHttp().getResponse();
+        response.setHeader('X-Process-Time', `${duration}ms`);
+
+        return throwError(() => error);
       })
     );
   }

@@ -33,7 +33,7 @@ export class LoggingModule {
       : LoggingService.createLogger({ defaultMeta: { context } });
 
     const featureLoggerProvider = {
-      provide: `${LOGGER}_${context}`,
+      provide: LoggingService.buildInjectableNameByContext(context),
       useValue: logger,
     };
 

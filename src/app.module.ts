@@ -11,13 +11,13 @@ import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger
 import { ProcessTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
 import { UsersModule } from './domain/users/users.module';
-import { AmoCrmService } from './external/amo-crm/amo-crm.service';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
 import { AxiosModule } from './infrastructure/axios/axios.module';
 import { IntegrationModule } from './domain/integration/integration.module';
 import { ConfigModule } from '@nestjs/config';
 import { SenlerService } from './external/senler/senler.service';
 import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
+import { AppConfig, appConfigValidationSchema } from './infrastructure/config';
 
 
 @Module({
@@ -34,7 +34,11 @@ import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
     LoggingModule.forRoot(DEFAULT_LOGGING_OPTIONS),
     AxiosModule.forRoot(),
 
-    ConfigModule.forRoot({isGlobal: true,}),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [AppConfig,],
+      validationSchema: appConfigValidationSchema,
+    }),
   ],
 
   controllers: [
@@ -44,7 +48,6 @@ import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
   providers: [
     AppService,
 
-    // AmoCrmService,
     SenlerService,
 
     { provide: APP_GUARD, useClass: AuthGuard, },

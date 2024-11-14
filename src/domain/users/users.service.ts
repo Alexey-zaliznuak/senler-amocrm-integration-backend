@@ -1,35 +1,23 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { prisma } from 'src/infrastructure/database';
-import { GetUserResponse } from './dto/get-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserRequestDto } from './dto/create-user.dto';
+import { AmoCrmService } from 'src/external/amo-crm';
 
 @Injectable()
 export class UsersService {
-  async getByVkGroupId(vkGroupId: string): Promise<any> {
-    return await prisma.user.findUnique({
-      // include: {
-      //   senlerIntegrationStepsTemplates: true,
-      // },
-      where: {
-        senlerVkGroupId: vkGroupId,
-      }
-    })
+  constructor (
+    private readonly amoCrmService: AmoCrmService,
+  ) {}
+
+  async create(data: CreateUserRequestDto) {
+    await this.validateCreateUserData(data);
   }
 
-  async create(data: CreateUserDto) {
-    await this.validateNewGroupData(data);
-
-    // return await prisma.user.create({
-    //   include: { senlerIntegrationStepsTemplates: true },
-    //   data
-    // })
+  async validateCreateUserData(data: CreateUserRequestDto) {
+    await this.checkConstraintsOrThrow(data.senlerVkGroupId);
   }
 
-  async validateNewGroupData(data: CreateUserDto) {
-    await this.checkOrThrowSameGroupNotExists(data.senlerVkGroupId);
-  }
-
-  async checkOrThrowSameGroupNotExists(senlerVkGroupId: string): Promise<void> {
+  async checkConstraintsOrThrow(senlerVkGroupId: string): Promise<void> {
     if (await prisma.user.exists({senlerVkGroupId})) {
       throw new ConflictException("User with same VkGroupId already exists.");
     }

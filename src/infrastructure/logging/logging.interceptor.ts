@@ -4,8 +4,8 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
 
 @Injectable()
@@ -23,6 +23,10 @@ export class LoggingInterceptor implements NestInterceptor {
       map((data) => {
         this.logResponse(req, res, startTime, data);
         return data;
+      }),
+      catchError((error) => {
+        this.logResponse(req, res, startTime, error);
+        return throwError(() => error);
       }),
     );
   }
@@ -53,11 +57,12 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   private extractLoggableData(req: CustomRequest): object {
-    const { method, baseUrl, body, query, params } = req;
+    const { method, body, path, url, query, params } = req;
     return {
       method,
-      baseUrl,
       body,
+      path,
+      url,
       query,
       params,
     };

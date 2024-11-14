@@ -1,11 +1,9 @@
-import { DynamicModule, Module, Global, Inject } from '@nestjs/common';
+import { DynamicModule, Module, Global } from '@nestjs/common';
 import { AxiosService } from './instance/axios.instance';
-import { AxiosRequestConfig } from 'axios';
-import winston, { Logger } from 'winston';
-import { LoggingService } from '../logging/logging.service';
+import { Logger } from 'winston';
 import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
-import { LOGGER, LoggingModule } from '../logging/logging.module';
-import { AXIOS_INSTANCE, LOGGER_AXIOS_INSTANCE } from './instance/axios.instance.config';
+import { LoggingModule } from '../logging/logging.module';
+import { AXIOS_INSTANCE, AXIOS_INSTANCE_LOGGER } from './instance/axios.instance.config';
 
 
 @Global()
@@ -15,7 +13,7 @@ export class AxiosModule {
     return {
       module: AxiosModule,
       imports: [
-        LoggingModule.forFeature("AxiosInstance"),
+        LoggingModule.forFeature(AXIOS_INSTANCE),
       ],
       providers: [
         {
@@ -23,18 +21,18 @@ export class AxiosModule {
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [LOGGER_AXIOS_INSTANCE],
+          inject: [AXIOS_INSTANCE_LOGGER],
         },
       ],
       exports: [AXIOS_INSTANCE],
     };
   }
 
-  static forFeature(options: CreateCustomAxiosInstanceOptions): DynamicModule {
+  static forFeature(options?: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
       imports: [
-        LoggingModule.forFeature("AxiosInstance"),
+        LoggingModule.forFeature(AXIOS_INSTANCE),
       ],
       providers: [
         {
@@ -42,7 +40,7 @@ export class AxiosModule {
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [LOGGER_AXIOS_INSTANCE],
+          inject: [AXIOS_INSTANCE_LOGGER],
         },
       ],
       exports: [AXIOS_INSTANCE],

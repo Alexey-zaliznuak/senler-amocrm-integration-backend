@@ -1,5 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 import { IAxiosRetryConfig } from "axios-retry";
+import { Logger } from "winston";
 
 export type CreateCustomAxiosInstanceOptions = {
   axiosConfig?: AxiosRequestConfig,
@@ -8,4 +9,9 @@ export type CreateCustomAxiosInstanceOptions = {
 
 export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   requestId: string;
+}
+
+export interface RequestLoggerData {
+  logger: Logger;
+  createdAt: number;
 }
