@@ -9,6 +9,10 @@ export const appConfigValidationSchema = Joi.object({
 
   DATABASE_URL: Joi.string().uri().required(),
 
+  AMO_CRM_CLIENT_ID: Joi.string().required(),
+  AMO_CRM_CLIENT_SECRET: Joi.string().required(),
+  AMO_CRM_REDIRECT_URI: Joi.string().uri().required(),
+
   DEV_SERVER_URL: Joi.string().uri().required(),
   PROD_SERVER_URL: Joi.string().uri().required(),
 });

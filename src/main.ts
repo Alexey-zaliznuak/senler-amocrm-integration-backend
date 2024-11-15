@@ -1,5 +1,3 @@
-import { AppConfig } from './infrastructure/config';
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
@@ -9,7 +7,7 @@ import { AppService } from './app.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const configService = app.get(ConfigService<typeof AppConfig>);
+  const configService = app.get(ConfigService<{port: number}>);
   const port = configService.get("port", {infer: true})
 
   app.getHttpAdapter().getInstance().disable('x-powered-by');

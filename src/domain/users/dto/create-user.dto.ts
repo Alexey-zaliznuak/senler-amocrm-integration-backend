@@ -7,8 +7,8 @@ export class CreateUserDto extends PickType(
   BaseUserDto, [
     "senlerAccessToken",
     "senlerVkGroupId",
-    "amoAccessToken",
-    "amoRefreshToken",
+    "amoCrmAccessToken",
+    "amoCrmRefreshToken",
   ] as const
 ) {}
 
@@ -18,8 +18,13 @@ export class CreateUserRequestDto extends PickType(
     "senlerVkGroupId",
   ] as const
 ) {
+  @ApiProperty({description: "domain name of user on AmoCRM"})
+  @IsString()
+  @IsNotEmpty()
+  amoCrmDomain: string;
+
   @ApiProperty({description: "Auth code from AmoCRM"})
   @IsString()
   @IsNotEmpty()
-  amoAuthorizationCode: string;
+  amoCrmAuthorizationCode: string;
 }

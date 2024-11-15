@@ -12,8 +12,8 @@ model User {
   createdAt                       DateTime          @default(now())
   updatedAt                       DateTime          @updatedAt
 
-  amoAccessToken                  String
-  amoRefreshToken                 String
+  amoCrmAccessToken               String
+  amoCrmRefreshToken              String
 
   senlerVkGroupId                 String            @unique
   senlerAccessToken               String

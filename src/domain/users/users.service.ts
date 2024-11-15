@@ -9,8 +9,24 @@ export class UsersService {
     private readonly amoCrmService: AmoCrmService,
   ) {}
 
-  async create(data: CreateUserRequestDto) {
+  async create(data: CreateUserRequestDto): Promise<CreateUserDto> {
     await this.validateCreateUserData(data);
+
+    const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomain, data.amoCrmAuthorizationCode);
+
+    return await prisma.user.create({
+      select: {
+        senlerAccessToken: true,
+        senlerVkGroupId: true,
+        amoCrmAccessToken: true,
+        amoCrmRefreshToken: true,
+      },
+      data: {
+        senlerAccessToken: data.senlerAccessToken,
+        senlerVkGroupId: data.senlerVkGroupId,
+        amoCrmAccessToken: amoTokens.access_token,
+        amoCrmRefreshToken: amoTokens.refresh_token,
+    }})
   }
 
   async validateCreateUserData(data: CreateUserRequestDto) {
