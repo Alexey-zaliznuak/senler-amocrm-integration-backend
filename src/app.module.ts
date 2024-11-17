@@ -18,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SenlerService } from './external/senler/senler.service';
 import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
 import { AppConfig, appConfigValidationSchema } from './infrastructure/config/config.app-config';
+import { CustomConfigModule } from './infrastructure/config/config.module';
 
 
 @Module({
@@ -39,6 +40,8 @@ import { AppConfig, appConfigValidationSchema } from './infrastructure/config/co
       load: [() => AppConfig,],
       validationSchema: appConfigValidationSchema,
     }),
+
+    CustomConfigModule.forRoot(),
   ],
 
   controllers: [

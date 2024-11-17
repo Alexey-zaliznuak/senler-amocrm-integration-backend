@@ -1,14 +1,18 @@
+import { AppConfigType } from './../logs/config/config.app-config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AppService } from './app.service';
+import { AppConfig } from 'logs/config/config.app-config';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const configService = app.get(ConfigService<{port: number}>);
-  const port = configService.get("port", {infer: true})
+  const configService = app.get<AppConfigType>("CONFIG");
+  const port = configService.PORT
+
+  console.warn(port)
 
   app.getHttpAdapter().getInstance().disable('x-powered-by');
 
