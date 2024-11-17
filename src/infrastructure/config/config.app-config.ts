@@ -1,6 +1,7 @@
 export * from './config.validation-schema'
 
-export const AppConfig = () => ({
+
+export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV,
 
   PORT: parseInt(process.env.PORT, 10) || 3000,
@@ -13,4 +14,6 @@ export const AppConfig = () => ({
 
   DEV_SERVER_URL: process.env.DEV_SERVER_URL,
   PROD_SERVER_URL: process.env.DEV_SERVER_URL,
-});
+};
+
+export type AppConfigType = typeof AppConfig;

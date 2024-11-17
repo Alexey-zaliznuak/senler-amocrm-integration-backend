@@ -17,7 +17,7 @@ import { IntegrationModule } from './domain/integration/integration.module';
 import { ConfigModule } from '@nestjs/config';
 import { SenlerService } from './external/senler/senler.service';
 import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
-import { AppConfig, appConfigValidationSchema } from './infrastructure/config';
+import { AppConfig, appConfigValidationSchema } from './infrastructure/config/config.app-config';
 
 
 @Module({
@@ -36,7 +36,7 @@ import { AppConfig, appConfigValidationSchema } from './infrastructure/config';
 
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [AppConfig,],
+      load: [() => AppConfig,],
       validationSchema: appConfigValidationSchema,
     }),
   ],
