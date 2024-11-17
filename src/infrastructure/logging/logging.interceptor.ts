@@ -3,10 +3,12 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  HttpException,
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
+import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -41,7 +43,8 @@ export class LoggingInterceptor implements NestInterceptor {
     startTime: number,
     data: any,
   ) {
-    const statusCode = res.statusCode;
+    const statusCode = data instanceof HttpException ? data.getStatus() : res.statusCode;
+
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
     const processTime = headers['x-process-time'] || `${Date.now() - startTime} ms`;
@@ -50,7 +53,7 @@ export class LoggingInterceptor implements NestInterceptor {
       statusCode,
       contentLength,
       headers,
-      data,
+      data_or_error: data,
       req: this.extractLoggableData(req),
       processTime,
     });

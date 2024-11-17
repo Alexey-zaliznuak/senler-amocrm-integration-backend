@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppConfig, AppConfigType } from './config.app-config';
 
@@ -6,12 +6,15 @@ import { AppConfig, AppConfigType } from './config.app-config';
 export const CONFIG = "CONFIG"
 
 
-@Module({})
 /**
- * Convenient access for config service.
- * You should inject it and use like:
- * 
+ * Convenient ACCESS for config service.
+ * You should inject it and use like common object:
+ * `@Inject(CONFIG) private readonly config: YourConfigType`
+ *
+ * ! This module DOES NOT LOAD CONFIG, only provides convenient access for ConfigService loaded.
  */
+@Global()
+@Module({})
 export class CustomConfigModule {
   static forRoot(): DynamicModule {
     return {
@@ -22,7 +25,7 @@ export class CustomConfigModule {
       providers: [
         {
           provide: CONFIG,
-          useFactory: (config: ConfigService<AppConfigType>): AppConfigType => {
+          useFactory: (config: ConfigService) => {
             return new Proxy(
               config,
               {

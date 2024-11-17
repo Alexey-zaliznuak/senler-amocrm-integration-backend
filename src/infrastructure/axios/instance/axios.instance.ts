@@ -61,10 +61,6 @@ export class AxiosService implements OnModuleDestroy {
   }
 
   private createAxiosClient(): AxiosInstance {
-    this.logger.debug('Create axios client:', {
-      axiosConfig: this.defaults.axiosConfig,
-      axiosRetryConfig: this.defaults.retryConfig,
-    });
 
     const instance = axios.create(this.defaults.axiosConfig);
     axiosRetry(instance, this.defaults.retryConfig);

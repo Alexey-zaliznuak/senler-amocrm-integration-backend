@@ -1,7 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { prisma } from 'src/infrastructure/database';
 import { CreateUserDto, CreateUserRequestDto, CreateUserResponseDto } from './dto/create-user.dto';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { AxiosError, HttpStatusCode } from 'axios';
 
 @Injectable()
 export class UsersService {
@@ -12,19 +13,32 @@ export class UsersService {
   async create(data: CreateUserRequestDto): Promise<CreateUserResponseDto> {
     await this.validateCreateUserData(data);
 
-    const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomain, data.amoCrmAuthorizationCode);
+    try {
+      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomain, data.amoCrmAuthorizationCode);
 
-    return await prisma.user.create({
-      select: {
-        id: true,
-        senlerVkGroupId: true,
-      },
-      data: {
-        senlerAccessToken: data.senlerAccessToken,
-        senlerVkGroupId: data.senlerVkGroupId,
-        amoCrmAccessToken: amoTokens.access_token,
-        amoCrmRefreshToken: amoTokens.refresh_token,
-    }})
+      return await prisma.user.create({
+        select: {
+          id: true,
+          senlerVkGroupId: true,
+        },
+        data: {
+          senlerAccessToken: data.senlerAccessToken,
+          senlerVkGroupId: data.senlerVkGroupId,
+          amoCrmAccessToken: amoTokens.access_token,
+          amoCrmRefreshToken: amoTokens.refresh_token,
+      }})
+
+    }
+    catch (exception) {
+      if (
+        exception instanceof AxiosError &&
+        exception.code &&
+        exception.status === HttpStatusCode.BadRequest
+      ) {
+        throw new ServiceUnavailableException()
+      }
+      throw exception
+    }
   }
 
   async validateCreateUserData(data: CreateUserRequestDto) {

@@ -1,4 +1,4 @@
-import { INestApplication, Injectable } from '@nestjs/common';
+import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 
@@ -18,5 +18,13 @@ export class AppService {
 
   const documentFactory = () => SwaggerModule.createDocument(app, config.build());
   SwaggerModule.setup('api/docs', app, documentFactory);
+  }
+
+  public static setupValidation(app: INestApplication) {
+    app.useGlobalPipes(new ValidationPipe({errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY}));
+  }
+
+  public static removePoweredByHeader(app: INestApplication) {
+    app.getHttpAdapter().getInstance().disable('x-powered-by');
   }
 }
