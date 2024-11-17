@@ -28,3 +28,11 @@ export class CreateUserRequestDto extends PickType(
   @IsNotEmpty()
   amoCrmAuthorizationCode: string;
 }
+
+
+export class CreateUserResponseDto extends PickType(
+  BaseUserDto, [
+    "id",
+    "senlerVkGroupId",
+  ] as const
+) {}

@@ -33,13 +33,14 @@ export class AxiosService implements OnModuleDestroy {
     this.setupInterceptors()
   }
 
+
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config)
 
     this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.get<T>(url, config);
+      return await this.axios.post<T>(url, customConfig);
     }
     finally {
       this.deleteRequestLogger(customConfig.requestId);
@@ -47,7 +48,7 @@ export class AxiosService implements OnModuleDestroy {
   }
 
   async post<T>(url: string, data?: any, config?: CustomAxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const customConfig = this.setRequestId(config) // TODO: add function build custom request config
+    const customConfig = this.setRequestId(config)
 
     this.setRequestLogger(url, customConfig);
 
