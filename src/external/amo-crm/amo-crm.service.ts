@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { AMO_CRM_LOGGER } from './amo-crm.config';
 import { AmoCrmOAuthTokenResponse } from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
-import { AppConfigType } from 'logs/config/config.app-config';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 
 
 @Injectable()

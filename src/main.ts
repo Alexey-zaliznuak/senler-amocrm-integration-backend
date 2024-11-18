@@ -1,7 +1,7 @@
-import { AppConfigType } from './../logs/config/config.app-config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
+import { AppConfigType } from './infrastructure/config/config.app-config';
 
 
 async function bootstrap() {
