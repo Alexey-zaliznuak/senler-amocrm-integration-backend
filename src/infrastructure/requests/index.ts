@@ -13,3 +13,4 @@ export interface CustomRequest extends ExpressRequest {
 export interface AuthorizedRequest extends CustomRequest {
   user: User
 }
+
