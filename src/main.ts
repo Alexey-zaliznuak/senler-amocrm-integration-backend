@@ -10,6 +10,8 @@ async function bootstrap() {
   const configService = app.get<AppConfigType>("CONFIG");
   const port = configService.PORT
 
+  app.setGlobalPrefix('api');
+
   AppService.setupSwaggerDocument(app, port);
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
