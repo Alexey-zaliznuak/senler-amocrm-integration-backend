@@ -3,6 +3,7 @@ export * from './config.validation-schema'
 
 export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV,
+  INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
   PORT: parseInt(process.env.PORT, 10) || 3000,
 
