@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { prisma } from 'src/infrastructure/database';
 import { CreateUserDto, CreateUserRequestDto, CreateUserResponseDto } from './dto/create-user.dto';
 import { AmoCrmService } from 'src/external/amo-crm';
@@ -32,11 +32,16 @@ export class UsersService {
     catch (exception) {
       if (
         exception instanceof AxiosError &&
-        exception.code &&
         exception.status === HttpStatusCode.BadRequest
+      ) throw new ServiceUnavailableException()
+
+      if (
+        exception instanceof AxiosError &&
+        exception.code === 'ENOTFOUND'
       ) {
-        throw new ServiceUnavailableException()
+        throw new BadRequestException("Invalid AmoCrm domain name")
       }
+
       throw exception
     }
   }
