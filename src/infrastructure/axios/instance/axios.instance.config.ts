@@ -7,7 +7,7 @@ export const AXIOS_INSTANCE = "AxiosInstance";
 export const AXIOS_INSTANCE_LOGGER = LoggingService.buildInjectableNameByContext(AXIOS_INSTANCE)
 
 export const BASE_RETRY_CONFIG: IAxiosRetryConfig = {
-  retries: 5,
+  retries: 3,
   retryDelay: (retryCount: number) => {
     const randomFactor = 0.8 + Math.random() * 0.4;
     return 1000 * (2 ** retryCount) * randomFactor
