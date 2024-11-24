@@ -1,5 +1,6 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
+import { NodeEnv } from '../config/config.validation-schema';
 
 
 const baseLogFormat = winston.format.combine(
@@ -62,10 +63,5 @@ export const DEFAULT_LOGGING_OPTIONS: winston.LoggerOptions = {
       maxFiles: '14d',
       zippedArchive: true,
     }),
-    // new (winston.transports as any).Logstash({
-    //   port: logstashPort,
-    //   host: logstashHost,
-    //   applicationName: 'my-app', // Название приложения
-    // }),
   ],
 };
