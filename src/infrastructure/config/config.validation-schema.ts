@@ -35,7 +35,6 @@ export const appConfigValidationSchema = Joi.object({
   PROD_SERVER_URL: Joi.string().uri().required(),
 
   // ELK
-  ELASTIC_SEARCH_PORT: PORT_IF_MODE_NOT_LOCAL,
-
+  ELASTICSEARCH_HOST: PORT_IF_MODE_NOT_LOCAL,
   KIBANA_PORT: PORT_IF_MODE_NOT_LOCAL,
 });

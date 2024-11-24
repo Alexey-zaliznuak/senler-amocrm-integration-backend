@@ -1,6 +1,7 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { NodeEnv } from '../config/config.validation-schema';
+import { ElasticsearchTransport } from 'winston-elasticsearch'
 
 
 const baseLogFormat = winston.format.combine(
@@ -63,5 +64,11 @@ export const DEFAULT_LOGGING_OPTIONS: winston.LoggerOptions = {
       maxFiles: '14d',
       zippedArchive: true,
     }),
+    new ElasticsearchTransport({
+      clientOpts: {
+        node: process.env.ELASTICSEARCH_HOST,
+      },
+      indexPrefix: 'backend-logs',
+    })
   ],
 };
