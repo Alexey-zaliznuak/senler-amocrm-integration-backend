@@ -15,6 +15,10 @@ export const AppConfig = {
 
   DEV_SERVER_URL: process.env.DEV_SERVER_URL,
   PROD_SERVER_URL: process.env.DEV_SERVER_URL,
+
+  ELASTICSEARCH_HOST: process.env.ELASTICSEARCH_HOST,
+  KIBANA_PORT: process.env.KIBANA_PORT,
 };
+
 
 export type AppConfigType = typeof AppConfig;

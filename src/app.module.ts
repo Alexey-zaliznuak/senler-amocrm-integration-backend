@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from './infrastructure/filters/http-exception.filter';
-import { DEFAULT_LOGGING_OPTIONS } from './infrastructure/logging/logging.config';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { AuthGuard } from './infrastructure/auth/auth.guard';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
@@ -32,7 +31,7 @@ import { CustomConfigModule } from './infrastructure/config/config.module';
     AmoCrmModule,
 
     // Infrastructure modules
-    LoggingModule.forRoot(DEFAULT_LOGGING_OPTIONS),
+    LoggingModule.forRoot(),
     AxiosModule.forRoot(),
 
     ConfigModule.forRoot({

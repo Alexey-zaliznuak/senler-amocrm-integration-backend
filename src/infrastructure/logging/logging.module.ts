@@ -1,4 +1,3 @@
-import { DEFAULT_LOGGING_OPTIONS } from './logging.config';
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggingService } from './logging.service';
 import * as winston from 'winston';
@@ -12,34 +11,41 @@ export const LOGGER = 'WinstonLogger';
   providers: [LoggingService],
 })
 export class LoggingModule {
-  static forRoot(options: winston.LoggerOptions = DEFAULT_LOGGING_OPTIONS): DynamicModule {
-    const logger = LoggingService.createLogger(options);
-
-    const rootLoggerProvider = {
-      provide: LOGGER,
-      useValue: logger,
-    };
-
+  static forRoot(options?: winston.LoggerOptions): DynamicModule {
     return {
       module: LoggingModule,
-      providers: [rootLoggerProvider, LoggingService,],
+      providers: [
+        {
+          provide: LOGGER,
+          inject: [ LoggingService ],
+          useFactory: (loggingService: LoggingService) => {
+            return loggingService.createLogger(options);
+          }
+        },
+        LoggingService,
+      ],
       exports: [LOGGER],
     };
   }
 
-  static forFeature(context: string, options: winston.LoggerOptions = DEFAULT_LOGGING_OPTIONS): DynamicModule {
-    const logger = options
-      ? LoggingService.createLogger({ ...options, defaultMeta: { context } })
-      : LoggingService.createLogger({ defaultMeta: { context } });
-
-    const featureLoggerProvider = {
-      provide: LoggingService.buildInjectableNameByContext(context),
-      useValue: logger,
-    };
-
+  static forFeature(context: string, options?: winston.LoggerOptions): DynamicModule {
+    const featureLoggerProvider = LoggingService.buildInjectableNameByContext(context)
     return {
       module: LoggingModule,
-      providers: [featureLoggerProvider, LoggingService],
+      providers: [
+        {
+          provide: featureLoggerProvider,
+          inject: [ LoggingService ],
+          useFactory: (loggingService: LoggingService) => {
+            const logger = options
+              ? loggingService.createLogger({ ...options, defaultMeta: { context } })
+              : loggingService.createLogger({ defaultMeta: { context } });
+
+            return logger;
+          }
+        },
+        LoggingService,
+      ],
       exports: [featureLoggerProvider],
     };
   }
