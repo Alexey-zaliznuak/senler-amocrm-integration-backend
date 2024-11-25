@@ -29,9 +29,6 @@ export const appConfigValidationSchema = Joi.object({
 
   // ELK
   ELASTICSEARCH_HOST: Joi.string().uri().required(),
-  KIBANA_PORT: Joi.number().when('NODE_ENV', {
-    not: NodeEnv.local,
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }),
+  ELASTIC_PASSWORD: Joi.string().required(),
+  ELASTIC_USERNAME: Joi.string().required()
 });

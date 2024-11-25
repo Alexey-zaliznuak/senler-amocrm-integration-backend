@@ -18,6 +18,9 @@ export const AppConfig = {
 
   ELASTICSEARCH_HOST: process.env.ELASTICSEARCH_HOST,
   KIBANA_PORT: process.env.KIBANA_PORT,
+
+  ELASTIC_PASSWORD: process.env.ELASTIC_PASSWORD,
+  ELASTIC_USERNAME: process.env.ELASTIC_USERNAME,
 };
 
 
