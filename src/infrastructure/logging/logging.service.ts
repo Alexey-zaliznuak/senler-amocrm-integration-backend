@@ -43,16 +43,16 @@ export class LoggingService {
     }
 
     return [
-      new ElasticsearchTransport({
-        clientOpts: {
-          node: AppConfig.ELASTICSEARCH_HOST,
-          auth: {
-            username: AppConfig.ELASTIC_USERNAME,
-            password: AppConfig.ELASTIC_PASSWORD,
-          }
-        },
-        indexPrefix: 'backend-logs',
-      })
+      // new ElasticsearchTransport({
+      //   clientOpts: {
+      //     node: AppConfig.ELASTICSEARCH_HOST,
+      //     auth: {
+      //       username: AppConfig.ELASTIC_USERNAME,
+      //       password: AppConfig.ELASTIC_PASSWORD,
+      //     }
+      //   },
+      //   indexPrefix: 'backend-logs',
+      // })
     ]
   }
 
