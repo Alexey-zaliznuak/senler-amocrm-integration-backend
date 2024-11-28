@@ -1,4 +1,4 @@
-import { AppConfig, AppConfigType, NodeEnv } from './../config/config.app-config';
+import { AppConfigType, NodeEnv } from './../config/config.app-config';
 import winston, { createLogger } from 'winston';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
 
