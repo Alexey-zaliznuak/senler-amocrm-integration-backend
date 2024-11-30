@@ -60,6 +60,22 @@ export class AxiosService implements OnModuleDestroy {
     }
   }
 
+  async patch<T>(
+    url: string,
+    data?: any,
+    config?: CustomAxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    const customConfig = this.setRequestId(config);
+
+    this.setRequestLogger(url, customConfig);
+
+    try {
+      return await this.axios.patch<T>(url, data, customConfig);
+    } finally {
+      this.deleteRequestLogger(customConfig.requestId);
+    }
+  }
+
   private createAxiosClient(): AxiosInstance {
 
     const instance = axios.create(this.defaults.axiosConfig);

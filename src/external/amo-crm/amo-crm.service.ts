@@ -127,14 +127,14 @@ export class AmoCrmService {
   }
 
   // Редактирование сделок
-  async editLead(
+  async editLeads(
     amoCrmDomain: string,
     id: string,
     price: string,
     status_id: string,
     pipeline_id: string,
   ): Promise<> {
-    const response = await this.axios.post<>( // PATCH
+    const response = await this.axios.patch<>( // PATCH
       `https://${amoCrmDomain}/api/v4/leads/${id}`,
       {
         price,
