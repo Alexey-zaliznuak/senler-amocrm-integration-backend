@@ -98,7 +98,7 @@ export class AmoCrmService {
       `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`,
       {
         user_id,
-        status_id
+        status_id,
       },
     );
 
@@ -106,10 +106,45 @@ export class AmoCrmService {
   }
 
   // Получение неразобранного по UID
+  async getUnsorted(amoCrmDomain: string, uid: string): Promise<> {
+    const response = await this.axios.get<>(
+      `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`,
+    );
+
+    return response.data;
+  }
 
   // Получение сделки по ID
+  async getLead(amoCrmDomain: string, id: string, _with: string): Promise<> {
+    const params = new URLSearchParams();
+    params.append('with', _with);
+
+    const response = await this.axios.get<>(
+      `https://${amoCrmDomain}/api/v4/leads/${id}?${params}`,
+    );
+
+    return response.data;
+  }
 
   // Редактирование сделок
+  async editLead(
+    amoCrmDomain: string,
+    id: string,
+    price: string,
+    status_id: string,
+    pipeline_id: string,
+  ): Promise<> {
+    const response = await this.axios.post<>( // PATCH
+      `https://${amoCrmDomain}/api/v4/leads/${id}`,
+      {
+        price,
+        status_id,
+        pipeline_id,
+      },
+    );
+
+    return response.data;
+  }
 
   // Добавление сделок ?
 

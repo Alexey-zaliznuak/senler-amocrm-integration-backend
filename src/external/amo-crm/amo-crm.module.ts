@@ -6,6 +6,6 @@ import { AMO_CRM } from './amo-crm.config';
 @Module({
   imports: [LoggingModule.forFeature(AMO_CRM)],
   providers: [AmoCrmService],
-  exports: [AmoCrmService]
+  exports: [AmoCrmService],
 })
 export class AmoCrmModule {}
