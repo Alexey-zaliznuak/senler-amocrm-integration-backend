@@ -3,7 +3,15 @@ import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { Logger } from 'winston';
 import { AMO_CRM_LOGGER } from './amo-crm.config';
-import { AmoCrmOAuthTokenResponse } from './amo-crm.dto';
+import {
+  AcceptUnsortedResponse,
+  AddUnsortedResponse,
+  AmoCrmOAuthTokenResponse,
+  CreateContactResponse,
+  GetLeadResponse,
+  GetUnsortedResponse,
+  UpdateLeadResponse,
+} from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 
@@ -45,8 +53,8 @@ export class AmoCrmService {
     name: string,
     first_name: string,
     last_name: string,
-  ): Promise<> {
-    const response = await this.axios.post<>(
+  ): Promise<CreateContactResponse> {
+    const response = await this.axios.post<CreateContactResponse>(
       `https://${amoCrmDomain}/api/v4/contacts`,
       {
         name,
@@ -66,8 +74,8 @@ export class AmoCrmService {
     metadata: string,
     pipeline_id: string,
     contactId: string,
-  ): Promise<> {
-    const response = await this.axios.post<>(
+  ): Promise<AddUnsortedResponse> {
+    const response = await this.axios.post<AddUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/forms`,
       {
         source_name,
@@ -93,8 +101,8 @@ export class AmoCrmService {
     uid: string,
     user_id: string,
     status_id: string,
-  ): Promise<> {
-    const response = await this.axios.post<>(
+  ): Promise<AcceptUnsortedResponse> {
+    const response = await this.axios.post<AcceptUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`,
       {
         user_id,
@@ -106,8 +114,11 @@ export class AmoCrmService {
   }
 
   // Получение неразобранного по UID
-  async getUnsorted(amoCrmDomain: string, uid: string): Promise<> {
-    const response = await this.axios.get<>(
+  async getUnsorted(
+    amoCrmDomain: string,
+    uid: string,
+  ): Promise<GetUnsortedResponse> {
+    const response = await this.axios.get<GetUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`,
     );
 
@@ -115,11 +126,15 @@ export class AmoCrmService {
   }
 
   // Получение сделки по ID
-  async getLead(amoCrmDomain: string, id: string, _with: string): Promise<> {
+  async getLead(
+    amoCrmDomain: string,
+    id: string,
+    _with: string,
+  ): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
     params.append('with', _with);
 
-    const response = await this.axios.get<>(
+    const response = await this.axios.get<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${id}?${params}`,
     );
 
@@ -133,8 +148,8 @@ export class AmoCrmService {
     price: string,
     status_id: string,
     pipeline_id: string,
-  ): Promise<> {
-    const response = await this.axios.patch<>( // PATCH
+  ): Promise<UpdateLeadResponse> {
+    const response = await this.axios.patch<UpdateLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${id}`,
       {
         price,
@@ -149,6 +164,23 @@ export class AmoCrmService {
   // Добавление сделок ?
 
   // Создание дополнительных полей сущности
+  async createLeadField(
+    amoCrmDomain: string,
+    type: string,
+    name: string,
+    is_api_only: string,
+  ): Promise<any> {
+    const response = await this.axios.post<any>(
+      `https://${amoCrmDomain}/api/v4/leads/custom_fields`,
+      {
+        type,
+        name,
+        is_api_only,
+      },
+    );
+
+    return response.data;
+  }
 
   // Редактирование дополнительных полей сущности *
 
