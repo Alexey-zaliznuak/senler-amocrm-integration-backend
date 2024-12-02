@@ -48,12 +48,17 @@ export class AmoCrmService {
   }
 
   // Добавление контактов
-  async addContact(
-    amoCrmDomain: string,
-    name: string,
-    first_name: string,
-    last_name: string,
-  ): Promise<CreateContactResponse> {
+  async addContact({
+    amoCrmDomain,
+    name,
+    first_name,
+    last_name,
+  }: {
+    amoCrmDomain: string;
+    name: string;
+    first_name: string;
+    last_name: string;
+  }): Promise<CreateContactResponse> {
     const response = await this.axios.post<CreateContactResponse>(
       `https://${amoCrmDomain}/api/v4/contacts`,
       {
@@ -67,14 +72,21 @@ export class AmoCrmService {
   }
 
   // Добавление неразобранного типа форма
-  async addUnsorted(
-    amoCrmDomain: string,
-    source_name: string,
-    source_uid: string,
-    metadata: string,
-    pipeline_id: string,
-    contactId: string,
-  ): Promise<AddUnsortedResponse> {
+  async addUnsorted({
+    amoCrmDomain,
+    source_name,
+    source_uid,
+    metadata,
+    pipeline_id,
+    contactId,
+  }: {
+    amoCrmDomain: string;
+    source_name: string;
+    source_uid: string;
+    metadata: string;
+    pipeline_id: string;
+    contactId: string;
+  }): Promise<AddUnsortedResponse> {
     const response = await this.axios.post<AddUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/forms`,
       {
@@ -96,12 +108,17 @@ export class AmoCrmService {
   }
 
   // Принятие неразобранного
-  async acceptUnsorted(
-    amoCrmDomain: string,
-    uid: string,
-    user_id: string,
-    status_id: string,
-  ): Promise<AcceptUnsortedResponse> {
+  async acceptUnsorted({
+    amoCrmDomain,
+    uid,
+    user_id,
+    status_id,
+  }: {
+    amoCrmDomain: string;
+    uid: string;
+    user_id: string;
+    status_id: string;
+  }): Promise<AcceptUnsortedResponse> {
     const response = await this.axios.post<AcceptUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`,
       {
@@ -114,10 +131,13 @@ export class AmoCrmService {
   }
 
   // Получение неразобранного по UID
-  async getUnsorted(
-    amoCrmDomain: string,
-    uid: string,
-  ): Promise<GetUnsortedResponse> {
+  async getUnsorted({
+    amoCrmDomain,
+    uid,
+  }: {
+    amoCrmDomain: string;
+    uid: string;
+  }): Promise<GetUnsortedResponse> {
     const response = await this.axios.get<GetUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`,
     );
@@ -126,11 +146,15 @@ export class AmoCrmService {
   }
 
   // Получение сделки по ID
-  async getLead(
-    amoCrmDomain: string,
-    id: string,
-    _with: string,
-  ): Promise<GetLeadResponse> {
+  async getLead({
+    amoCrmDomain,
+    id,
+    _with,
+  }: {
+    amoCrmDomain: string;
+    id: string;
+    _with: string;
+  }): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
     params.append('with', _with);
 
@@ -142,13 +166,19 @@ export class AmoCrmService {
   }
 
   // Редактирование сделок
-  async editLeads(
-    amoCrmDomain: string,
-    id: string,
-    price: string,
-    status_id: string,
-    pipeline_id: string,
-  ): Promise<UpdateLeadResponse> {
+  async editLeads({
+    amoCrmDomain,
+    id,
+    price,
+    status_id,
+    pipeline_id,
+  }: {
+    amoCrmDomain: string;
+    id: string;
+    price: string;
+    status_id: string;
+    pipeline_id: string;
+  }): Promise<UpdateLeadResponse> {
     const response = await this.axios.patch<UpdateLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${id}`,
       {
@@ -161,15 +191,18 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Добавление сделок ?
-
   // Создание дополнительных полей сущности
-  async createLeadField(
-    amoCrmDomain: string,
-    type: string,
-    name: string,
-    is_api_only: string,
-  ): Promise<any> {
+  async createLeadField({
+    amoCrmDomain,
+    type,
+    name,
+    is_api_only,
+  }: {
+    amoCrmDomain: string;
+    type: string;
+    name: string;
+    is_api_only: string;
+  }): Promise<any> {
     const response = await this.axios.post<any>(
       `https://${amoCrmDomain}/api/v4/leads/custom_fields`,
       {
