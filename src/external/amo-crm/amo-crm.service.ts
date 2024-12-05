@@ -147,7 +147,7 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-detail
    */
-  async getUnsorted({
+  async getUnsortedByUID({
     amoCrmDomain,
     uid,
   }: {
@@ -190,7 +190,7 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-add
    */
-  async getLead({
+  async getLeadById({
     amoCrmDomain,
     id,
     _with,
@@ -214,7 +214,7 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-edit
    */
-  async editLeads({
+  async editLeadsById({
     amoCrmDomain,
     id,
     price,
@@ -252,7 +252,7 @@ export class AmoCrmService {
     fields: Array<{
       type: string;
       name: string;
-      is_api_only: string;
+      is_api_only: boolean;
     }>;
   }): Promise<any> {
     const response = await this.axios.post<any>(
