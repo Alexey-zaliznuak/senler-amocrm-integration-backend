@@ -47,7 +47,11 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Добавление контактов
+  /**
+   * Добавление контактов
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/contacts-api#contacts-add
+   */
   async addContact({
     amoCrmDomain,
     name,
@@ -71,7 +75,11 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Добавление неразобранного типа форма
+  /**
+   * Добавление неразобранного типа форма
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-add-form
+   */
   async addUnsorted({
     amoCrmDomain,
     source_name,
@@ -107,7 +115,11 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Принятие неразобранного
+  /**
+   * Принятие неразобранного
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-accept
+   */
   async acceptUnsorted({
     amoCrmDomain,
     uid,
@@ -130,7 +142,11 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Получение неразобранного по UID
+  /**
+   * Получение неразобранного по UID
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-detail
+   */
   async getUnsorted({
     amoCrmDomain,
     uid,
@@ -145,7 +161,35 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Получение сделки по ID
+  /**
+   * Добавление сделок
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-add
+   */
+  async addLead({
+    amoCrmDomain,
+    leads,
+  }: {
+    amoCrmDomain: string;
+    leads: Array<{
+      name: string;
+      price: number;
+      status_id: number;
+    }>;
+  }): Promise<GetLeadResponse> {
+    const response = await this.axios.post<GetLeadResponse>(
+      `https://${amoCrmDomain}/api/v4/leads`,
+      leads,
+    );
+
+    return response.data;
+  }
+
+  /**
+   * Получение сделки по ID
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-add
+   */
   async getLead({
     amoCrmDomain,
     id,
@@ -165,7 +209,11 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Редактирование сделок
+  /**
+   * Редактирование сделок
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-edit
+   */
   async editLeads({
     amoCrmDomain,
     id,
@@ -191,25 +239,25 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // Создание дополнительных полей сущности
+  /**
+   * Создание дополнительных полей сущности
+   *
+   * https://www.amocrm.ru/developers/content/crm_platform/custom-fields#Создание-дополнительных-полей-сущности
+   */
   async createLeadField({
     amoCrmDomain,
-    type,
-    name,
-    is_api_only,
+    fields,
   }: {
     amoCrmDomain: string;
-    type: string;
-    name: string;
-    is_api_only: string;
+    fields: Array<{
+      type: string;
+      name: string;
+      is_api_only: string;
+    }>;
   }): Promise<any> {
     const response = await this.axios.post<any>(
       `https://${amoCrmDomain}/api/v4/leads/custom_fields`,
-      {
-        type,
-        name,
-        is_api_only,
-      },
+      fields,
     );
 
     return response.data;
