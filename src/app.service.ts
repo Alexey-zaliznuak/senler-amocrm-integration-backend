@@ -1,5 +1,6 @@
 import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NodeEnv } from './infrastructure/config/config.validation-schema';
 
 
 @Injectable()
@@ -11,14 +12,15 @@ export class AppService {
     .setVersion('1.0')
     .addTag('Tag');
 
-  if (process.env.NODE_ENV === "development") {
-    config.addServer(`http://localhost:${port}`, "local")
-    config.addServer(process.env.DEV_SERVER_URL, "dev server")
-  }
+    if (process.env.NODE_ENV === NodeEnv.development) {
+      config.addServer(`http://localhost:${port}`, "local")
+      config.addServer(process.env.DEV_SERVER_URL, "dev server")
+    }
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config.build());
-  SwaggerModule.setup('api/docs', app, documentFactory);
-  }
+    const documentFactory = () => SwaggerModule.createDocument(app, config.build());
+
+    SwaggerModule.setup('api/docs', app, documentFactory);
+    }
 
   public static setupValidation(app: INestApplication) {
     app.useGlobalPipes(new ValidationPipe({errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY}));

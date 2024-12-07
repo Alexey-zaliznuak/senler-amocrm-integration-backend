@@ -26,9 +26,4 @@ export const appConfigValidationSchema = Joi.object({
 
   DEV_SERVER_URL: Joi.string().uri().required(),
   PROD_SERVER_URL: Joi.string().uri().required(),
-
-  // ELK
-  ELASTICSEARCH_HOST: Joi.string().uri().required(),
-  ELASTIC_PASSWORD: Joi.string().required(),
-  ELASTIC_USERNAME: Joi.string().required()
 });

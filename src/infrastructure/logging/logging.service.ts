@@ -37,23 +37,14 @@ export class LoggingService {
     };
   }
 
+  // TODO: Grafana + Loki
+  // TODO: rename method
   private appendNotLocalTransportsIfNeed(): Transport[] {
     if (this.appConfig.NODE_ENV != NodeEnv.local) {
       return []
     }
 
-    return [
-      // new ElasticsearchTransport({
-      //   clientOpts: {
-      //     node: AppConfig.ELASTICSEARCH_HOST,
-      //     auth: {
-      //       username: AppConfig.ELASTIC_USERNAME,
-      //       password: AppConfig.ELASTIC_PASSWORD,
-      //     }
-      //   },
-      //   indexPrefix: 'backend-logs',
-      // })
-    ]
+    return []
   }
 
   public static buildInjectableNameByContext = (context: string) => LOGGER + "__" + context;
