@@ -2,6 +2,13 @@ import { Body, Controller, HttpCode, Param, Post, Request } from '@nestjs/common
 import { WebhooksService } from './webhooks.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { ApiProperty } from '@nestjs/swagger';
+
+class TestDto {
+  @ApiProperty()
+  a: number
+}
+
 
 @Controller('integration/webhooks')
 export class WebhooksController {
@@ -28,12 +35,12 @@ export class WebhooksController {
   @HttpCode(201)
   async testing(
     @Request() req: CustomRequest,
-    @Body() body?: {name: string},
+    @Body() body: TestDto,
   ): Promise<any> {
     req.logger.info("Привет")
     // this.amoCrmService.acceptUnsorted(...)
     return {
-      1: 2
+      a: body.a
     }
   }
 }
