@@ -1,20 +1,23 @@
-import * as Joi from 'joi'
+import * as Joi from 'joi';
 
 
 export enum NodeEnv {
   local = "local",
   development = "development",
-  staging = "staging",
   production = "production",
 }
 
-
 export const appConfigValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid(NodeEnv.local, NodeEnv.development, NodeEnv.staging, NodeEnv.production)
+    .valid(
+      NodeEnv.local,
+      NodeEnv.development,
+      NodeEnv.production
+    )
     .required(),
+  PORT: Joi.number().required(),
 
-  PORT: Joi.number().default(3000),
+  INSTANCE_ID: Joi.string().required(),
 
   INTEGRATION_SECRET: Joi.string().required(),
 
@@ -26,4 +29,8 @@ export const appConfigValidationSchema = Joi.object({
 
   DEV_SERVER_URL: Joi.string().uri().required(),
   PROD_SERVER_URL: Joi.string().uri().required(),
+
+  LOKI_HOST: Joi.string().uri().required(),
+  LOKI_USERNAME: Joi.string().required(),
+  LOKI_AUTH_TOKEN: Joi.string().required(),
 });

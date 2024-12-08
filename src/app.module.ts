@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { HttpException, MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -22,6 +22,13 @@ import { CustomConfigModule } from './infrastructure/config/config.module';
 
 @Module({
   imports: [
+    CustomConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [() => AppConfig],
+      validationSchema: appConfigValidationSchema,
+    }),
+
     // Resources
     UsersModule,
     IntegrationModule,
@@ -34,13 +41,6 @@ import { CustomConfigModule } from './infrastructure/config/config.module';
     LoggingModule.forRoot(),
     AxiosModule.forRoot(),
 
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [() => AppConfig,],
-      validationSchema: appConfigValidationSchema,
-    }),
-
-    CustomConfigModule.forRoot(),
   ],
 
   controllers: [

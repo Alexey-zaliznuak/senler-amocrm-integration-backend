@@ -1,6 +1,10 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
 import 'winston-daily-rotate-file';
+import { AppConfigType } from '../config/config.app-config';
+
+
+const LokiTransport = require("winston-loki");
 
 
 export const baseLogFormat = winston.format.combine(
@@ -34,7 +38,7 @@ export const prettyLogFormat = winston.format.combine(
 );
 
 
-export const baseTransports: Transport[] = [
+export const baseTransports = (config: AppConfigType): Transport[] => [
   new winston.transports.Console({
     level: 'debug',
     format: prettyLogFormat,
@@ -61,4 +65,20 @@ export const baseTransports: Transport[] = [
     maxFiles: '14d',
     zippedArchive: true,
   }),
+  new LokiTransport({
+    host: config.LOKI_HOST,
+    labels: {
+      service: "senler-amocrm-integration-backend",
+      instance: "",
+    },
+    json: true,
+    basicAuth: config.LOKI_USERNAME + ":" +config.LOKI_AUTH_TOKEN,
+    format: winston.format.json(),
+    replaceTimestamp: true,
+    onConnectionError: (err) => {
+      if (err) {
+        console.error('Connection to Loki failed. Check your host and credentials.');
+      }
+    },
+  })
 ]

@@ -1,12 +1,10 @@
-import { AppConfigType, NodeEnv } from './../config/config.app-config';
 import winston, { createLogger } from 'winston';
-import { ElasticsearchTransport } from 'winston-elasticsearch';
+import { AppConfigType } from './../config/config.app-config';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { CONFIG } from '../config/config.module';
 import { baseLogFormat, baseTransports } from './logging.config';
 import { LOGGER } from './logging.module';
-import { CONFIG } from '../config/config.module';
-import * as Transport from 'winston-transport';
 
 
 @Injectable()
@@ -26,26 +24,13 @@ export class LoggingService {
   }
 
   private buildConfig(): winston.LoggerOptions {
-    let transports = baseTransports;
-
-    transports.concat(this.appendNotLocalTransportsIfNeed())
-
     return {
       level: 'info',
       format: baseLogFormat,
-      transports: baseTransports,
+      transports: baseTransports(this.appConfig),
     };
   }
 
-  // TODO: Grafana + Loki
-  // TODO: rename method
-  private appendNotLocalTransportsIfNeed(): Transport[] {
-    if (this.appConfig.NODE_ENV != NodeEnv.local) {
-      return []
-    }
-
-    return []
-  }
 
   public static buildInjectableNameByContext = (context: string) => LOGGER + "__" + context;
 }
