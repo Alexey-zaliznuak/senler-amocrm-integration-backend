@@ -31,6 +31,5 @@ export class LoggingService {
     };
   }
 
-
   public static buildInjectableNameByContext = (context: string) => LOGGER + "__" + context;
 }

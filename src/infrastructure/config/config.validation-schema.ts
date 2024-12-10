@@ -15,9 +15,9 @@ export const appConfigValidationSchema = Joi.object({
       NodeEnv.production
     )
     .required(),
-  PORT: Joi.number().required(),
+  PORT: Joi.number().default(3000),  // TODO
 
-  INSTANCE_ID: Joi.string().required(),
+  INSTANCE_ID: Joi.string().default("1"),  // TODO
 
   INTEGRATION_SECRET: Joi.string().required(),
 
