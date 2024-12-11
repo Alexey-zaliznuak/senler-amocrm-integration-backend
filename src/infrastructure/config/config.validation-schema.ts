@@ -1,11 +1,7 @@
 import * as Joi from 'joi';
 
+import { AppConfig, NodeEnv } from './config.app-config';
 
-export enum NodeEnv {
-  local = "local",
-  development = "development",
-  production = "production",
-}
 
 export const appConfigValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -15,9 +11,11 @@ export const appConfigValidationSchema = Joi.object({
       NodeEnv.production
     )
     .required(),
-  PORT: Joi.number().default(3000),  // TODO
+  PORT: Joi.number().default(AppConfig.PORT),
 
-  INSTANCE_ID: Joi.string().default("1"),  // TODO
+  OPENAPI_SERVER_URLS: Joi.string().required(),
+
+  INSTANCE_ID: Joi.string().default(AppConfig.INSTANCE_ID),
 
   INTEGRATION_SECRET: Joi.string().required(),
 
@@ -27,8 +25,6 @@ export const appConfigValidationSchema = Joi.object({
   AMO_CRM_CLIENT_SECRET: Joi.string().required(),
   AMO_CRM_REDIRECT_URI: Joi.string().uri().required(),
 
-  DEV_SERVER_URL: Joi.string().uri().required(),
-  PROD_SERVER_URL: Joi.string().uri().required(),
 
   LOKI_HOST: Joi.string().uri().required(),
   LOKI_USERNAME: Joi.string().required(),

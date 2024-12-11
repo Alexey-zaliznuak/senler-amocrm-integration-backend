@@ -7,15 +7,14 @@ import { AppConfigType } from './infrastructure/config/config.app-config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const configService = app.get<AppConfigType>("CONFIG");
-  const port = configService.PORT
+  const config = app.get<AppConfigType>("CONFIG");
 
   app.setGlobalPrefix('api');
 
-  AppService.setupSwaggerDocument(app, port);
+  AppService.setupSwaggerDocument(app, config);
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
 
-  await app.listen(port);
+  await app.listen(config.PORT);
 }
 bootstrap();

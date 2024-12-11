@@ -1,8 +1,10 @@
-import { Body, Controller, HttpCode, Param, Post, Request } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Param, Post, Request } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHeader, ApiProperty } from '@nestjs/swagger';
+import { CONFIG } from 'src/infrastructure/config/config.module';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 
 class TestDto {
   @ApiProperty()
@@ -13,6 +15,7 @@ class TestDto {
 @Controller('integration/webhooks')
 export class WebhooksController {
   constructor(
+    @Inject(CONFIG) private readonly config: AppConfigType,
     private readonly webhooksService: WebhooksService,
     private readonly amoCrmService: AmoCrmService,
   ) {}
@@ -38,9 +41,6 @@ export class WebhooksController {
     @Body() body: TestDto,
   ): Promise<any> {
     req.logger.info("Привет")
-    // this.amoCrmService.acceptUnsorted(...)
-    return {
-      a: body.a
-    }
+    return this.config.INSTANCE_ID
   }
 }

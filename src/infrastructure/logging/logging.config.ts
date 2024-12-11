@@ -69,7 +69,7 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
     host: config.LOKI_HOST,
     labels: {
       service: "senler-amocrm-integration-backend",
-      instance: "",
+      instance: config.INSTANCE_ID,
     },
     json: true,
     basicAuth: config.LOKI_USERNAME + ":" +config.LOKI_AUTH_TOKEN,

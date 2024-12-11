@@ -1,21 +1,25 @@
 import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { NodeEnv } from './infrastructure/config/config.validation-schema';
+import { AppConfigType, NodeEnv } from './infrastructure/config/config.app-config';
 
 
 @Injectable()
 export class AppService {
-  public static setupSwaggerDocument(app: INestApplication, port: number) {
+  public static setupSwaggerDocument(app: INestApplication, appConfig: AppConfigType) {
     let config = new DocumentBuilder()
     .setTitle('Title')
     .setDescription('Description')
     .setVersion('1.0')
-    .addTag('Tag');
+    .addTag('Tag')
+    .addSecurity('header-integration-secret', {
+      type: 'apiKey',
+      in: 'header',
+      name: 'x-integration-secret',
+    }).addSecurityRequirements("header-integration-secret");
 
-    if (process.env.NODE_ENV === NodeEnv.development) {
-      config.addServer(`http://localhost:${port}`, "local")
-      config.addServer(process.env.DEV_SERVER_URL, "dev server")
-    }
+    appConfig.OPENAPI_SERVER_URLS.forEach(url => {
+      config.addServer(url)
+    });
 
     const documentFactory = () => SwaggerModule.createDocument(app, config.build());
 
