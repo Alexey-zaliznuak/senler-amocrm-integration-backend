@@ -66,7 +66,7 @@ export class WebhooksController {
     @Request() req: CustomRequest,
     @Body() body: TestDto,
   ): Promise<any> {
-    req.logger.info('Создание контакта');
+    req.logger.info('Д');
     this.amoCrmService.addContact({
       amoCrmDomain: 'collabox.amocrm.ru',
       name: 'Максим Senler',
@@ -82,15 +82,15 @@ export class WebhooksController {
     @Request() req: CustomRequest,
     @Body() body: TestDto,
   ): Promise<any> {
-    req.logger.info('Создание лида');
+    req.logger.info('создание контакта');
     this.amoCrmService.addLead({
       amoCrmDomain: 'collabox.amocrm.ru',
       leads: [
         {
-          name: 'Senler',
-          price: 10,
-        },
-      ],
+          'name': 'Senler',
+          'price': 10
+        }
+      ]
     });
     return this.config.INSTANCE_ID;
   }
