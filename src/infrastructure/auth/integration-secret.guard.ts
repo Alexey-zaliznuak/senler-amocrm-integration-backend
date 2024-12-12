@@ -4,7 +4,7 @@ import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class IntegrationSecretGuard implements CanActivate {
   constructor(
     @Inject(CONFIG) private readonly config: AppConfigType,
   ) {}

@@ -1,10 +1,9 @@
-import { HttpException, MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from './infrastructure/filters/http-exception.filter';
 import { LoggingModule } from './infrastructure/logging/logging.module';
-import { AuthGuard } from './infrastructure/auth/auth.guard';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { ProcessTimeInterceptor } from './infrastructure/interceptors';
@@ -52,8 +51,6 @@ import { appConfigValidationSchema } from './infrastructure/config/config.valida
     AppService,
 
     SenlerService,
-
-    { provide: APP_GUARD, useClass: AuthGuard, },
 
     { provide: APP_FILTER, useClass: HttpExceptionFilter, },
 
