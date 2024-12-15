@@ -17,7 +17,10 @@ import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secr
 
 class TestDto {
   @ApiProperty()
-  a: number;
+  a?: number;
+
+  @ApiProperty()
+  integrationSecret: string;
 }
 
 @Controller('integration/webhooks')
@@ -33,7 +36,7 @@ export class WebhooksController {
   @UseGuards(IntegrationSecretGuard)
   async handlePostRequest(
     @Request() req: CustomRequest,
-    @Body() body?: any,
+    @Body() body?: TestDto,
   ): Promise<any> {
     req.logger.warn('HEADERS', req.headers);
     return {

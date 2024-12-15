@@ -13,9 +13,11 @@ export class IntegrationSecretGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const integrationSecretInHeaders = context.switchToHttp().getRequest<Request>().headers["x-integration-secret"]
-    console.log(context.switchToHttp().getRequest<Request>().body);
+    const integrationSecretInBody = context.switchToHttp().getRequest<Request>().body["integrationSecret"];
 
-    return true
-    // return integrationSecretInHeaders === this.config.INTEGRATION_SECRET;
+    return (
+      integrationSecretInHeaders === this.config.INTEGRATION_SECRET
+      || integrationSecretInBody === this.config.INTEGRATION_SECRET
+    );
   }
 }
