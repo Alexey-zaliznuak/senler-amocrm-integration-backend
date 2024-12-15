@@ -86,14 +86,14 @@ export class AmoCrmService {
     source_uid,
     metadata,
     pipeline_id,
-    contactId,
+    contactName,
   }: {
     amoCrmDomain: string;
     source_name: string;
     source_uid: string;
-    metadata: string;
+    metadata: object;
     pipeline_id: string;
-    contactId: string;
+    contactName: string;
   }): Promise<AddUnsortedResponse> {
     const response = await this.axios.post<AddUnsortedResponse>(
       `https://${amoCrmDomain}/api/v4/leads/unsorted/forms`,
@@ -105,7 +105,7 @@ export class AmoCrmService {
         _embedded: {
           contacts: [
             {
-              id: contactId,
+              name: contactName,
             },
           ],
         },
@@ -174,7 +174,7 @@ export class AmoCrmService {
     leads: Array<{
       name: string;
       price: number;
-      status_id: number;
+      status_id?: number;
     }>;
   }): Promise<GetLeadResponse> {
     const response = await this.axios.post<GetLeadResponse>(
@@ -252,7 +252,7 @@ export class AmoCrmService {
     fields: Array<{
       type: string;
       name: string;
-      is_api_only: boolean;
+      is_api_only?: boolean;
     }>;
   }): Promise<any> {
     const response = await this.axios.post<any>(
