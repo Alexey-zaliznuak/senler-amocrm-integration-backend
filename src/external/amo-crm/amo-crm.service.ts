@@ -188,7 +188,7 @@ export class AmoCrmService {
   /**
    * Получение сделки по ID
    *
-   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-add
+   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#lead-detail
    */
   async getLeadById({
     amoCrmDomain,
@@ -261,6 +261,32 @@ export class AmoCrmService {
     );
 
     return response.data;
+  }
+
+  /**
+   * Создание лида, если его нет
+   */
+  async createLeadIfNotExist({
+    amoCrmDomain,
+    leadId,
+    name,
+  }: {
+    amoCrmDomain: string;
+    leadId: string;
+    name: string;
+  }) {
+    const response = await this.axios.get<GetLeadResponse>(
+      `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
+    );
+
+    if (response.status == 200) return;
+
+    await this.axios.post<GetLeadResponse>(
+      `https://${amoCrmDomain}/api/v4/leads`,
+      { name },
+    );
+
+    return;
   }
 
   // Редактирование дополнительных полей сущности *
