@@ -33,7 +33,7 @@ export class IntegrationController {
   ) {}
 
   @Post('/botStepWebhook')
-  @HttpCode(201)
+  @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
   async handlePostRequest(
     @Request() req: CustomRequest,

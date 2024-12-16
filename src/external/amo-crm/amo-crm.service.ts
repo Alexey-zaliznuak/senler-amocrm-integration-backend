@@ -282,19 +282,22 @@ export class AmoCrmService {
       // создать лида и вернуть его
       // ...
       // return lead.id
-      // на более высоком уровне абстракции 
+      // через проверку что вернулся не undefined а строка(новое id лида)
+      // на более высоком уровне абстракции(в например методе
+      // ActualizeLead(создание лида если нет + обновление инфы в бд) в IntegrationService)
+      // нужно будет обновить запись в бд
     }
     // проверить есть ли он в амо
     const response = await this.axios.get<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
     );
 
-    // если есть то return
-
+    // если есть то гуд
     if (response.status == 200) {
       return true
     };
 
+    // если нет то создаем и
     await this.axios.post<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads`,
       { name },
