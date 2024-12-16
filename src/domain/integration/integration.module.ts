@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { IntegrationService } from './integration.service';
 import { IntegrationController } from './integration.controller';
-import { WebhooksModule } from './webhooks/webhooks.module';
+import { AmoCrmService } from 'src/external/amo-crm';
 
 @Module({
   controllers: [IntegrationController],
-  providers: [IntegrationService],
+  providers: [IntegrationService, AmoCrmService],
 })
 export class IntegrationModule {}

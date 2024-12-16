@@ -29,11 +29,10 @@ class TestDto {
 export class IntegrationController {
   constructor(
     @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly integrationService: IntegrationService,
     private readonly amoCrmService: AmoCrmService,
   ) {}
 
-  @Post('/botStep')
+  @Post('/botStepWebhook')
   @HttpCode(201)
   @UseGuards(IntegrationSecretGuard)
   async handlePostRequest(

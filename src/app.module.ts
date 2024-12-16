@@ -14,7 +14,6 @@ import { AxiosModule } from './infrastructure/axios/axios.module';
 import { IntegrationModule } from './domain/integration/integration.module';
 import { ConfigModule } from '@nestjs/config';
 import { SenlerService } from './external/senler/senler.service';
-import { WebhooksModule } from './domain/integration/webhooks/webhooks.module';
 import { CustomConfigModule } from './infrastructure/config/config.module';
 import { AppConfig } from './infrastructure/config/config.app-config';
 import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
@@ -32,7 +31,6 @@ import { appConfigValidationSchema } from './infrastructure/config/config.valida
     // Resources
     UsersModule,
     IntegrationModule,
-    WebhooksModule,
 
     // External services
     AmoCrmModule,
