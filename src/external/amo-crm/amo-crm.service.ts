@@ -266,7 +266,7 @@ export class AmoCrmService {
   /**
    * Создание лида, если его нет
    */
-  async createLeadIfNotExist({
+  async createLeadIfNotExists({
     amoCrmDomain,
     leadId,
     name,
@@ -279,7 +279,9 @@ export class AmoCrmService {
       `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
     );
 
-    if (response.status == 200) return;
+    if (response.status == 200) {
+      return true
+    };
 
     await this.axios.post<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads`,
