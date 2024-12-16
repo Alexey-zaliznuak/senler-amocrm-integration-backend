@@ -31,3 +31,21 @@ model SenlerIntegrationStepTemplate {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               String
 }
+
+model SenlerGroup {
+  id                   String            @id @default(uuid())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  senlerGroupId        String            @unique
+  leads                Lead[]
+}
+
+model Lead {
+  id                   String            @id @default(uuid())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  senlerGroupId        String
+  senlerGroup          SenlerGroup      @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
+}
