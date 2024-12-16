@@ -276,23 +276,20 @@ export class AmoCrmService {
     leadId: string;
     name: string;
   }) {
-    // проверить есть ли он в амо
     const response = await this.axios.get<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
     );
 
-    // если есть то гуд
     if (response.status == 200) {
-      return true
+      return leadId
     };
 
-    // если нет то создаем и
     await this.axios.post<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads`,
       { name },
     );
 
-    return;
+    return "new lead id";
   }
 
   // Редактирование дополнительных полей сущности *
