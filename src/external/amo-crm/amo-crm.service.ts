@@ -14,6 +14,7 @@ import {
 } from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { prisma } from 'src/infrastructure/database';
 
 @Injectable()
 export class AmoCrmService {
@@ -266,7 +267,7 @@ export class AmoCrmService {
   /**
    * Создание лида, если его нет
    */
-  async createLeadIfNotExists({
+  async createOrUpdateLeadIfNotExists({
     amoCrmDomain,
     leadId,
     name,
@@ -275,9 +276,20 @@ export class AmoCrmService {
     leadId: string;
     name: string;
   }) {
+    const lead = await prisma.lead.findUnique({where: {id: leadId}})
+
+    if (!lead) {
+      // создать лида и вернуть его
+      // ...
+      // return lead.id
+      // на более высоком уровне абстракции 
+    }
+    // проверить есть ли он в амо
     const response = await this.axios.get<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
     );
+
+    // если есть то return
 
     if (response.status == 200) {
       return true
