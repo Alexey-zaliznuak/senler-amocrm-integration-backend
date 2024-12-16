@@ -46,6 +46,10 @@ model Lead {
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
+  vkId                 String
+
   senlerGroupId        String
   senlerGroup          SenlerGroup      @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([vkId, senlerGroupId])
 }

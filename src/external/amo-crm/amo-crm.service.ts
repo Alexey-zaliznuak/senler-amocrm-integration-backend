@@ -276,17 +276,6 @@ export class AmoCrmService {
     leadId: string;
     name: string;
   }) {
-    const lead = await prisma.lead.findUnique({where: {id: leadId}})
-
-    if (!lead) {
-      // создать лида и вернуть его
-      // ...
-      // return lead.id
-      // через проверку что вернулся не undefined а строка(новое id лида)
-      // на более высоком уровне абстракции(в например методе
-      // ActualizeLead(создание лида если нет + обновление инфы в бд) в IntegrationService)
-      // нужно будет обновить запись в бд
-    }
     // проверить есть ли он в амо
     const response = await this.axios.get<GetLeadResponse>(
       `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
