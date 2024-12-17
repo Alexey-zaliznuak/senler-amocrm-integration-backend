@@ -7,6 +7,7 @@ export type BaseUser = Pick<User,
   | "id"
   | "createdAt"
   | "updatedAt"
+  | "amoCrmDomainName"
   | "amoCrmAccessToken"
   | "amoCrmRefreshToken"
   | "senlerAccessToken"
@@ -14,6 +15,11 @@ export type BaseUser = Pick<User,
 >
 
 export class BaseUserDto extends BaseModelDto implements BaseUser {
+  @ApiProperty({description: "AmoCRM domain name"})
+  @IsString()
+  @IsNotEmpty()
+  amoCrmDomainName: string;
+
   @ApiProperty({description: "Access token from AmoCRM"})
   @IsString()
   @IsNotEmpty()

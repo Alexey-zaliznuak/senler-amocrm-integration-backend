@@ -14,15 +14,11 @@ export class CreateUserDto extends PickType(
 
 export class CreateUserRequestDto extends PickType(
   BaseUserDto, [
+    "amoCrmDomainName",
     "senlerAccessToken",
     "senlerVkGroupId",
   ] as const
 ) {
-  @ApiProperty({description: "domain name of user on AmoCRM"})
-  @IsString()
-  @IsNotEmpty()
-  amoCrmDomain: string;
-
   @ApiProperty({description: "Auth code from AmoCRM"})
   @IsString()
   @IsNotEmpty()

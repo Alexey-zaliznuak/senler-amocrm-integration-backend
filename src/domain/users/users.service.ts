@@ -14,7 +14,7 @@ export class UsersService {
     await this.validateCreateUserData(data);
 
     try {
-      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomain, data.amoCrmAuthorizationCode);
+      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomainName, data.amoCrmAuthorizationCode);
 
       return await prisma.user.create({
         select: {
@@ -22,6 +22,7 @@ export class UsersService {
           senlerVkGroupId: true,
         },
         data: {
+          amoCrmDomainName: data.amoCrmDomainName,
           senlerAccessToken: data.senlerAccessToken,
           senlerVkGroupId: data.senlerVkGroupId,
           amoCrmAccessToken: amoTokens.access_token,
