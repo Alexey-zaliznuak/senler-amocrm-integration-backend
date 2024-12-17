@@ -39,7 +39,7 @@ export class IntegrationController {
     @Request() req: CustomRequest,
     @Body() body?: TestDto,
   ): Promise<any> {
-    req.logger.info('BODY', req.body);
+    req.logger.warn('HEADERS', req.headers);
     return {
       vars: [{ n: 'x-time', v: new Date().getMilliseconds() }],
     };

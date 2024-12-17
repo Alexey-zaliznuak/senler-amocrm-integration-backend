@@ -14,7 +14,6 @@ import {
 } from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
-import { prisma } from 'src/infrastructure/database';
 
 @Injectable()
 export class AmoCrmService {
@@ -174,7 +173,7 @@ export class AmoCrmService {
     amoCrmDomain: string;
     leads: Array<{
       name: string;
-      price: number;
+      price?: number;
       status_id?: number;
     }>;
   }): Promise<GetLeadResponse> {
@@ -198,7 +197,7 @@ export class AmoCrmService {
   }: {
     amoCrmDomain: string;
     id: string;
-    _with: string;
+    _with?: string;
   }): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
     params.append('with', _with);
@@ -276,20 +275,13 @@ export class AmoCrmService {
     leadId: string;
     name: string;
   }) {
-    const response = await this.axios.get<GetLeadResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/${leadId}`,
-    );
+    const response = await this.getLeadById({ amoCrmDomain, id: leadId });
 
-    if (response.status == 200) {
-      return leadId
-    };
+    if (response) return leadId;
 
-    await this.axios.post<GetLeadResponse>(
-      `https://${amoCrmDomain}/api/v4/leads`,
-      { name },
-    );
+    await this.addLead({ amoCrmDomain, leads: [{ name }] });
 
-    return "new lead id";
+    return 'new lead id';
   }
 
   // Редактирование дополнительных полей сущности *
