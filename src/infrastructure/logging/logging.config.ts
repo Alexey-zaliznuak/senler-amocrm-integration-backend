@@ -1,7 +1,7 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
 import 'winston-daily-rotate-file';
-import { AppConfigType } from '../config/config.app-config';
+import { AppConfig, AppConfigType } from '../config/config.app-config';
 
 
 const LokiTransport = require("winston-loki");
@@ -10,7 +10,7 @@ const LokiTransport = require("winston-loki");
 export const baseLogFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
-    context = context || 'Application';
+    context = context
 
     const logObject = {
       level,
