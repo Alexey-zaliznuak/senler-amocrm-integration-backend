@@ -266,7 +266,7 @@ export class AmoCrmService {
   /**
    * Создание лида, если его нет
    */
-  async createOrUpdateLeadIfNotExists({
+  async createLeadIfNotExists({
     amoCrmDomain,
     leadId,
     name,
