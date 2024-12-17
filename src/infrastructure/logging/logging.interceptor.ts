@@ -8,7 +8,7 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
-import { HttpArgumentsHost } from '@nestjs/common/interfaces';
+
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -41,9 +41,9 @@ export class LoggingInterceptor implements NestInterceptor {
     req: CustomRequest,
     res: any,
     startTime: number,
-    data: any,
+    payload: any,
   ) {
-    const statusCode = data instanceof HttpException ? data.getStatus() : res.statusCode;
+    const statusCode = payload instanceof HttpException ? payload.getStatus() : res.statusCode;
 
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
@@ -53,7 +53,7 @@ export class LoggingInterceptor implements NestInterceptor {
       statusCode,
       contentLength,
       headers,
-      data_or_error: data,
+      payload,
       req: this.extractLoggableData(req),
       processTime,
     });
