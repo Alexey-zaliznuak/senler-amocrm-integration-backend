@@ -28,7 +28,6 @@ export class UsersService {
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
       }})
-
     }
     catch (exception) {
       if (
