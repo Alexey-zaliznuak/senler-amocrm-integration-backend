@@ -6,14 +6,17 @@ import {
   Post,
   Request,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { IntegrationService } from './integration.service';
-import { CustomRequest } from 'src/infrastructure/requests';
-import { AmoCrmService } from 'src/external/amo-crm';
 import { ApiProperty } from '@nestjs/swagger';
-import { CONFIG } from 'src/infrastructure/config/config.module';
-import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { IsString } from 'class-validator';
+import { AmoCrmService } from 'src/external/amo-crm';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { CONFIG } from 'src/infrastructure/config/config.module';
+import { ParseJsonPipe } from 'src/infrastructure/pipes';
+import { CustomRequest } from 'src/infrastructure/requests';
 
 
 class TestDto {
@@ -37,9 +40,9 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   async handlePostRequest(
     @Request() req: CustomRequest,
-    @Body() body?: TestDto,
+    @Body("IntegrationSecret", ParseJsonPipe) body?: TestDto,
   ): Promise<any> {
-    req.logger.info('BODY', req.body);
+    req.logger.info(body)
     return {
       vars: [{ n: 'x-time', v: new Date().getMilliseconds() }],
     };
