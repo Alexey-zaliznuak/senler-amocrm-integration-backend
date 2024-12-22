@@ -3,7 +3,6 @@ import { UUID } from 'crypto';
 import { Request as ExpressRequest } from 'express';
 import { Logger } from 'winston';
 
-
 export interface CustomRequest extends ExpressRequest {
   id: UUID;
   logger: Logger;
@@ -11,6 +10,5 @@ export interface CustomRequest extends ExpressRequest {
 }
 
 export interface AuthorizedRequest extends CustomRequest {
-  user: User
+  user: User;
 }
-

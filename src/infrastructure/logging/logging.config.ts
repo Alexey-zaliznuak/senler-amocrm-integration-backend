@@ -1,16 +1,14 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
 import 'winston-daily-rotate-file';
-import { AppConfig, AppConfigType } from '../config/config.app-config';
+import { AppConfigType } from '../config/config.app-config';
 
-
-const LokiTransport = require("winston-loki");
-
+const LokiTransport = require('winston-loki');
 
 export const baseLogFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
-    context = context
+    context = context;
 
     const logObject = {
       level,
@@ -18,25 +16,28 @@ export const baseLogFormat = winston.format.combine(
       timestamp,
       context,
       meta,
-    }
+    };
 
     return JSON.stringify(logObject);
-  })
+  }),
 );
 
-export const prettyLogPrintFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
-  const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
-  const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : ''
+export const prettyLogPrintFormat = winston.format.printf(
+  ({ level, message, timestamp, context, ...meta }) => {
+    const formattedMessage =
+      typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
+    const formattedMeta =
+      meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
 
-  return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
-});
+    return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
+  },
+);
 
 export const prettyLogFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   prettyLogPrintFormat,
 );
-
 
 export const baseTransports = (config: AppConfigType): Transport[] => [
   new winston.transports.Console({
@@ -68,17 +69,19 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
   new LokiTransport({
     host: config.LOKI_HOST,
     labels: {
-      service: "senler-amocrm-integration-backend",
+      service: 'senler-amocrm-integration-backend',
       instance: config.INSTANCE_ID,
     },
     json: true,
-    basicAuth: config.LOKI_USERNAME + ":" +config.LOKI_AUTH_TOKEN,
+    basicAuth: config.LOKI_USERNAME + ':' + config.LOKI_AUTH_TOKEN,
     format: winston.format.json(),
     replaceTimestamp: true,
     onConnectionError: (err) => {
       if (err) {
-        console.error('Connection to Loki failed. Check your host and credentials.');
+        console.error(
+          'Connection to Loki failed. Check your host and credentials.',
+        );
       }
     },
-  })
-]
+  }),
+];
