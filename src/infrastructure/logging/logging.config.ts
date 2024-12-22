@@ -3,6 +3,7 @@ import * as Transport from 'winston-transport';
 import { AppConfigType } from '../config/config.app-config';
 
 
+// TODO uninstall winston daily rotate file
 const LokiTransport = require("winston-loki");
 
 
