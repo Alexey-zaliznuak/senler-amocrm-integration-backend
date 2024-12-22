@@ -272,7 +272,7 @@ export class AmoCrmService {
     name,
   }: {
     amoCrmDomain: string;
-    leadId: string;
+    leadId: number;
     name: string;
   }) {
     const response = await this.getLeadById({ amoCrmDomain, id: leadId });
@@ -281,7 +281,7 @@ export class AmoCrmService {
 
     await this.addLead({ amoCrmDomain, leads: [{ name }] });
 
-    return 'new lead id';
+    return 1; //'new lead id'
   }
 
   // Редактирование дополнительных полей сущности *
