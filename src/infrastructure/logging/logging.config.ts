@@ -1,9 +1,11 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
-import 'winston-daily-rotate-file';
 import { AppConfigType } from '../config/config.app-config';
 
-const LokiTransport = require('winston-loki');
+
+// TODO uninstall winston daily rotate file
+const LokiTransport = require("winston-loki");
+
 
 export const baseLogFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -43,28 +45,6 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
   new winston.transports.Console({
     level: 'debug',
     format: prettyLogFormat,
-  }),
-  new winston.transports.DailyRotateFile({
-    level: 'debug',
-    format: prettyLogFormat,
-
-    datePattern: 'YYYY-MM-DD',
-    filename: 'logs/logs-pretty-%DATE%.log',
-
-    maxSize: '50m',
-    maxFiles: '14d',
-    zippedArchive: true,
-  }),
-  new winston.transports.DailyRotateFile({
-    level: 'debug',
-    format: baseLogFormat,
-
-    datePattern: 'YYYY-MM-DD',
-    filename: 'logs/logs-%DATE%.log',
-
-    maxSize: '50m',
-    maxFiles: '14d',
-    zippedArchive: true,
   }),
   new LokiTransport({
     host: config.LOKI_HOST,

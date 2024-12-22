@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsOptional, IsObject } from "class-validator";
+import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject } from "class-validator";
 
 
 export enum BotStepType {
@@ -8,25 +8,19 @@ export enum BotStepType {
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
-export class BotStepWebhookDto {
-  @ApiProperty({description: "Step settings"})
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => StepIntegrationInfoDto)
-  publicIntegrationInfo: StepIntegrationInfoDto;
-
-  @ApiProperty({description: "lead"})
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => LeadDto)
-  lead: LeadDto;
-}
-
+// TODO change public integration info on step settings
 export class StepIntegrationInfoDto {
   @ApiProperty({description: "user"})
   @IsNotEmpty()
   @IsEnum(BotStepType)
   type: BotStepType;
+
+  @ApiProperty({
+    description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
+  })
+  @IsObject()
+  @IsNotEmpty()
+  syncableVariables: Record<string, string>;
 }
 
 
@@ -46,19 +40,22 @@ export class LeadDto {
   @IsString()
   surname: string;
 
+  @ApiProperty({description: "Senler lead`s personal vars"})
   @IsObject()
   @IsNotEmpty()
-  personalVars: Record<string, string | number | boolean>; // TODO check for empty vars
+  personalVars: Array<void> | Record<string, string | number | boolean>;
 }
 
-// "integrationSecret": "85f346fa12cf86efa4ebc48ba6e9f2f79ab78665bb86d91d6bbef25431828a5c",
-// backend-1  |             "publicIntegrationInfo": "{\"publicText\":\"qwe\",\"token\":\"type\",\"type\":\"qw\"}",
-// backend-1  |             "user": {
-// backend-1  |                 "leadId": "66db1078287a7ca40c579097",
-// backend-1  |                 "name": "Алексей",
-// backend-1  |                 "personalVars": {
-// backend-1  |                     "lolol": 1234,
-// backend-1  |                     "xtime": 138
-// backend-1  |                 },
-// backend-1  |                 "surname": "Зализняк"
-// backend-1  |             }
+export class BotStepWebhookDto {
+  @ApiProperty({description: "Step settings"})
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => StepIntegrationInfoDto)
+  publicIntegrationInfo: StepIntegrationInfoDto;
+
+  @ApiProperty({description: "lead"})
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => LeadDto)
+  lead: LeadDto;
+}

@@ -48,9 +48,9 @@ model Lead {
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
-  amoCrmLeadId         String
+  amoCrmLeadId         Int
 
-  senlerLeadId         String
+  senlerLeadId         Int
 
   senlerGroupId        String
   senlerGroup          SenlerGroup      @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
