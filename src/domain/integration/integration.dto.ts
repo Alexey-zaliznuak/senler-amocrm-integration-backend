@@ -39,7 +39,7 @@ export class LeadDto {
   personalVars: Array<void> | Record<string, string | number | boolean>;
 
   @ApiProperty({
-    description: "Record of variables name as keys and value, data will sync from keys to values."
+    description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
   })
   @IsObject()
   @IsNotEmpty()
