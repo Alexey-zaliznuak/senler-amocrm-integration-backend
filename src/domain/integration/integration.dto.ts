@@ -33,9 +33,17 @@ export class LeadDto {
   @IsString()
   surname: string;
 
+  @ApiProperty({description: "Senler lead`s personal vars"})
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
+
+  @ApiProperty({
+    description: "Record of variables name as keys and value, data will sync from keys to values."
+  })
+  @IsObject()
+  @IsNotEmpty()
+  syncVars: Record<string, string>;
 }
 
 export class BotStepWebhookDto {
