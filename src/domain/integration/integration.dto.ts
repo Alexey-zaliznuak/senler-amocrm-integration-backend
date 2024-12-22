@@ -8,19 +8,6 @@ export enum BotStepType {
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
-export class BotStepWebhookDto {
-  @ApiProperty({description: "Step settings"})
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => StepIntegrationInfoDto)
-  publicIntegrationInfo: StepIntegrationInfoDto;
-
-  @ApiProperty({description: "lead"})
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => LeadDto)
-  lead: LeadDto;
-}
 
 export class StepIntegrationInfoDto {
   @ApiProperty({description: "user"})
@@ -49,4 +36,18 @@ export class LeadDto {
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
+}
+
+export class BotStepWebhookDto {
+  @ApiProperty({description: "Step settings"})
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => StepIntegrationInfoDto)
+  publicIntegrationInfo: StepIntegrationInfoDto;
+
+  @ApiProperty({description: "lead"})
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => LeadDto)
+  lead: LeadDto;
 }
