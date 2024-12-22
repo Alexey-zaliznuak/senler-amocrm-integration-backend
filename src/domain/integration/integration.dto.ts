@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsOptional, IsObject } from "class-validator";
+import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject } from "class-validator";
 
 
 export enum BotStepType {
@@ -8,12 +8,19 @@ export enum BotStepType {
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
-
+// TODO change public integration info on step settings
 export class StepIntegrationInfoDto {
   @ApiProperty({description: "user"})
   @IsNotEmpty()
   @IsEnum(BotStepType)
   type: BotStepType;
+
+  @ApiProperty({
+    description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
+  })
+  @IsObject()
+  @IsNotEmpty()
+  syncableVariables: Record<string, string>;
 }
 
 
@@ -37,13 +44,6 @@ export class LeadDto {
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
-
-  @ApiProperty({
-    description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
-  })
-  @IsObject()
-  @IsNotEmpty()
-  syncVars: Record<string, string>;
 }
 
 export class BotStepWebhookDto {

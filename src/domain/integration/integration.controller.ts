@@ -7,7 +7,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -36,6 +36,7 @@ export class IntegrationController {
   @Post('/botStepWebhook')
   @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
+  @ApiBody({type: BotStepWebhookDto})
   async botStepWebhook(
     @Request() req: CustomRequest,
     @Body("IntegrationSecret", ParseJsonPipe) body: BotStepWebhookDto,
