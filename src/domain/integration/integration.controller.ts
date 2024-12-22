@@ -17,6 +17,7 @@ import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { ParseJsonPipe } from 'src/infrastructure/pipes';
 import { CustomRequest } from 'src/infrastructure/requests';
+import { BotStepWebhookDto } from './integration.dto';
 
 
 class TestDto {
@@ -40,11 +41,11 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   async handlePostRequest(
     @Request() req: CustomRequest,
-    @Body("IntegrationSecret", ParseJsonPipe) body?: TestDto,
+    @Body("IntegrationSecret", ParseJsonPipe) body: BotStepWebhookDto,
   ): Promise<any> {
     req.logger.info(body)
     return {
-      vars: [{ n: 'x-time', v: new Date().getMilliseconds() }],
+      vars: [],
     };
   }
 
