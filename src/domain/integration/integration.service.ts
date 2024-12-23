@@ -7,41 +7,41 @@ export class IntegrationService {
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async createLeadIfNotExists({
-    leadId,
-    groupId,
+    senlerLeadId,
+    amoCrmLeadId,
     name,
     amoCrmDomain,
   }: {
-    leadId: number;
-    groupId: string;
+    senlerLeadId: number;
+    amoCrmLeadId: number;
     name: string;
     amoCrmDomain: string;
   }) {
     const lead = await prisma.lead.findUnique({
       where: {
-        amoCrmLeadId: leadId,
-        senlerGroupId: groupId,
+        senlerLeadId: senlerLeadId,
+        amoCrmLeadId: amoCrmLeadId,
       },
     });
 
-    let amoCrmLeadId = leadId;
+    let temp = amoCrmLeadId;
 
     if (!lead) {
-      amoCrmLeadId = (
+      temp = (
         await this.amoCrmService.addLead({
           amoCrmDomain,
           leads: [{ name }],
         })
       ).id;
     } else {
-      amoCrmLeadId = await this.amoCrmService.createLeadIfNotExists({
+      temp = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
-        leadId,
+        amoCrmLeadId,
         name,
       });
     }
 
-    if (amoCrmLeadId != leadId) {
+    if (amoCrmLeadId != temp) {
       // обновить
     }
   }
