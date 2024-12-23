@@ -20,7 +20,7 @@ export class IntegrationService {
     let lead = +(
       await prisma.lead.findUnique({
         where: {
-          amoCrmLeadId: '' + leadId,
+          amoCrmLeadId: leadId,
           senlerGroupId: groupId,
         },
       })

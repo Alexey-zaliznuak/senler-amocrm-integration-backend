@@ -1,22 +1,22 @@
 import { BadRequestException, ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { prisma } from 'src/infrastructure/database';
-import { CreateUserDto, CreateUserRequestDto, CreateUserResponseDto } from './dto/create-user.dto';
-import { AmoCrmService } from 'src/external/amo-crm';
 import { AxiosError, HttpStatusCode } from 'axios';
+import { AmoCrmService } from 'src/external/amo-crm';
+import { prisma } from 'src/infrastructure/database';
+import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 
 @Injectable()
-export class UsersService {
+export class SenlerGroupsService {
   constructor (
     private readonly amoCrmService: AmoCrmService,
   ) {}
 
-  async create(data: CreateUserRequestDto): Promise<CreateUserResponseDto> {
-    await this.validateCreateUserData(data);
+  async create(data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
+    await this.validateCreateSenlerGroupData(data);
 
     try {
       const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomainName, data.amoCrmAuthorizationCode);
 
-      return await prisma.user.create({
+      return await prisma.senlerGroup.create({
         select: {
           id: true,
           senlerVkGroupId: true,
@@ -46,13 +46,13 @@ export class UsersService {
     }
   }
 
-  async validateCreateUserData(data: CreateUserRequestDto) {
+  async validateCreateSenlerGroupData(data: CreateSenlerGroupRequestDto) {
     await this.checkConstraintsOrThrow(data.senlerVkGroupId);
   }
 
   async checkConstraintsOrThrow(senlerVkGroupId: string): Promise<void> {
-    if (await prisma.user.exists({senlerVkGroupId})) {
-      throw new ConflictException("User with same VkGroupId already exists.");
+    if (await prisma.senlerGroup.exists({senlerVkGroupId})) {
+      throw new ConflictException("SenlerGroup with same Vk id already exists.");
     }
   }
 }

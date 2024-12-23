@@ -8,7 +8,7 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { ProcessTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
-import { UsersModule } from './domain/users/users.module';
+import { SenlerGroupsModule } from './domain/senlerGroups/senler-groups.module';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
 import { AxiosModule } from './infrastructure/axios/axios.module';
 import { IntegrationModule } from './domain/integration/integration.module';
@@ -29,7 +29,7 @@ import { appConfigValidationSchema } from './infrastructure/config/config.valida
     CustomConfigModule.forRoot(),
 
     // Resources
-    UsersModule,
+    SenlerGroupsModule,
     IntegrationModule,
 
     // External services

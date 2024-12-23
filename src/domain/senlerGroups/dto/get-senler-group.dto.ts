@@ -1,6 +1,6 @@
 import { SenlerIntegrationStepTemplate } from "@prisma/client";
-import { BaseUser } from "./basic-user.dto";
+import { BaseSenlerGroup } from "./basic-senler-group.dto";
 
-export type GetUserResponse = BaseUser & {
+export type GetSenlerGroupResponse = BaseSenlerGroup & {
   senlerIntegrationStepsTemplates: SenlerIntegrationStepTemplate[];
 }

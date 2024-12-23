@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { User } from "@prisma/client";
+import { SenlerGroup } from "@prisma/client";
 import { IsNotEmpty, IsString } from "class-validator";
 import { BaseModelDto } from "src/infrastructure/dto";
 
-export type BaseUser = Pick<User,
+export type BaseSenlerGroup = Pick<SenlerGroup,
   | "id"
   | "createdAt"
   | "updatedAt"
@@ -14,7 +14,7 @@ export type BaseUser = Pick<User,
   | "senlerVkGroupId"
 >
 
-export class BaseUserDto extends BaseModelDto implements BaseUser {
+export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
   @ApiProperty({description: "AmoCRM domain name"})
   @IsString()
   @IsNotEmpty()

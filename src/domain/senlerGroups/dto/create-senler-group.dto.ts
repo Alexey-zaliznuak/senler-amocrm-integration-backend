@@ -1,10 +1,10 @@
-import { BaseUserDto } from './basic-user.dto';
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { BaseSenlerGroupDto } from './basic-senler-group.dto';
 
 
-export class CreateUserDto extends PickType(
-  BaseUserDto, [
+export class CreateSenlerGroupDto extends PickType(
+  BaseSenlerGroupDto, [
     "senlerAccessToken",
     "senlerVkGroupId",
     "amoCrmAccessToken",
@@ -12,8 +12,8 @@ export class CreateUserDto extends PickType(
   ] as const
 ) {}
 
-export class CreateUserRequestDto extends PickType(
-  BaseUserDto, [
+export class CreateSenlerGroupRequestDto extends PickType(
+  BaseSenlerGroupDto, [
     "amoCrmDomainName",
     "senlerAccessToken",
     "senlerVkGroupId",
@@ -26,8 +26,8 @@ export class CreateUserRequestDto extends PickType(
 }
 
 
-export class CreateUserResponseDto extends PickType(
-  BaseUserDto, [
+export class CreateSenlerGroupResponseDto extends PickType(
+  BaseSenlerGroupDto, [
     "id",
     "senlerVkGroupId",
   ] as const
