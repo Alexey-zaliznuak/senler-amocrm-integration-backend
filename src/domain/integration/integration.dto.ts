@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject, IsArray, IsDefined } from "class-validator";
+import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject, IsArray } from "class-validator";
 import { IsStringOrNumber } from "src/infrastructure/validation";
 
 
@@ -49,12 +49,12 @@ export class LeadDto {
   @IsString()
   id: string;
 
-  @ApiProperty({description: "Lead name,"})
+  @ApiProperty({description: "Lead name."})
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  @ApiProperty({description: "Lead surname,"})
+  @ApiProperty({description: "Lead surname."})
   @IsNotEmpty()
   @IsString()
   surname: string;
