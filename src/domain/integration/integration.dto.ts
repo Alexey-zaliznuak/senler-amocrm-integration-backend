@@ -9,7 +9,7 @@ export enum BotStepType {
 }
 
 
-export class StepIntegrationInfoDto {
+export class PublicBotStepSettingsDto {
   @ApiProperty({description: "user"})
   @IsNotEmpty()
   @IsEnum(BotStepType)
@@ -47,11 +47,11 @@ export class LeadDto {
 }
 
 export class BotStepWebhookDto {
-  @ApiProperty({description: "Step settings"})
+  @ApiProperty({description: "Public bot step settings"})
   @IsNotEmpty()
   @ValidateNested()
-  @Type(() => StepIntegrationInfoDto)
-  publicIntegrationInfo: StepIntegrationInfoDto;
+  @Type(() => PublicBotStepSettingsDto)
+  publicBotStepSettings: PublicBotStepSettingsDto;
 
   @ApiProperty({description: "lead"})
   @IsNotEmpty()
