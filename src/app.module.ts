@@ -2,7 +2,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { HttpExceptionFilter } from './infrastructure/filters/http-exception.filter';
+import { HttpExceptionFilter } from './infrastructure/exceptionFilters/http-exception.filter';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';

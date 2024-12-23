@@ -8,7 +8,7 @@ export enum BotStepType {
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
-// TODO change public integration info on step settings
+
 export class StepIntegrationInfoDto {
   @ApiProperty({description: "user"})
   @IsNotEmpty()
