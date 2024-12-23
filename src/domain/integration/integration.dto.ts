@@ -12,14 +12,14 @@ export enum BotStepType {
 
 export class TransferPairDto {
   @ApiProperty({
-    description: "Identifier of var from export service."
+    description: "Identifier of variable from export service."
   })
   @IsNotEmpty()
   @IsStringOrNumber()
   from: string | number;
 
   @ApiProperty({
-    description: "Identifier of var from import service."
+    description: "Identifier of variable from import service."
   })
   @IsNotEmpty()
   @IsStringOrNumber()
