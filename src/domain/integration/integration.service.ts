@@ -17,31 +17,20 @@ export class IntegrationService {
     name: string;
     amoCrmDomain: string;
   }) {
-    let lead = +(
+    const databaseLead = +(
       await prisma.lead.findUnique({
         where: {
-          amoCrmLeadId: leadId,
-          senlerGroupId: groupId,
+          amoCrmLeadId,
+          senlerLeadId
         },
       })
     ).id;
 
-    if (!lead) {
-      temp = (
-        await this.amoCrmService.addLead({
-          amoCrmDomain,
-          leads: [{ name }],
-        })
-      ).id;
-    } else {
-      temp = await this.amoCrmService.createLeadIfNotExists({
-        amoCrmDomain,
-        amoCrmLeadId,
-        name,
-      });
-    }
+    const actualLead = databaseLead ?
+    await this.amoCrmService.addLead({amoCrmDomain,leads: [{ name }],})
+    : await this.amoCrmService.createLeadIfNotExists({amoCrmDomain, amoCrmLeadId, name,});
 
-    if (amoCrmLeadId != temp) {
+    if (amoCrmLeadId != actualLead) {
       // обновить
     }
   }
