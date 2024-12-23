@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject } from "class-validator";
+import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject, IsArray, IsDefined } from "class-validator";
+import { IsStringOrNumber } from "src/infrastructure/validation";
 
 
 export enum BotStepType {
@@ -8,6 +9,22 @@ export enum BotStepType {
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
+
+export class TransferPairDto {
+  @ApiProperty({
+    description: "Identifier of var from export service."
+  })
+  @IsNotEmpty()
+  @IsStringOrNumber()
+  from: string | number;
+
+  @ApiProperty({
+    description: "Identifier of var from import service."
+  })
+  @IsNotEmpty()
+  @IsStringOrNumber()
+  to: string | number;
+}
 
 export class PublicBotStepSettingsDto {
   @ApiProperty({description: "user"})
@@ -18,42 +35,44 @@ export class PublicBotStepSettingsDto {
   @ApiProperty({
     description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
   })
-  @IsObject()
   @IsNotEmpty()
-  syncableVariables: Record<string, string>;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TransferPairDto)
+  syncableVariables: Array<TransferPairDto>;
 }
 
 
 export class LeadDto {
-  @ApiProperty({description: "lead id"})
+  @ApiProperty({description: "Lead id."})
   @IsNotEmpty()
   @IsString()
   id: string;
 
-  @ApiProperty({description: "lead name"})
+  @ApiProperty({description: "Lead name,"})
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  @ApiProperty({description: "lead surname"})
+  @ApiProperty({description: "Lead surname,"})
   @IsNotEmpty()
   @IsString()
   surname: string;
 
-  @ApiProperty({description: "Senler lead`s personal vars"})
+  @ApiProperty({description: "Senler lead`s personal vars."})
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
 }
 
 export class BotStepWebhookDto {
-  @ApiProperty({description: "Public bot step settings"})
+  @ApiProperty({description: "Public bot step settings."})
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => PublicBotStepSettingsDto)
   publicBotStepSettings: PublicBotStepSettingsDto;
 
-  @ApiProperty({description: "lead"})
+  @ApiProperty({description: "Lead."})
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LeadDto)
