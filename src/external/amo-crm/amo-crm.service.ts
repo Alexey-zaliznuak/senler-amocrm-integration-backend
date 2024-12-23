@@ -196,7 +196,7 @@ export class AmoCrmService {
     _with,
   }: {
     amoCrmDomain: string;
-    id: string;
+    id: number;
     _with?: string;
   }): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
@@ -268,16 +268,16 @@ export class AmoCrmService {
    */
   async createLeadIfNotExists({
     amoCrmDomain,
-    leadId,
+    amoCrmLeadId,
     name,
   }: {
     amoCrmDomain: string;
-    leadId: number;
+    amoCrmLeadId: number;
     name: string;
   }) {
-    const response = await this.getLeadById({ amoCrmDomain, id: leadId });
+    const response = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
 
-    if (response) return leadId;
+    if (response) return amoCrmLeadId;
 
     await this.addLead({ amoCrmDomain, leads: [{ name }] });
 

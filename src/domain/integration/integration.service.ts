@@ -7,13 +7,13 @@ export class IntegrationService {
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async createLeadIfNotExists({
-    leadId,
-    groupId,
+    senlerLeadId,
+    amoCrmLeadId,
     name,
     amoCrmDomain,
   }: {
-    leadId: number;
-    groupId: string;
+    senlerLeadId: number;
+    amoCrmLeadId: number;
     name: string;
     amoCrmDomain: string;
   }) {
@@ -27,21 +27,21 @@ export class IntegrationService {
     ).id;
 
     if (!lead) {
-      lead = (
+      temp = (
         await this.amoCrmService.addLead({
           amoCrmDomain,
           leads: [{ name }],
         })
       ).id;
     } else {
-      lead = await this.amoCrmService.createLeadIfNotExists({
+      temp = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
-        leadId,
+        amoCrmLeadId,
         name,
       });
     }
 
-    if (lead != leadId) {
+    if (amoCrmLeadId != temp) {
       // обновить
     }
   }
