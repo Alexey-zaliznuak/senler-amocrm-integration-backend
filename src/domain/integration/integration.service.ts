@@ -17,31 +17,31 @@ export class IntegrationService {
     name: string;
     amoCrmDomain: string;
   }) {
-    let lead = +(
-      await prisma.lead.findUnique({
-        where: {
-          amoCrmLeadId: '' + leadId,
-          senlerGroupId: groupId,
-        },
-      })
-    ).id;
+    const lead = await prisma.lead.findUnique({
+      where: {
+        amoCrmLeadId: leadId,
+        senlerGroupId: groupId,
+      },
+    });
+
+    let amoCrmLeadId = leadId;
 
     if (!lead) {
-      lead = (
+      amoCrmLeadId = (
         await this.amoCrmService.addLead({
           amoCrmDomain,
           leads: [{ name }],
         })
       ).id;
     } else {
-      lead = await this.amoCrmService.createLeadIfNotExists({
+      amoCrmLeadId = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
         leadId,
         name,
       });
     }
 
-    if (lead != leadId) {
+    if (amoCrmLeadId != leadId) {
       // обновить
     }
   }
