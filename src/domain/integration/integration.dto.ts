@@ -42,7 +42,6 @@ export class PublicBotStepSettingsDto {
   syncableVariables: Array<TransferPairDto>;
 }
 
-
 export class LeadDto {
   @ApiProperty({description: "Lead id."})
   @IsNotEmpty()
