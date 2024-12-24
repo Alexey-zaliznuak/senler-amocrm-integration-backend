@@ -1,10 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
+import { CustomRequest } from 'src/infrastructure/requests';
+import { BotStepType, BotStepWebhookDto } from './integration.dto';
+import { SenlerService } from 'src/external/senler/senler.service';
 
 @Injectable()
 export class IntegrationService {
-  constructor(private readonly amoCrmService: AmoCrmService) {}
+  constructor(
+    private readonly amoCrmService: AmoCrmService,
+    private readonly senlerService: SenlerService,
+  ) {}
+
+  async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
+    if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
+
+    }
+    if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
+      const amoCrmVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from)
+    }
+  }
 
   async createLeadIfNotExists({
     senlerLeadId,
