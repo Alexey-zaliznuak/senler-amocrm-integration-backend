@@ -14,6 +14,7 @@ import {
 } from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { HandleTokenRefresh } from './handlers/handle-refresh-token.decorator';
 
 @Injectable()
 export class AmoCrmService {
@@ -52,27 +53,41 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/contacts-api#contacts-add
    */
+  @HandleTokenRefresh()
   async addContact({
     amoCrmDomain,
     name,
     first_name,
     last_name,
+    accessToken,
   }: {
     amoCrmDomain: string;
     name: string;
     first_name: string;
     last_name: string;
+    accessToken: string;
   }): Promise<CreateContactResponse> {
-    const response = await this.axios.post<CreateContactResponse>(
-      `https://${amoCrmDomain}/api/v4/contacts`,
-      {
-        name,
-        first_name,
-        last_name,
-      },
-    );
+    try {
+      const response = await this.axios.post<CreateContactResponse>(
+        `https://${amoCrmDomain}/api/v4/contacts`,
+        {
+          name,
+          first_name,
+          last_name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          requestId: '',
+        },
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      // Здесь можно добавить дополнительную обработку ошибок, если необходимо
+      throw error;
+    }
   }
 
   /**
