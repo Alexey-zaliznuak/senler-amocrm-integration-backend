@@ -22,6 +22,8 @@ model SenlerGroup {
 
   leads                           Lead[]
   senlerIntegrationStepsTemplates SenlerIntegrationStepTemplate[]
+
+  @@unique([amoCrmAccessToken, amoCrmRefreshToken])
 }
 
 model SenlerIntegrationStepTemplate {
