@@ -55,17 +55,23 @@ export class AmoCrmService {
    */
   @HandleTokenRefresh()
   async addContact({
-    amoCrmDomain,
     name,
     first_name,
     last_name,
     accessToken,
+    refreshToken,
+    amoCrmDomain,
+    clientId,
+    clientSecret,
   }: {
     amoCrmDomain: string;
     name: string;
     first_name: string;
     last_name: string;
     accessToken: string;
+    refreshToken: string;
+    clientId: string;
+    clientSecret: string;
   }): Promise<CreateContactResponse> {
     try {
       const response = await this.axios.post<CreateContactResponse>(
