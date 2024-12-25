@@ -33,7 +33,7 @@ model SenlerIntegrationStepTemplate {
 
   settings             Json
 
-  user                 SenlerGroup       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senlerGroup          SenlerGroup       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               String
 }
 
