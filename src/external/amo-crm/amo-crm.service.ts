@@ -14,7 +14,7 @@ import {
 } from './amo-crm.dto';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
-import { HandleTokenRefresh } from './handlers/handle-refresh-token.decorator';
+import { HandleTokenRefresh } from './handlers/handle-expireds-token.decorator';
 
 @Injectable()
 export class AmoCrmService {
