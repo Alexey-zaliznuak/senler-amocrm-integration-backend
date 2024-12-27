@@ -12,7 +12,7 @@ import { AppConfig } from 'src/infrastructure/config/config.app-config';
 /**
  * Функция для обновления accessToken с использованием refreshToken.
  * @param refreshToken Текущий refreshToken
- * @returns Новый accessToken
+ * @returns Новый Token - связка accessToken и refreshToken
  */
 async function refreshAccessToken({
   amoCrmDomain,
@@ -24,7 +24,7 @@ async function refreshAccessToken({
   amoCrmDomain: string;
   clientId: string;
   clientSecret: string;
-}): Promise<string> {
+}): Promise<Token> {
   try {
     const response: AxiosResponse = await axios.post(
       `https://${amoCrmDomain}/oauth2/access_token`,
@@ -50,7 +50,11 @@ async function refreshAccessToken({
         amoCrmRefreshToken: response.data.refresh_token,
       },
     });
-    return response.data.access_token;
+
+    return {
+      accessToken: response.data.access_token,
+      refreshToken: response.data.refresh_token,
+    };
   } catch {
     throw new UnauthorizedException('Не удалось обновить токен');
   }
@@ -78,14 +82,16 @@ export function HandleTokenRefresh() {
           const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
 
           try {
-            const newAccessToken: string = await refreshAccessToken({
+            const newAccessToken: Token = await refreshAccessToken({
               token,
               amoCrmDomain,
               clientId,
               clientSecret,
             });
 
-            originalMethodProperty.accessToken = newAccessToken;
+            originalMethodProperty.token = newAccessToken;
+
+            args[0].token = originalMethodProperty;
 
             return await originalMethod.apply(this, args);
           } catch {
