@@ -4,7 +4,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 export const CONFIG = "CONFIG"
 
-
 /**
  * Convenient ACCESS for config service.
  * You should inject it and use like common object:
