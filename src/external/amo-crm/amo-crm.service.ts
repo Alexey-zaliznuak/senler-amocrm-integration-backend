@@ -16,6 +16,11 @@ import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { HandleTokenRefresh } from './handlers/handle-expireds-token.decorator';
 
+export type Token = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 @Injectable()
 export class AmoCrmService {
   constructor(
@@ -55,23 +60,17 @@ export class AmoCrmService {
    */
   @HandleTokenRefresh()
   async addContact({
+    amoCrmDomain,
     name,
     first_name,
     last_name,
-    accessToken,
-    refreshToken,
-    amoCrmDomain,
-    clientId,
-    clientSecret,
+    token,
   }: {
     amoCrmDomain: string;
     name: string;
     first_name: string;
     last_name: string;
-    accessToken: string;
-    refreshToken: string;
-    clientId: string;
-    clientSecret: string;
+    token: Token;
   }): Promise<CreateContactResponse> {
     try {
       const response = await this.axios.post<CreateContactResponse>(
@@ -83,7 +82,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token.accessToken}`,
           },
           requestId: '',
         },
