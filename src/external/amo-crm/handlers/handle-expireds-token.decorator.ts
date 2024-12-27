@@ -6,6 +6,8 @@ import {
 import axios, { AxiosResponse } from 'axios';
 import { env } from 'process';
 import { prisma } from 'src/infrastructure/database';
+import { Token } from '../amo-crm.service';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 
 /**
  * Функция для обновления accessToken с использованием refreshToken.
@@ -13,17 +15,15 @@ import { prisma } from 'src/infrastructure/database';
  * @returns Новый accessToken
  */
 async function refreshAccessToken({
-  refreshToken,
   amoCrmDomain,
-  accessToken,
   clientId,
   clientSecret,
+  token,
 }: {
-  refreshToken: string;
+  token: Token;
   amoCrmDomain: string;
   clientId: string;
   clientSecret: string;
-  accessToken: string;
 }): Promise<string> {
   try {
     const response: AxiosResponse = await axios.post(
@@ -32,7 +32,7 @@ async function refreshAccessToken({
         client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'refresh_token',
-        refresh_token: refreshToken,
+        refresh_token: token.refreshToken,
         redirect_uri: env.AMO_CRM_REDIRECT_URI,
       },
     );
@@ -43,7 +43,7 @@ async function refreshAccessToken({
 
     prisma.senlerGroup.update({
       where: {
-        amoCrmAccessToken: accessToken,
+        amoCrmAccessToken: token.accessToken,
       },
       data: {
         amoCrmAccessToken: response.data.access_token,
@@ -63,7 +63,7 @@ export function HandleTokenRefresh() {
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
-    
+
     descriptor.value = async function (...args: any[]) {
       try {
         return await originalMethod.apply(this, args);
@@ -71,19 +71,18 @@ export function HandleTokenRefresh() {
         if (error.response && error.response.status === 401) {
           const originalMethodProperty = args[0];
 
-          const refreshToken: string = originalMethodProperty.refreshToken;
+          const token: Token = originalMethodProperty.token;
+
           const amoCrmDomain: string = originalMethodProperty.amoCrmDomain;
-          const clientId: string = originalMethodProperty.clientId;
-          const clientSecret: string = originalMethodProperty.clientSecret;
-          const accessToken: string = originalMethodProperty.clientSecret;
+          const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
+          const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
 
           try {
             const newAccessToken: string = await refreshAccessToken({
-              refreshToken,
+              token,
               amoCrmDomain,
               clientId,
               clientSecret,
-              accessToken,
             });
 
             originalMethodProperty.accessToken = newAccessToken;
