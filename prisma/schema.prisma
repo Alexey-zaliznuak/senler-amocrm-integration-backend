@@ -14,16 +14,14 @@ model SenlerGroup {
 
   amoCrmDomainName                String
 
-  amoCrmAccessToken               String
-  amoCrmRefreshToken              String
+  amoCrmAccessToken               String            @unique
+  amoCrmRefreshToken              String            @unique
 
   senlerVkGroupId                 String            @unique
   senlerAccessToken               String
 
   leads                           Lead[]
   senlerIntegrationStepsTemplates SenlerIntegrationStepTemplate[]
-
-  @@unique([amoCrmAccessToken, amoCrmRefreshToken])
 }
 
 model SenlerIntegrationStepTemplate {
