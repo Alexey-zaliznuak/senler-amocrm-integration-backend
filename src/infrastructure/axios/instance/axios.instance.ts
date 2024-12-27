@@ -63,7 +63,7 @@ export class AxiosService implements OnModuleDestroy {
   async post<T>(
     url: string,
     data?: any,
-    config?: CustomAxiosRequestConfig,
+    config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
@@ -79,7 +79,7 @@ export class AxiosService implements OnModuleDestroy {
   async patch<T>(
     url: string,
     data?: any,
-    config?: CustomAxiosRequestConfig,
+    config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
