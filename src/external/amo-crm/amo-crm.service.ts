@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { CONFIG } from 'src/infrastructure/config/config.module';
 import { Logger } from 'winston';
 import { AMO_CRM_LOGGER } from './amo-crm.config';
 import {
@@ -12,9 +14,7 @@ import {
   GetUnsortedResponse,
   UpdateLeadResponse,
 } from './amo-crm.dto';
-import { CONFIG } from 'src/infrastructure/config/config.module';
-import { AppConfigType } from 'src/infrastructure/config/config.app-config';
-import { HandleTokenRefresh } from './handlers/handle-expireds-token.decorator';
+import { HandleAccessTokenExpiration } from './handlers/handle-expireds-token.decorator';
 
 export type Token = {
   accessToken: string;
@@ -58,7 +58,7 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/contacts-api#contacts-add
    */
-  @HandleTokenRefresh()
+  @HandleAccessTokenExpiration()
   async addContact({
     amoCrmDomain,
     name,

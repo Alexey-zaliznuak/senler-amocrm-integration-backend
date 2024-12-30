@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { env } from 'process';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
 import { Token } from '../amo-crm.service';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
 
 /**
  * Функция для обновления accessToken с использованием refreshToken.
@@ -56,7 +56,7 @@ async function refreshAccessToken({
   }
 }
 
-export function HandleTokenRefresh() {
+export function HandleAccessTokenExpiration() {
   return function (
     target: any,
     propertyKey: string,
