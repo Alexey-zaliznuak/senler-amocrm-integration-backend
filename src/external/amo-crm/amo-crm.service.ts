@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -84,14 +84,12 @@ export class AmoCrmService {
           headers: {
             Authorization: `Bearer ${token.accessToken}`,
           },
-          requestId: '',
         },
       );
 
       return response.data;
-    } catch (error) {
-      // Здесь можно добавить дополнительную обработку ошибок, если необходимо
-      throw error;
+    } catch {
+      throw new UnauthorizedException('Access token истек');
     }
   }
 
