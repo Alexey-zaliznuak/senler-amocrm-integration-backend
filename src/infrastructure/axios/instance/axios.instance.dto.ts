@@ -1,11 +1,11 @@
-import { AxiosRequestConfig } from "axios";
-import { IAxiosRetryConfig } from "axios-retry";
-import { Logger } from "winston";
+import { AxiosRequestConfig } from 'axios';
+import { IAxiosRetryConfig } from 'axios-retry';
+import { Logger } from 'winston';
 
 export type CreateCustomAxiosInstanceOptions = {
-  axiosConfig?: AxiosRequestConfig,
-  retryConfig?: IAxiosRetryConfig,
-}
+  axiosConfig?: AxiosRequestConfig;
+  retryConfig?: IAxiosRetryConfig;
+};
 
 export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   requestId: string;

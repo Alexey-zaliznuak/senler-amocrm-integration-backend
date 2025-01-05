@@ -1,1 +1,1 @@
-export * from './process-time.interceptor'
+export * from './process-time.interceptor';

@@ -7,6 +7,6 @@ import { SenlerModule } from 'src/external/senler/senler.module';
 @Module({
   controllers: [IntegrationController],
   providers: [IntegrationService],
-  imports: [AmoCrmModule, SenlerModule]
+  imports: [AmoCrmModule, SenlerModule],
 })
 export class IntegrationModule {}

@@ -1,2 +1,1 @@
-export const AppConfigDefaults = {
-}
+export const AppConfigDefaults = {};

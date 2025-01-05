@@ -13,7 +13,7 @@ export class RequestIdMiddleware implements NestMiddleware {
     const requestId = uuidv4();
 
     res.set('X-Request-Id', requestId);
-    req.id = requestId as UUID
+    req.id = requestId as UUID;
 
     next();
   }

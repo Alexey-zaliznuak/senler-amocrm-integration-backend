@@ -1,2 +1,2 @@
-export * from './amo-crm.module'
-export * from './amo-crm.service'
+export * from './amo-crm.module';
+export * from './amo-crm.service';

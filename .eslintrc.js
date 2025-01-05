@@ -5,7 +5,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: ['@typescript-eslint'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
@@ -17,6 +17,24 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', {
+      vars: 'all',
+      args: 'after-used',
+      ignoreRestSiblings: true,
+      argsIgnorePattern: '^_',
+    }],
+
+    'max-len': ['error', {
+      code: 180,
+      tabWidth: 2,
+      ignoreUrls: true,
+      ignoreComments: false,
+      ignoreTrailingComments: true,
+      ignoreStrings: true,
+      ignoreTemplateLiterals: true,
+    }],
+
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

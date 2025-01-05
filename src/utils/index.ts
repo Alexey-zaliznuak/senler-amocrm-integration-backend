@@ -1,1 +1,1 @@
-export * from './time-to-milliseconds'
+export * from './time-to-milliseconds';

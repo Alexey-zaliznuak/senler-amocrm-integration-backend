@@ -1,13 +1,17 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  Inject,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { LOGGER } from '../logging/logging.module';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(
-    @Inject(LOGGER) private readonly logger: Logger
-  ) {}
+  constructor(@Inject(LOGGER) private readonly logger: Logger) {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
     const context = host.switchToHttp();
@@ -15,15 +19,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = context.getRequest<Request>();
     const status = exception.getStatus();
 
-    const exceptionMessage = this.getExceptionMessage(exception)
+    const exceptionMessage = this.getExceptionMessage(exception);
 
-    this.logger.error(
-      `HTTP ${status} ${exception.name}:`,
-      {
-        exceptionMessage,
-        stack: exception.stack,
-      },
-    );
+    this.logger.error(`HTTP ${status} ${exception.name}:`, {
+      exceptionMessage,
+      stack: exception.stack,
+    });
 
     response.status(status).json({
       statusCode: status,
@@ -33,13 +34,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
   }
 
-  private getExceptionMessage(exception: HttpException): string | Array<string> {
+  private getExceptionMessage(
+    exception: HttpException,
+  ): string | Array<string> {
     const exceptionResponse = exception.getResponse();
 
-    if (typeof exceptionResponse === 'object' && exceptionResponse['message'] && Array.isArray(exceptionResponse['message'])) {
-      return (exceptionResponse['message']);
+    if (
+      typeof exceptionResponse === 'object' &&
+      exceptionResponse['message'] &&
+      Array.isArray(exceptionResponse['message'])
+    ) {
+      return exceptionResponse['message'];
     }
 
-    return exception.message
+    return exception.message;
   }
 }

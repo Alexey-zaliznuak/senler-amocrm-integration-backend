@@ -1,4 +1,9 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
@@ -21,7 +26,7 @@ export class ProcessTimeInterceptor implements NestInterceptor {
         response.setHeader('X-Process-Time', `${duration}ms`);
 
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

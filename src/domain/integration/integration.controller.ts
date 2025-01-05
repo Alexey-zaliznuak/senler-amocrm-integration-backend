@@ -16,7 +16,6 @@ import { ParseJsonPipe } from 'src/infrastructure/pipes';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepWebhookDto } from './integration.dto';
 
-
 class TestDto {
   @ApiProperty()
   a?: number;
@@ -24,7 +23,6 @@ class TestDto {
   @ApiProperty()
   integrationSecret: string;
 }
-
 
 @Controller('integration')
 export class IntegrationController {
@@ -36,19 +34,19 @@ export class IntegrationController {
   @Post('/botStepWebhook')
   @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
-  @ApiBody({type: BotStepWebhookDto})
+  @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(
     @Request() req: CustomRequest,
-    @Body("IntegrationSecret", ParseJsonPipe) body: BotStepWebhookDto,
+    @Body('IntegrationSecret', ParseJsonPipe) body: BotStepWebhookDto,
   ): Promise<any> {
-    return await this.integrationService.processBotStepWebhook(req, body)
+    return await this.integrationService.processBotStepWebhook(req, body);
   }
 
   @Post('/kek')
   @HttpCode(201)
   async testing(
     @Request() req: CustomRequest,
-    @Body() body: TestDto,
+    @Body() _body: TestDto,
   ): Promise<any> {
     req.logger.info('Привет');
 
@@ -71,7 +69,7 @@ export class IntegrationController {
   @HttpCode(201)
   async testing2(
     @Request() req: CustomRequest,
-    @Body() body: TestDto,
+    @Body() _body: TestDto,
   ): Promise<any> {
     req.logger.info('Д');
     // this.amoCrmService.addContact({
@@ -87,7 +85,7 @@ export class IntegrationController {
   @HttpCode(201)
   async testing3(
     @Request() req: CustomRequest,
-    @Body() body: TestDto,
+    @Body() _body: TestDto,
   ): Promise<any> {
     req.logger.info('создание контакта');
     // this.amoCrmService.addLead({
@@ -106,7 +104,7 @@ export class IntegrationController {
   @HttpCode(201)
   async testing4(
     @Request() req: CustomRequest,
-    @Body() body: TestDto,
+    @Body() _body: TestDto,
   ): Promise<any> {
     req.logger.info('Создание филдов в лиде');
     // this.amoCrmService.createLeadField({

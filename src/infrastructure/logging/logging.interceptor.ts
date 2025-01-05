@@ -9,7 +9,6 @@ import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
 
-
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -43,11 +42,13 @@ export class LoggingInterceptor implements NestInterceptor {
     startTime: number,
     payload: any,
   ) {
-    const statusCode = payload instanceof HttpException ? payload.getStatus() : res.statusCode;
+    const statusCode =
+      payload instanceof HttpException ? payload.getStatus() : res.statusCode;
 
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
-    const processTime = headers['x-process-time'] || `${Date.now() - startTime} ms`;
+    const processTime =
+      headers['x-process-time'] || `${Date.now() - startTime} ms`;
 
     req.logger.info('Response sent', {
       statusCode,

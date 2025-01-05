@@ -6,21 +6,18 @@ import { CONFIG } from '../config/config.module';
 import { baseLogFormat, baseTransports } from './logging.config';
 import { LOGGER } from './logging.module';
 
-
 @Injectable()
 export class LoggingService {
   private readonly BASE_CONFIG: winston.LoggerOptions;
 
-  constructor(
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
-  ) {
-    this.BASE_CONFIG = this.buildConfig()
+  constructor(@Inject(CONFIG) private readonly appConfig: AppConfigType) {
+    this.BASE_CONFIG = this.buildConfig();
   }
 
   public createLogger(options?: winston.LoggerOptions) {
-    options = options ?? this.BASE_CONFIG
+    options = options ?? this.BASE_CONFIG;
 
-    return createLogger(options)
+    return createLogger(options);
   }
 
   private buildConfig(): winston.LoggerOptions {
@@ -31,5 +28,6 @@ export class LoggingService {
     };
   }
 
-  public static buildInjectableNameByContext = (context: string) => LOGGER + "__" + context;
+  public static buildInjectableNameByContext = (context: string) =>
+    LOGGER + '__' + context;
 }

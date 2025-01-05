@@ -19,7 +19,6 @@ import { AppConfig } from './infrastructure/config/config.app-config';
 import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
 import { SenlerModule } from './external/senler/senler.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,28 +41,21 @@ import { SenlerModule } from './external/senler/senler.module';
     SenlerModule,
   ],
 
-  controllers: [
-    AppController
-  ],
+  controllers: [AppController],
 
   providers: [
     AppService,
 
     SenlerService,
 
-    { provide: APP_FILTER, useClass: HttpExceptionFilter, },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
 
-    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor, },
-    { provide: APP_INTERCEPTOR, useClass: ProcessTimeInterceptor, },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ProcessTimeInterceptor },
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(
-        RequestIdMiddleware,
-        RequestLoggerMiddleware,
-      )
-      .forRoutes("*");
+    consumer.apply(RequestIdMiddleware, RequestLoggerMiddleware).forRoutes('*');
   }
 }

@@ -1,1 +1,1 @@
-export * from './request-id.middleware'
+export * from './request-id.middleware';

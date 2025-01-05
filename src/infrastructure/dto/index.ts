@@ -1,1 +1,1 @@
-export * from './base-model.dto'
+export * from './base-model.dto';

@@ -1,25 +1,30 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsEnum, IsObject, IsArray } from "class-validator";
-import { IsStringOrNumber } from "src/infrastructure/validation";
-
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  ValidateNested,
+  IsEnum,
+  IsObject,
+  IsArray,
+} from 'class-validator';
+import { IsStringOrNumber } from 'src/infrastructure/validation';
 
 export enum BotStepType {
   SendDataToAmoCrm = 'SEND_DATA_TO_AMO_CRM',
   SendDataToSenler = 'SEND_DATA_TO_SENLER',
 }
 
-
 export class TransferPairDto {
   @ApiProperty({
-    description: "Identifier of variable from export service."
+    description: 'Identifier of variable from export service.',
   })
   @IsNotEmpty()
   @IsStringOrNumber()
   from: string | number;
 
   @ApiProperty({
-    description: "Identifier of variable from import service."
+    description: 'Identifier of variable from import service.',
   })
   @IsNotEmpty()
   @IsStringOrNumber()
@@ -27,13 +32,14 @@ export class TransferPairDto {
 }
 
 export class PublicBotStepSettingsDto {
-  @ApiProperty({description: "bot step type"})
+  @ApiProperty({ description: 'bot step type' })
   @IsNotEmpty()
   @IsEnum(BotStepType)
   type: BotStepType;
 
   @ApiProperty({
-    description: "Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values."
+    description:
+      'Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values.',
   })
   @IsNotEmpty()
   @IsArray()
@@ -43,35 +49,35 @@ export class PublicBotStepSettingsDto {
 }
 
 export class LeadDto {
-  @ApiProperty({description: "Lead id."})
+  @ApiProperty({ description: 'Lead id.' })
   @IsNotEmpty()
   @IsString()
   id: string;
 
-  @ApiProperty({description: "Lead name."})
+  @ApiProperty({ description: 'Lead name.' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  @ApiProperty({description: "Lead surname."})
+  @ApiProperty({ description: 'Lead surname.' })
   @IsNotEmpty()
   @IsString()
   surname: string;
 
-  @ApiProperty({description: "Senler lead`s personal vars."})
+  @ApiProperty({ description: 'Senler lead`s personal vars.' })
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
 }
 
 export class BotStepWebhookDto {
-  @ApiProperty({description: "Public bot step settings."})
+  @ApiProperty({ description: 'Public bot step settings.' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => PublicBotStepSettingsDto)
   publicBotStepSettings: PublicBotStepSettingsDto;
 
-  @ApiProperty({description: "Lead."})
+  @ApiProperty({ description: 'Lead.' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LeadDto)

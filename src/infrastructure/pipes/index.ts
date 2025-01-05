@@ -1,1 +1,1 @@
-export * from './JsonParse.pipe'
+export * from './JsonParse.pipe';

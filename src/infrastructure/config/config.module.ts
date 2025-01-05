@@ -1,8 +1,7 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-
-export const CONFIG = "CONFIG"
+export const CONFIG = 'CONFIG';
 
 /**
  * Convenient ACCESS for config service.
@@ -17,23 +16,19 @@ export class CustomConfigModule {
   static forRoot(): DynamicModule {
     return {
       module: CustomConfigModule,
-      imports: [
-        ConfigModule,
-      ],
+      imports: [ConfigModule],
       providers: [
         {
           provide: CONFIG,
           useFactory: (config: ConfigService) => {
-            return new Proxy(
-              config,
-              {
-                get: (target: any, property: string) => {
-                  if (property in target.internalConfig) {
-                    return target.internalConfig[property];
-                  }
-                  return undefined
-                },
-              });
+            return new Proxy(config, {
+              get: (target: any, property: string) => {
+                if (property in target.internalConfig) {
+                  return target.internalConfig[property];
+                }
+                return undefined;
+              },
+            });
           },
           inject: [ConfigService],
         },
