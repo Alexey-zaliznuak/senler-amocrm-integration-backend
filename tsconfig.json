@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "target": "ES6", // Или выше
+    "target": "ESNext",
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
