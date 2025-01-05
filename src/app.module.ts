@@ -17,6 +17,7 @@ import { SenlerService } from './external/senler/senler.service';
 import { CustomConfigModule } from './infrastructure/config/config.module';
 import { AppConfig } from './infrastructure/config/config.app-config';
 import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
+import { SenlerModule } from './external/senler/senler.module';
 
 
 @Module({
@@ -32,13 +33,13 @@ import { appConfigValidationSchema } from './infrastructure/config/config.valida
     SenlerGroupsModule,
     IntegrationModule,
 
-    // External services
-    AmoCrmModule,
-
-    // Infrastructure modules
+    // Infrastructure
     LoggingModule.forRoot(),
     AxiosModule.forRoot(),
 
+    // External
+    AmoCrmModule,
+    SenlerModule,
   ],
 
   controllers: [
