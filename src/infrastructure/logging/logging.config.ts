@@ -46,7 +46,7 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
   new LokiTransport({
     host: config.LOKI_HOST,
     labels: {
-      service: 'senler-amocrm-integration-backend',
+      service: config.INSTANCE_NAME,
       instance: config.INSTANCE_ID,
     },
     json: true,

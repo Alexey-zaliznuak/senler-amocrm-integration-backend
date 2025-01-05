@@ -10,6 +10,7 @@ export const appConfigValidationSchema = Joi.object({
 
   OPENAPI_SERVER_URLS: Joi.string().required(),
 
+  INSTANCE_NAME: Joi.string().default('senler-amocrm-integration-backend'),
   INSTANCE_ID: Joi.string().default(AppConfig.INSTANCE_ID),
 
   INTEGRATION_SECRET: Joi.string().required(),
