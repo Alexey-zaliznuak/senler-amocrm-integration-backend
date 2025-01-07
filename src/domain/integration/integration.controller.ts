@@ -6,6 +6,7 @@ import {
   Post,
   Request,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
@@ -37,11 +38,10 @@ export class IntegrationController {
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(
     @Request() req: CustomRequest,
-    @Body('publicBotStepSettings', ParseJsonPipe) body: BotStepWebhookDto,
+    @Body('publicBotStepSettings', ParseJsonPipe) _: any,
+    @Body() body: BotStepWebhookDto,
   ): Promise<any> {
-    console.error("body", body)
-    return {}
-    // return await this.integrationService.processBotStepWebhook(req, body);
+    req.logger.error("BODY", {body})
   }
 
   @Post('/kek')

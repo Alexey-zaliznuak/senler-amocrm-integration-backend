@@ -42,8 +42,8 @@ export class PublicBotStepSettingsDto {
     description:
       'Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values.',
   })
-  @IsNotEmpty()
   @IsArray()
+  @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TransferPairDto)
   syncableVariables: Array<TransferPairDto>;
