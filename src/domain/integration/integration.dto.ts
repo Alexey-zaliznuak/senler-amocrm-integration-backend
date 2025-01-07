@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsObject,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 
@@ -51,8 +52,8 @@ export class PublicBotStepSettingsDto {
 export class LeadDto {
   @ApiProperty({ description: 'Lead id.' })
   @IsNotEmpty()
-  @IsString()
-  id: string;
+  @IsNumber()
+  id: number;
 
   @ApiProperty({ description: 'Lead name.' })
   @IsNotEmpty()
@@ -68,6 +69,11 @@ export class LeadDto {
   @IsObject()
   @IsNotEmpty()
   personalVars: Array<void> | Record<string, string | number | boolean>;
+
+  @ApiProperty({ description: 'Lead vk user id.' })
+  @IsNotEmpty()
+  @IsString()
+  vkUserId: string;
 }
 
 export class BotStepWebhookDto {
