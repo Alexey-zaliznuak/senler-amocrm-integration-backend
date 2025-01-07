@@ -41,7 +41,7 @@ export class IntegrationController {
     @Body('publicBotStepSettings', ParseJsonPipe) _: any,
     @Body() body: BotStepWebhookDto,
   ): Promise<any> {
-    req.logger.error("BODY", {body})
+    return await this.integrationService.processBotStepWebhook(req, body)
   }
 
   @Post('/kek')

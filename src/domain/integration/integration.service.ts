@@ -10,8 +10,9 @@ export class IntegrationService {
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    req.logger.warn("Body", body)
-    const lead = await prisma.lead.findUniqueOrThrow({where: {senlerLeadId: (body as any).lead.id}, select: {senlerGroup: true}})
+    // create lead if not exists
+    const lead = await prisma.lead.findUniqueOrThrow({where: {senlerLeadId: body.lead.id}, select: {senlerGroup: true}})
+
     const senlerClient = new SenlerApiClient({
       accessToken: lead.senlerGroup.senlerAccessToken,
       vkGroupId: lead.senlerGroup.senlerVkGroupId,
@@ -19,8 +20,8 @@ export class IntegrationService {
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
       const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from)
-      const temp = await senlerClient.vars.get({vk_user_id: (body as any).lead.vkUserId})
-      console.info(temp)
+      //await senlerClient.vars.get({vk_user_id: body.lead.vkUserId})
+      // console.info(temp)
       return {}
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
