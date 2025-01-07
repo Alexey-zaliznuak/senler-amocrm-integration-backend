@@ -42,7 +42,7 @@ model Lead {
 
   amoCrmLeadId         Int
 
-  senlerLeadId         Int               @unique
+  senlerLeadId         String            @unique
 
   senlerGroupId        String
   senlerGroup          SenlerGroup       @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)

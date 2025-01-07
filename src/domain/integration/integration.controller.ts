@@ -37,9 +37,11 @@ export class IntegrationController {
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(
     @Request() req: CustomRequest,
-    @Body('IntegrationSecret', ParseJsonPipe) body: BotStepWebhookDto,
+    @Body('publicBotStepSettings', ParseJsonPipe) body: BotStepWebhookDto,
   ): Promise<any> {
-    return await this.integrationService.processBotStepWebhook(req, body);
+    console.error("body", body)
+    return {}
+    // return await this.integrationService.processBotStepWebhook(req, body);
   }
 
   @Post('/kek')

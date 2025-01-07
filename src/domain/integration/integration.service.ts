@@ -36,7 +36,7 @@ export class IntegrationService {
     name,
     amoCrmDomain,
   }: {
-    senlerLeadId: number;
+    senlerLeadId: string;
     amoCrmLeadId: number;
     name: string;
     amoCrmDomain: string;

@@ -52,8 +52,8 @@ export class PublicBotStepSettingsDto {
 export class LeadDto {
   @ApiProperty({ description: 'Lead id.' })
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
 
   @ApiProperty({ description: 'Lead name.' })
   @IsNotEmpty()
@@ -72,8 +72,8 @@ export class LeadDto {
 
   @ApiProperty({ description: 'Lead vk user id.' })
   @IsNotEmpty()
-  @IsString()
-  vkUserId: string;
+  @IsNumber()
+  vkUserId: number;
 }
 
 export class BotStepWebhookDto {
