@@ -14,7 +14,7 @@ import {
   GetUnsortedResponse,
   UpdateLeadResponse,
 } from './amo-crm.dto';
-import { HandleAccessTokenExpiration } from './handlers/handle-expireds-token.decorator';
+import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 
 export type Token = {
   accessToken: string;
