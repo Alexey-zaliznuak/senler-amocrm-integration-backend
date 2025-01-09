@@ -5,14 +5,14 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get("ping")
+  @Get('ping')
   async ping() {
     const delay = Math.random() * 1000;
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve("pong");
+        resolve('pong');
       }, delay);
-  })
+    });
   }
 }

@@ -12,7 +12,8 @@ export enum NodeEnv {
 export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV || NodeEnv.local,
 
-  INSTANCE_NAME: process.env.INSTANCE_NAME || 'senler-amocrm-integration-backend',
+  INSTANCE_NAME:
+    process.env.INSTANCE_NAME || 'senler-amocrm-integration-backend',
   INSTANCE_ID: process.env.INSTANCE_ID || uuidv4(),
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,

@@ -293,13 +293,13 @@ export class AmoCrmService {
     amoCrmLeadId: number;
     name: string;
   }) {
-    const response = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
+    const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
 
-    if (response) return amoCrmLeadId;
+    if (lead) return lead;
 
-    await this.addLead({ amoCrmDomain, leads: [{ name }] });
+    const actualLead = await this.addLead({ amoCrmDomain, leads: [{ name }] });
 
-    return 1; //'new lead id'
+    return actualLead;
   }
 
   // Редактирование дополнительных полей сущности *
