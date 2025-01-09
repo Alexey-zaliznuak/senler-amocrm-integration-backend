@@ -48,35 +48,30 @@ export class IntegrationService {
     amoCrmDomain: string;
     senlerGroupId: string;
   }) {
-    const databaseLead = await prisma.lead.findUnique({
-      where: {
-        amoCrmLeadId,
-        senlerLeadId,
-      },
-    });
-
-    if (databaseLead.id) {
-      const actualLead = await this.amoCrmService.createLeadIfNotExists({
+    if (!(await prisma.lead.exists({ amoCrmLeadId, senlerLeadId }))) {
+      const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
         amoCrmLeadId,
         name,
       });
-      if (amoCrmLeadId != actualLead.id) {
-        prisma.lead.update({
+
+      if (amoCrmLeadId != actualAmoCrmLead.id) {
+        await prisma.lead.update({
           where: { amoCrmLeadId, senlerLeadId },
-          data: { amoCrmLeadId: actualLead.id },
+          data: { amoCrmLeadId: actualAmoCrmLead.id },
         });
       }
       return;
     }
 
-    const actualLead = await this.amoCrmService.addLead({
+    const lead = await this.amoCrmService.addLead({
       amoCrmDomain,
       leads: [{ name }],
     });
-    prisma.lead.create({
+
+    await prisma.lead.create({
       data: {
-        amoCrmLeadId: actualLead.id,
+        amoCrmLeadId: lead.id,
         senlerLeadId: senlerLeadId,
         senlerGroupId: senlerGroupId,
       },
