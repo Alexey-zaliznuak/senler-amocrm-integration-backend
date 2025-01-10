@@ -36,11 +36,14 @@ export class AppService {
   }
 
   public static setupValidation(app: INestApplication) {
-    app.useGlobalPipes(
-      new ValidationPipe({
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    );
+    app.useGlobalPipes(new ValidationPipe({
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      transform: true,
+      whitelist: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }));
   }
 
   public static removePoweredByHeader(app: INestApplication) {

@@ -1,15 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import {
-  IsString,
-  IsNotEmpty,
-  ValidateNested,
-  IsEnum,
-  IsObject,
-  IsArray,
-  IsNumber,
-} from 'class-validator';
+import { plainToInstance, Transform, Type } from 'class-transformer';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsString, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
+import { parseJson } from 'src/utils';
 
 export enum BotStepType {
   SendDataToAmoCrm = 'SEND_DATA_TO_AMO_CRM',
@@ -39,8 +32,7 @@ export class PublicBotStepSettingsDto {
   type: BotStepType;
 
   @ApiProperty({
-    description:
-      'Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values.',
+    description: 'Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values.',
   })
   @IsArray()
   @IsNotEmpty()
@@ -78,6 +70,10 @@ export class LeadDto {
 
 export class BotStepWebhookDto {
   @ApiProperty({ description: 'Public bot step settings.' })
+  @Transform(({ value }) => plainToInstance(
+    PublicBotStepSettingsDto,
+    parseJson(value))
+  )
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => PublicBotStepSettingsDto)

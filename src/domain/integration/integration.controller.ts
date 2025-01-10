@@ -13,7 +13,6 @@ import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
-import { ParseJsonPipe } from 'src/infrastructure/pipes';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepWebhookDto } from './integration.dto';
 
@@ -38,10 +37,9 @@ export class IntegrationController {
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(
     @Request() req: CustomRequest,
-    @Body('publicBotStepSettings', ParseJsonPipe) _: any,
     @Body() body: BotStepWebhookDto,
   ): Promise<any> {
-    return await this.integrationService.processBotStepWebhook(req, body);
+    return await this.integrationService.processBotStepWebhook(req, body)
   }
 
   @Post('/kek')
