@@ -3,7 +3,7 @@ import { SenlerApiClient } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepWebhookDto, BotStepType } from './integration.dto';
+import { BotStepType, BotStepWebhookDto } from './integration.dto';
 
 @Injectable()
 export class IntegrationService {

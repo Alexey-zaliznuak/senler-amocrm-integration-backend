@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Inject, Post, Request, UseGuards, UsePipes } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
