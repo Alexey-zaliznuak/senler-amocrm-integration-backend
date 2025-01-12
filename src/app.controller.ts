@@ -7,12 +7,6 @@ export class AppController {
 
   @Get('ping')
   async ping() {
-    const delay = Math.random() * 1000;
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('pong');
-      }, delay);
-    });
+    'pong';
   }
 }

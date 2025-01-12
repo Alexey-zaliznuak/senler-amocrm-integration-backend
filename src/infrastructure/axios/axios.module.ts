@@ -3,10 +3,7 @@ import { AxiosService } from './instance/axios.instance';
 import { Logger } from 'winston';
 import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
 import { LoggingModule } from '../logging/logging.module';
-import {
-  AXIOS_INSTANCE,
-  AXIOS_INSTANCE_LOGGER,
-} from './instance/axios.instance.config';
+import { AXIOS_INSTANCE, AXIOS_INSTANCE_LOGGER } from './instance/axios.instance.config';
 
 @Global()
 @Module({})

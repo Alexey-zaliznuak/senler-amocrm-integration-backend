@@ -26,12 +26,8 @@ export class LoggingModule {
     };
   }
 
-  static forFeature(
-    context: string,
-    options?: winston.LoggerOptions,
-  ): DynamicModule {
-    const featureLoggerProvider =
-      LoggingService.buildInjectableNameByContext(context);
+  static forFeature(context: string, options?: winston.LoggerOptions): DynamicModule {
+    const featureLoggerProvider = LoggingService.buildInjectableNameByContext(context);
     return {
       module: LoggingModule,
       providers: [

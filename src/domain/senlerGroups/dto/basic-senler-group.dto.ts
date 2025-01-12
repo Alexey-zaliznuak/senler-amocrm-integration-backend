@@ -5,20 +5,10 @@ import { BaseModelDto } from 'src/infrastructure/dto';
 
 export type BaseSenlerGroup = Pick<
   SenlerGroup,
-  | 'id'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'amoCrmDomainName'
-  | 'amoCrmAccessToken'
-  | 'amoCrmRefreshToken'
-  | 'senlerAccessToken'
-  | 'senlerVkGroupId'
+  'id' | 'createdAt' | 'updatedAt' | 'amoCrmDomainName' | 'amoCrmAccessToken' | 'amoCrmRefreshToken' | 'senlerAccessToken' | 'senlerVkGroupId'
 >;
 
-export class BaseSenlerGroupDto
-  extends BaseModelDto
-  implements BaseSenlerGroup
-{
+export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
   @ApiProperty({ description: 'AmoCRM domain name' })
   @IsString()
   @IsNotEmpty()

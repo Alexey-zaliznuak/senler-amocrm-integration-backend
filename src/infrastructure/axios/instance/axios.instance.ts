@@ -1,22 +1,9 @@
 import { Logger } from 'winston';
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
-import {
-  CreateCustomAxiosInstanceOptions,
-  CustomAxiosRequestConfig,
-  RequestLoggerData,
-} from './axios.instance.dto';
-import {
-  AXIOS_INSTANCE_LOGGER,
-  BASE_RETRY_CONFIG,
-} from './axios.instance.config';
+import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
+import { AXIOS_INSTANCE_LOGGER, BASE_RETRY_CONFIG } from './axios.instance.config';
 import { timeToMilliseconds } from 'src/utils';
 
 @Injectable()
@@ -32,7 +19,7 @@ export class AxiosService implements OnModuleDestroy {
 
   constructor(
     @Inject(AXIOS_INSTANCE_LOGGER) private readonly logger: Logger,
-    options: CreateCustomAxiosInstanceOptions = {},
+    options: CreateCustomAxiosInstanceOptions = {}
   ) {
     this.defaults = {
       axiosConfig: options.axiosConfig,
@@ -45,10 +32,7 @@ export class AxiosService implements OnModuleDestroy {
     this.setupInterceptors();
   }
 
-  async get<T>(
-    url: string,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T>> {
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);
@@ -60,11 +44,7 @@ export class AxiosService implements OnModuleDestroy {
     }
   }
 
-  async post<T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T>> {
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);
@@ -76,11 +56,7 @@ export class AxiosService implements OnModuleDestroy {
     }
   }
 
-  async patch<T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T>> {
+  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);
@@ -99,27 +75,18 @@ export class AxiosService implements OnModuleDestroy {
     return instance;
   }
 
-  private buildRetryConfig(
-    axiosRetryConfig?: IAxiosRetryConfig,
-  ): IAxiosRetryConfig {
+  private buildRetryConfig(axiosRetryConfig?: IAxiosRetryConfig): IAxiosRetryConfig {
     axiosRetryConfig = Object.assign(BASE_RETRY_CONFIG, axiosRetryConfig);
     axiosRetryConfig = this.appendLoggingOnRetry(axiosRetryConfig);
 
     return axiosRetryConfig;
   }
 
-  private appendLoggingOnRetry(
-    oldRetryConfig: IAxiosRetryConfig,
-  ): IAxiosRetryConfig {
+  private appendLoggingOnRetry(oldRetryConfig: IAxiosRetryConfig): IAxiosRetryConfig {
     return {
       ...oldRetryConfig,
-      onRetry: async (
-        retryCount: number,
-        error: AxiosError,
-        requestConfig: CustomAxiosRequestConfig,
-      ): Promise<void> => {
-        if (oldRetryConfig.onRetry)
-          await oldRetryConfig.onRetry(retryCount, error, requestConfig);
+      onRetry: async (retryCount: number, error: AxiosError, requestConfig: CustomAxiosRequestConfig): Promise<void> => {
+        if (oldRetryConfig.onRetry) await oldRetryConfig.onRetry(retryCount, error, requestConfig);
         this.logRetrying(retryCount, error, requestConfig);
       },
     };
@@ -128,9 +95,7 @@ export class AxiosService implements OnModuleDestroy {
   private setupInterceptors(): void {
     this.axios.interceptors.request.use(
       (config: InternalAxiosRequestConfig<any>) => {
-        const logger = this.getRequestLogger(
-          (config as CustomAxiosRequestConfig).requestId,
-        );
+        const logger = this.getRequestLogger((config as CustomAxiosRequestConfig).requestId);
 
         logger.info(`Sending request to ${config.url}`, {
           method: config.method,
@@ -151,7 +116,7 @@ export class AxiosService implements OnModuleDestroy {
         }
 
         return Promise.reject(error);
-      },
+      }
     );
 
     this.axios.interceptors.response.use(
@@ -175,20 +140,15 @@ export class AxiosService implements OnModuleDestroy {
           });
         }
         return Promise.reject(error);
-      },
+      }
     );
   }
 
-  private setRequestId(
-    config: AxiosRequestConfig,
-  ): AxiosRequestConfig & { requestId: string } {
+  private setRequestId(config: AxiosRequestConfig): AxiosRequestConfig & { requestId: string } {
     return { ...config, requestId: this.generateRequestId() };
   }
 
-  private setRequestLogger(
-    url: string,
-    config: CustomAxiosRequestConfig,
-  ): Logger {
+  private setRequestLogger(url: string, config: CustomAxiosRequestConfig): Logger {
     const logger = this.createChildRequestLogger(url, config.requestId);
     this.requestLoggers.set(config.requestId, {
       logger,
@@ -209,16 +169,9 @@ export class AxiosService implements OnModuleDestroy {
     this.requestLoggers.delete(requestId);
   }
 
-  private logRetrying(
-    retryCount: number,
-    error: AxiosError,
-    requestConfig: CustomAxiosRequestConfig,
-  ): void {
+  private logRetrying(retryCount: number, error: AxiosError, requestConfig: CustomAxiosRequestConfig): void {
     const logger = this.getRequestLogger(requestConfig.requestId);
-    logger.warn(
-      `Request ${retryCount} attempt failed, error: ${error.message}`,
-      { requestConfig },
-    );
+    logger.warn(`Request ${retryCount} attempt failed, error: ${error.message}`, { requestConfig });
   }
 
   private createChildRequestLogger(url: string, requestId: string): Logger {

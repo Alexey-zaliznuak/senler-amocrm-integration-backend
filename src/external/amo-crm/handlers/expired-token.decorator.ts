@@ -1,8 +1,5 @@
 // handle-token-refresh.decorator.ts
-import {
-  ServiceUnavailableException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { env } from 'process';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
@@ -14,28 +11,15 @@ import { Token } from '../amo-crm.service';
  * @param refreshToken Текущий refreshToken
  * @returns Новый Token - связка accessToken и refreshToken
  */
-async function refreshAccessToken({
-  amoCrmDomain,
-  clientId,
-  clientSecret,
-  token,
-}: {
-  token: Token;
-  amoCrmDomain: string;
-  clientId: string;
-  clientSecret: string;
-}): Promise<Token> {
+async function refreshAccessToken({ amoCrmDomain, clientId, clientSecret, token }: { token: Token; amoCrmDomain: string; clientId: string; clientSecret: string }): Promise<Token> {
   try {
-    const response: AxiosResponse = await axios.post(
-      `https://${amoCrmDomain}/oauth2/access_token`,
-      {
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'refresh_token',
-        refresh_token: token.refreshToken,
-        redirect_uri: env.AMO_CRM_REDIRECT_URI,
-      },
-    );
+    const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: token.refreshToken,
+      redirect_uri: env.AMO_CRM_REDIRECT_URI,
+    });
 
     if (response.status !== 200) {
       throw new ServiceUnavailableException('Не удалось обновить токен');
@@ -61,11 +45,7 @@ async function refreshAccessToken({
 }
 
 export function HandleAccessTokenExpiration() {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

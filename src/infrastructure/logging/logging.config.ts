@@ -18,25 +18,17 @@ export const baseLogFormat = winston.format.combine(
     };
 
     return JSON.stringify(logObject);
-  }),
+  })
 );
 
-export const prettyLogPrintFormat = winston.format.printf(
-  ({ level, message, timestamp, context, ...meta }) => {
-    const formattedMessage =
-      typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
-    const formattedMeta =
-      meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
+export const prettyLogPrintFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
+  const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
+  const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
 
-    return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
-  },
-);
+  return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
+});
 
-export const prettyLogFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  prettyLogPrintFormat,
-);
+export const prettyLogFormat = winston.format.combine(winston.format.colorize(), winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), prettyLogPrintFormat);
 
 export const baseTransports = (config: AppConfigType): Transport[] => [
   new winston.transports.Console({
@@ -53,11 +45,9 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
     basicAuth: config.LOKI_USERNAME + ':' + config.LOKI_AUTH_TOKEN,
     format: winston.format.json(),
     replaceTimestamp: true,
-    onConnectionError: (err) => {
+    onConnectionError: err => {
       if (err) {
-        console.error(
-          'Connection to Loki failed. Check your host and credentials.',
-        );
+        console.error('Connection to Loki failed. Check your host and credentials.');
       }
     },
   }),

@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Inject,
-  Post,
-  Request,
-  UseGuards,
-  UsePipes,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, Request, UseGuards, UsePipes } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
@@ -28,26 +19,20 @@ class TestDto {
 export class IntegrationController {
   constructor(
     @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly integrationService: IntegrationService,
+    private readonly integrationService: IntegrationService
   ) {}
 
   @Post('/botStepWebhook')
   @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
-  async botStepWebhook(
-    @Request() req: CustomRequest,
-    @Body() body: BotStepWebhookDto,
-  ): Promise<any> {
-    return await this.integrationService.processBotStepWebhook(req, body)
+  async botStepWebhook(@Request() req: CustomRequest, @Body() body: BotStepWebhookDto): Promise<any> {
+    return await this.integrationService.processBotStepWebhook(req, body);
   }
 
   @Post('/kek')
   @HttpCode(201)
-  async testing(
-    @Request() req: CustomRequest,
-    @Body() _body: TestDto,
-  ): Promise<any> {
+  async testing(@Request() req: CustomRequest, @Body() _body: TestDto): Promise<any> {
     req.logger.info('Привет');
 
     // this.amoCrmService.addUnsorted({
@@ -67,10 +52,7 @@ export class IntegrationController {
 
   @Post('/kek2')
   @HttpCode(201)
-  async testing2(
-    @Request() req: CustomRequest,
-    @Body() _body: TestDto,
-  ): Promise<any> {
+  async testing2(@Request() req: CustomRequest, @Body() _body: TestDto): Promise<any> {
     req.logger.info('Д');
     // this.amoCrmService.addContact({
     //   amoCrmDomain: 'collabox.amocrm.ru',
@@ -83,10 +65,7 @@ export class IntegrationController {
 
   @Post('/kek3')
   @HttpCode(201)
-  async testing3(
-    @Request() req: CustomRequest,
-    @Body() _body: TestDto,
-  ): Promise<any> {
+  async testing3(@Request() req: CustomRequest, @Body() _body: TestDto): Promise<any> {
     req.logger.info('создание контакта');
     // this.amoCrmService.addLead({
     //   amoCrmDomain: 'collabox.amocrm.ru',
@@ -102,10 +81,7 @@ export class IntegrationController {
 
   @Post('/kek4')
   @HttpCode(201)
-  async testing4(
-    @Request() req: CustomRequest,
-    @Body() _body: TestDto,
-  ): Promise<any> {
+  async testing4(@Request() req: CustomRequest, @Body() _body: TestDto): Promise<any> {
     req.logger.info('Создание филдов в лиде');
     // this.amoCrmService.createLeadField({
     //   amoCrmDomain: 'collabox.amocrm.ru',

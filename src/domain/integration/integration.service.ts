@@ -22,10 +22,7 @@ export class IntegrationService {
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      const senlerVariables =
-        body.publicBotStepSettings.syncableVariables.forEach(
-          (value, _index) => value.from,
-        );
+      const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
       //await senlerClient.vars.get({vk_user_id: body.lead.vkUserId})
       // console.info(temp)
       return {};

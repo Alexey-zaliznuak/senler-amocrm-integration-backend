@@ -3,9 +3,7 @@ import * as Joi from 'joi';
 import { AppConfig, NodeEnv } from './config.app-config';
 
 export const appConfigValidationSchema = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid(NodeEnv.local, NodeEnv.development, NodeEnv.production)
-    .required(),
+  NODE_ENV: Joi.string().valid(NodeEnv.local, NodeEnv.development, NodeEnv.production).required(),
   PORT: Joi.number().default(AppConfig.PORT),
 
   OPENAPI_SERVER_URLS: Joi.string().required(),

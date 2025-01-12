@@ -1,9 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import {
-  CreateSenlerGroupRequestDto,
-  CreateSenlerGroupResponseDto,
-} from './dto/create-senler-group.dto';
+import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import { SenlerGroupsService } from './senler-groups.service';
 
 @Controller('senlerGroups')
@@ -24,9 +21,7 @@ export class SenlerGroupsController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid AmoCrm domain name.',
   })
-  async create(
-    @Body() data: CreateSenlerGroupRequestDto,
-  ): Promise<CreateSenlerGroupResponseDto> {
+  async create(@Body() data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     return await this.senlerGroupsService.create(data);
   }
 }

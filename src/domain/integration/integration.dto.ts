@@ -70,10 +70,7 @@ export class LeadDto {
 
 export class BotStepWebhookDto {
   @ApiProperty({ description: 'Public bot step settings.' })
-  @Transform(({ value }) => plainToInstance(
-    PublicBotStepSettingsDto,
-    parseJson(value))
-  )
+  @Transform(({ value }) => plainToInstance(PublicBotStepSettingsDto, parseJson(value)))
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => PublicBotStepSettingsDto)

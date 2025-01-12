@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  HttpException,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, HttpException } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CustomRequest } from '../requests';
@@ -21,14 +15,14 @@ export class LoggingInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     return next.handle().pipe(
-      map((data) => {
+      map(data => {
         this.logResponse(req, res, startTime, data);
         return data;
       }),
-      catchError((error) => {
+      catchError(error => {
         this.logResponse(req, res, startTime, error);
         return throwError(() => error);
-      }),
+      })
     );
   }
 
@@ -36,19 +30,12 @@ export class LoggingInterceptor implements NestInterceptor {
     req.logger.info('Request received', this.extractLoggableData(req));
   }
 
-  private logResponse(
-    req: CustomRequest,
-    res: any,
-    startTime: number,
-    payload: any,
-  ) {
-    const statusCode =
-      payload instanceof HttpException ? payload.getStatus() : res.statusCode;
+  private logResponse(req: CustomRequest, res: any, startTime: number, payload: any) {
+    const statusCode = payload instanceof HttpException ? payload.getStatus() : res.statusCode;
 
     const headers = res.getHeaders();
     const contentLength = headers['content-length'] || 'unknown';
-    const processTime =
-      headers['x-process-time'] || `${Date.now() - startTime} ms`;
+    const processTime = headers['x-process-time'] || `${Date.now() - startTime} ms`;
 
     req.logger.info('Response sent', {
       statusCode,

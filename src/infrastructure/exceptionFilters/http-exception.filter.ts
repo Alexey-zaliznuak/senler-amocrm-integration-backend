@@ -1,10 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  Inject,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { LOGGER } from '../logging/logging.module';
@@ -34,16 +28,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
   }
 
-  private getExceptionMessage(
-    exception: HttpException,
-  ): string | Array<string> {
+  private getExceptionMessage(exception: HttpException): string | Array<string> {
     const exceptionResponse = exception.getResponse();
 
-    if (
-      typeof exceptionResponse === 'object' &&
-      exceptionResponse['message'] &&
-      Array.isArray(exceptionResponse['message'])
-    ) {
+    if (typeof exceptionResponse === 'object' && exceptionResponse['message'] && Array.isArray(exceptionResponse['message'])) {
       return exceptionResponse['message'];
     }
 

@@ -17,15 +17,7 @@ const MILLISECONDS_PER_MONTH = MILLISECONDS_PER_DAY * 30.44;
 const MILLISECONDS_PER_YEAR = MILLISECONDS_PER_DAY * 365.25;
 
 export function timeToMilliseconds(options: TimeOptions): number {
-  const {
-    seconds = 0,
-    minutes = 0,
-    hours = 0,
-    days = 0,
-    weeks = 0,
-    months = 0,
-    years = 0,
-  } = options;
+  const { seconds = 0, minutes = 0, hours = 0, days = 0, weeks = 0, months = 0, years = 0 } = options;
 
   return (
     seconds * MILLISECONDS_PER_SECOND +

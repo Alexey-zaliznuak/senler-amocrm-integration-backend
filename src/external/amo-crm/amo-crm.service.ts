@@ -26,23 +26,17 @@ export class AmoCrmService {
   constructor(
     @Inject(AXIOS_INSTANCE) private readonly axios: AxiosService,
     @Inject(AMO_CRM_LOGGER) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly config: AppConfigType,
+    @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
 
-  async getAccessAndRefreshTokens(
-    amoCrmDomain: string,
-    code: string,
-  ): Promise<AmoCrmOAuthTokenResponse> {
-    const response = await this.axios.post<AmoCrmOAuthTokenResponse>(
-      `https://${amoCrmDomain}/oauth2/access_token`,
-      {
-        client_id: this.config.AMO_CRM_CLIENT_ID,
-        client_secret: this.config.AMO_CRM_CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
-      },
-    );
+  async getAccessAndRefreshTokens(amoCrmDomain: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
+    const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomain}/oauth2/access_token`, {
+      client_id: this.config.AMO_CRM_CLIENT_ID,
+      client_secret: this.config.AMO_CRM_CLIENT_SECRET,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
+    });
 
     this.logger.info('Success got amo crm tokens', {
       amoCrmDomain,
@@ -84,7 +78,7 @@ export class AmoCrmService {
           headers: {
             Authorization: `Bearer ${token.accessToken}`,
           },
-        },
+        }
       );
 
       return response.data;
@@ -113,22 +107,19 @@ export class AmoCrmService {
     pipeline_id: string;
     contactName: string;
   }): Promise<AddUnsortedResponse> {
-    const response = await this.axios.post<AddUnsortedResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/unsorted/forms`,
-      {
-        source_name,
-        source_uid,
-        metadata,
-        pipeline_id,
-        _embedded: {
-          contacts: [
-            {
-              name: contactName,
-            },
-          ],
-        },
+    const response = await this.axios.post<AddUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/forms`, {
+      source_name,
+      source_uid,
+      metadata,
+      pipeline_id,
+      _embedded: {
+        contacts: [
+          {
+            name: contactName,
+          },
+        ],
       },
-    );
+    });
 
     return response.data;
   }
@@ -138,24 +129,11 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-accept
    */
-  async acceptUnsorted({
-    amoCrmDomain,
-    uid,
-    user_id,
-    status_id,
-  }: {
-    amoCrmDomain: string;
-    uid: string;
-    user_id: string;
-    status_id: string;
-  }): Promise<AcceptUnsortedResponse> {
-    const response = await this.axios.post<AcceptUnsortedResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`,
-      {
-        user_id,
-        status_id,
-      },
-    );
+  async acceptUnsorted({ amoCrmDomain, uid, user_id, status_id }: { amoCrmDomain: string; uid: string; user_id: string; status_id: string }): Promise<AcceptUnsortedResponse> {
+    const response = await this.axios.post<AcceptUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`, {
+      user_id,
+      status_id,
+    });
 
     return response.data;
   }
@@ -165,16 +143,8 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-detail
    */
-  async getUnsortedByUID({
-    amoCrmDomain,
-    uid,
-  }: {
-    amoCrmDomain: string;
-    uid: string;
-  }): Promise<GetUnsortedResponse> {
-    const response = await this.axios.get<GetUnsortedResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`,
-    );
+  async getUnsortedByUID({ amoCrmDomain, uid }: { amoCrmDomain: string; uid: string }): Promise<GetUnsortedResponse> {
+    const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`);
 
     return response.data;
   }
@@ -195,10 +165,7 @@ export class AmoCrmService {
       status_id?: number;
     }>;
   }): Promise<GetLeadResponse> {
-    const response = await this.axios.post<GetLeadResponse>(
-      `https://${amoCrmDomain}/api/v4/leads`,
-      leads,
-    );
+    const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads);
 
     return response.data;
   }
@@ -208,21 +175,11 @@ export class AmoCrmService {
    *
    * https://www.amocrm.ru/developers/content/crm_platform/leads-api#lead-detail
    */
-  async getLeadById({
-    amoCrmDomain,
-    id,
-    _with,
-  }: {
-    amoCrmDomain: string;
-    id: number;
-    _with?: string;
-  }): Promise<GetLeadResponse> {
+  async getLeadById({ amoCrmDomain, id, _with }: { amoCrmDomain: string; id: number; _with?: string }): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
     params.append('with', _with);
 
-    const response = await this.axios.get<GetLeadResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/${id}?${params}`,
-    );
+    const response = await this.axios.get<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}?${params}`);
 
     return response.data;
   }
@@ -245,14 +202,11 @@ export class AmoCrmService {
     status_id: string;
     pipeline_id: string;
   }): Promise<UpdateLeadResponse> {
-    const response = await this.axios.patch<UpdateLeadResponse>(
-      `https://${amoCrmDomain}/api/v4/leads/${id}`,
-      {
-        price,
-        status_id,
-        pipeline_id,
-      },
-    );
+    const response = await this.axios.patch<UpdateLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}`, {
+      price,
+      status_id,
+      pipeline_id,
+    });
 
     return response.data;
   }
@@ -273,10 +227,7 @@ export class AmoCrmService {
       is_api_only?: boolean;
     }>;
   }): Promise<any> {
-    const response = await this.axios.post<any>(
-      `https://${amoCrmDomain}/api/v4/leads/custom_fields`,
-      fields,
-    );
+    const response = await this.axios.post<any>(`https://${amoCrmDomain}/api/v4/leads/custom_fields`, fields);
 
     return response.data;
   }
@@ -284,15 +235,7 @@ export class AmoCrmService {
   /**
    * Создание лида, если его нет
    */
-  async createLeadIfNotExists({
-    amoCrmDomain,
-    amoCrmLeadId,
-    name,
-  }: {
-    amoCrmDomain: string;
-    amoCrmLeadId: number;
-    name: string;
-  }) {
+  async createLeadIfNotExists({ amoCrmDomain, amoCrmLeadId, name }: { amoCrmDomain: string; amoCrmLeadId: number; name: string }) {
     const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
 
     if (lead) return lead;
