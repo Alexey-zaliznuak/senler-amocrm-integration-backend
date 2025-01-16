@@ -7,6 +7,6 @@ export class AppController {
 
   @Get('ping')
   async ping() {
-    'pong';
+    return 'pong';
   }
 }
