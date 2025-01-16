@@ -69,16 +69,21 @@ export class LeadDto {
 }
 
 export class BotStepWebhookDto {
-  @ApiProperty({ description: 'Public bot step settings.' })
-  @Transform(({ value }) => plainToInstance(PublicBotStepSettingsDto, parseJson(value)))
+  @ApiProperty({ description: 'Senler group id.' })
   @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => PublicBotStepSettingsDto)
-  publicBotStepSettings: PublicBotStepSettingsDto;
+  @IsString()
+  senlerGroupId: string
 
   @ApiProperty({ description: 'Lead.' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LeadDto)
   lead: LeadDto;
+
+  @ApiProperty({ description: 'Public bot step settings.' })
+  @Transform(({ value }) => plainToInstance(PublicBotStepSettingsDto, parseJson(value)))
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => PublicBotStepSettingsDto)
+  publicBotStepSettings: PublicBotStepSettingsDto;
 }
