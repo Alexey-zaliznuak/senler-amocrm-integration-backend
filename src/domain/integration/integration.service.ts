@@ -11,6 +11,13 @@ export class IntegrationService {
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
     // create lead if not exists
+
+    await this.createLeadIfNotExists({
+      senlerLeadId: body.lead.id,
+      name: body.lead.name,
+      senlerGroupId: body.senlerGroupId,
+    });
+
     const lead = await prisma.lead.findUniqueOrThrow({
       where: { senlerLeadId: body.lead.id },
       select: { senlerGroup: true },
@@ -35,19 +42,10 @@ export class IntegrationService {
   }
   // publicBotStepSettings
 
-  async createLeadIfNotExists({
-    senlerLeadId,
-    amoCrmLeadId,
-    name,
-    amoCrmDomain,
-    senlerGroupId,
-  }: {
-    senlerLeadId: string;
-    amoCrmLeadId: number;
-    name: string;
-    amoCrmDomain: string;
-    senlerGroupId: string;
-  }) {
+  async createLeadIfNotExists({ senlerLeadId, senlerGroupId, name }: { senlerLeadId: string; senlerGroupId: string; name: string }) {
+    const amoCrmDomain = (await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: senlerGroupId } })).amoCrmDomainName;
+    const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } })).amoCrmLeadId;
+
     if (!(await prisma.lead.exists({ amoCrmLeadId, senlerLeadId }))) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
