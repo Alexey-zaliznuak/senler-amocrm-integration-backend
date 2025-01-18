@@ -47,7 +47,7 @@ export class AmoCrmService {
     return response.data;
   }
 
-  // @HandleAccessTokenExpiration()
+  @HandleAccessTokenExpiration()
   async addContact({
     amoCrmDomain,
     name,
@@ -71,10 +71,11 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjFmYzZhYzU5OWU1ZjIxNjNmYzY1NDBlZTMyOWI3NDRiNzM4Y2NjOWRlMjNhOWI0NzhhNWY4MGNkYTAwNzcxNGM3ZTBiY2JhZDA1MGZkMzcyIn0.eyJhdWQiOiIwMTk1N2NlYy0zZDFjLTRjZjItYTBjZC0yNDk1ODQxODUyMGUiLCJqdGkiOiIxZmM2YWM1OTllNWYyMTYzZmM2NTQwZWUzMjliNzQ0YjczOGNjYzlkZTIzYTliNDc4YTVmODBjZGEwMDc3MTRjN2UwYmNiYWQwNTBmZDM3MiIsImlhdCI6MTczNzIxMjEwMCwibmJmIjoxNzM3MjEyMTAwLCJleHAiOjE3MzcyOTgyNjgsInN1YiI6IjExODMyODkwIiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMyMDkzMTMwLCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjpudWxsLCJhcGlfZG9tYWluIjoiYXBpLWIuYW1vY3JtLnJ1In0.HDJ0lU9waDTJsofwJQ_YlkI7mee1HnrUPSz8aDZT4bQbv5_vfNj2UP7cc___1RbqpqssCOA0nnVX52ArtPpB41_TnRzT6jT2XTA4IN_LqCrDSaFB0roSNbRjwg2WEly9FrYnRYZMvlsQWx9pSHab0gPRCSU_leI8sN6acidtq5qcvM16xxfj5kb5ApwayG2h-csTlOLt9wRH7DpckIbCrPDBsWQnsG9FjYWxh61HIUS4EaVZokChgi-jgWLSOFkSgSGT00zdmK1gfDvedpRA6XVIuCFrkSI6xi4QDfWvUgnRTBuL1xpHjus8w3o79sNGbmJPy6km5YqJ_h1cLE9C2w`,
+            Authorization: `Bearer ${token.amoCrmAccessToken}`,
           },
         }
       );
+
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
