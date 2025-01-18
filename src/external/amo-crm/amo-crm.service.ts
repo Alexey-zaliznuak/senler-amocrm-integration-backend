@@ -166,7 +166,7 @@ export class AmoCrmService {
     }>;
   }): Promise<GetLeadResponse> {
     const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads);
-
+    console.log('------------------------------addLeadresponse---------------------------------', response);
     return response.data;
   }
 
@@ -238,9 +238,11 @@ export class AmoCrmService {
   async createLeadIfNotExists({ amoCrmDomain, amoCrmLeadId, name }: { amoCrmDomain: string; amoCrmLeadId: number; name: string }) {
     const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
 
+    console.log('---------------------------------------this.getLeadById---------------------------------------', lead);
     if (lead) return lead;
 
     const actualLead = await this.addLead({ amoCrmDomain, leads: [{ name }] });
+    console.log('---------------------------------------addLead---------------------------------------', actualLead);
 
     return actualLead;
   }

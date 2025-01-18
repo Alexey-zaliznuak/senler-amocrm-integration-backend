@@ -27,8 +27,6 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Request() req: CustomRequest, @Body() body: BotStepWebhookDto): Promise<any> {
-    console.log('------------------------------------botStepWebhook------------------------------------', body);
-
     return await this.integrationService.processBotStepWebhook(req, body);
   }
 

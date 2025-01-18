@@ -42,8 +42,6 @@ export class IntegrationService {
   // publicBotStepSettings
 
   async createLeadIfNotExists({ senlerLeadId, senlerGroupId, name }: { senlerLeadId: string; senlerGroupId: string; name: string }) {
-    console.log('test: ', { senlerLeadId, senlerGroupId, name });
-
     const amoCrmDomain = (await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: senlerGroupId } }))?.amoCrmDomainName;
     const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
 
