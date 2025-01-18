@@ -67,17 +67,17 @@ export class LeadDto {
   @IsNumber()
   vkUserId: number;
 
-  @ApiProperty({ description: 'senler group id.' })
-  @IsNotEmpty()
-  @IsString()
-  senlerId: string;
-}
-
-export class BotStepWebhookDto {
   @ApiProperty({ description: 'Senler group id.' })
   @IsNotEmpty()
   @IsString()
   senlerGroupId: string;
+}
+
+export class BotStepWebhookDto {
+  @ApiProperty({ description: 'Senler VK group id.' })
+  @IsNotEmpty()
+  @IsString()
+  senlerVkGroupId: string;
 
   @ApiProperty({ description: 'Lead.' })
   @IsNotEmpty()
