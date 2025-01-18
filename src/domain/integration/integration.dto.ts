@@ -66,6 +66,11 @@ export class LeadDto {
   @IsNotEmpty()
   @IsNumber()
   vkUserId: number;
+
+  @ApiProperty({ description: 'Lead vk group id.' })
+  @IsNotEmpty()
+  @IsNumber()
+  vkGroupId: string;
 }
 
 export class BotStepWebhookDto {
