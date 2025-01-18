@@ -86,9 +86,7 @@ export function HandleAccessTokenExpiration() {
               clientSecret,
             });
 
-            originalMethodProperty.token = newAccessToken;
-
-            args[0].token = originalMethodProperty;
+            args[0].token = newAccessToken;
 
             console.log('----------------2 Catch Handle Access Token Expiration refreshAccessToken--------------------------', newAccessToken, args);
 
