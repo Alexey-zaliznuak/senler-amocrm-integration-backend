@@ -34,7 +34,7 @@ export class AxiosService implements OnModuleDestroy {
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
-
+    console.log('customConfig:', customConfig, 'config:', config);
     this.setRequestLogger(url, customConfig);
 
     try {
