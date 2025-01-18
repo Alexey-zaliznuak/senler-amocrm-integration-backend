@@ -14,7 +14,7 @@ export class IntegrationService {
     await this.createLeadIfNotExists({
       senlerLeadId: body.lead.id,
       name: body.lead.name,
-      senlerGroupId: body.lead.vkGroupId,
+      senlerGroupId: body.lead.senlerId,
     });
 
     const lead = await prisma.lead.findUniqueOrThrow({
