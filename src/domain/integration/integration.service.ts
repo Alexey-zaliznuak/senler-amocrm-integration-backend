@@ -45,7 +45,7 @@ export class IntegrationService {
     const amoCrmDomain = (await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: senlerGroupId } }))?.amoCrmDomainName;
     const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
 
-    if (!(await prisma.lead.exists({ amoCrmLeadId, senlerLeadId }))) {
+    if (await prisma.lead.exists({ amoCrmLeadId, senlerLeadId })) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
         amoCrmDomain,
         amoCrmLeadId,
