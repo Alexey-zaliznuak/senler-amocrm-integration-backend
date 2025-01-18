@@ -52,7 +52,6 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        console.log('----------------Catch Handle Access Token Expiration--------------------------', error);
         if (error.response && error.response.status === 401) {
           const originalMethodProperty = args[0];
 
@@ -73,6 +72,8 @@ export function HandleAccessTokenExpiration() {
             originalMethodProperty.token = newAccessToken;
 
             args[0].token = originalMethodProperty;
+
+            console.log('----------------Catch Handle Access Token Expiration refreshAccessToken--------------------------', newAccessToken, args);
 
             return await originalMethod.apply(this, args);
           } catch {
