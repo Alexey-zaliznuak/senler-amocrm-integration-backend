@@ -47,11 +47,6 @@ export class AmoCrmService {
     return response.data;
   }
 
-  /**
-   * Добавление контактов
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/contacts-api#contacts-add
-   */
   @HandleAccessTokenExpiration()
   async addContact({
     amoCrmDomain,
@@ -82,16 +77,13 @@ export class AmoCrmService {
       );
 
       return response.data;
-    } catch {
+    } catch (error) {
+      this.logger.error('Error adding contact', { error });
       throw new UnauthorizedException('Access token истек');
     }
   }
 
-  /**
-   * Добавление неразобранного типа форма
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-add-form
-   */
+  @HandleAccessTokenExpiration()
   async addUnsorted({
     amoCrmDomain,
     source_name,
@@ -107,53 +99,56 @@ export class AmoCrmService {
     pipeline_id: string;
     contactName: string;
   }): Promise<AddUnsortedResponse> {
-    const response = await this.axios.post<AddUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/forms`, {
-      source_name,
-      source_uid,
-      metadata,
-      pipeline_id,
-      _embedded: {
-        contacts: [
-          {
-            name: contactName,
-          },
-        ],
-      },
-    });
+    try {
+      const response = await this.axios.post<AddUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/forms`, {
+        source_name,
+        source_uid,
+        metadata,
+        pipeline_id,
+        _embedded: {
+          contacts: [
+            {
+              name: contactName,
+            },
+          ],
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error adding unsorted', { error });
+      throw new UnauthorizedException('Failed to add unsorted data');
+    }
   }
 
-  /**
-   * Принятие неразобранного
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-accept
-   */
+  @HandleAccessTokenExpiration()
   async acceptUnsorted({ amoCrmDomain, uid, user_id, status_id }: { amoCrmDomain: string; uid: string; user_id: string; status_id: string }): Promise<AcceptUnsortedResponse> {
-    const response = await this.axios.post<AcceptUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`, {
-      user_id,
-      status_id,
-    });
+    try {
+      const response = await this.axios.post<AcceptUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`, {
+        user_id,
+        status_id,
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error accepting unsorted', { error });
+      throw new UnauthorizedException('Failed to accept unsorted data');
+    }
   }
 
-  /**
-   * Получение неразобранного по UID
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/unsorted-api#unsorted-detail
-   */
+  @HandleAccessTokenExpiration()
   async getUnsortedByUID({ amoCrmDomain, uid }: { amoCrmDomain: string; uid: string }): Promise<GetUnsortedResponse> {
-    const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`);
+    try {
+      const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`);
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error getting unsorted by UID', { error });
+      throw new UnauthorizedException('Failed to get unsorted data');
+    }
   }
 
-  /**
-   * Добавление сделок
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-add
-   */
+  @HandleAccessTokenExpiration()
   async addLead({
     amoCrmDomain,
     leads,
@@ -165,30 +160,31 @@ export class AmoCrmService {
       status_id?: number;
     }>;
   }): Promise<GetLeadResponse> {
-    const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads);
-    console.log('------------------------------addLeadresponse---------------------------------', response);
-    return response.data;
+    try {
+      const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads);
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error adding lead', { error });
+      throw new UnauthorizedException('Failed to add lead');
+    }
   }
 
-  /**
-   * Получение сделки по ID
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#lead-detail
-   */
+  @HandleAccessTokenExpiration()
   async getLeadById({ amoCrmDomain, id, _with }: { amoCrmDomain: string; id: number; _with?: string }): Promise<GetLeadResponse> {
-    const params = new URLSearchParams();
-    params.append('with', _with);
+    try {
+      const params = new URLSearchParams();
+      params.append('with', _with);
 
-    const response = await this.axios.get<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}?${params}`);
+      const response = await this.axios.get<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}?${params}`);
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error getting lead by ID', { error });
+      throw new UnauthorizedException('Failed to get lead data');
+    }
   }
 
-  /**
-   * Редактирование сделок
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/leads-api#leads-edit
-   */
+  @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomain,
     id,
@@ -202,20 +198,21 @@ export class AmoCrmService {
     status_id: string;
     pipeline_id: string;
   }): Promise<UpdateLeadResponse> {
-    const response = await this.axios.patch<UpdateLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}`, {
-      price,
-      status_id,
-      pipeline_id,
-    });
+    try {
+      const response = await this.axios.patch<UpdateLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}`, {
+        price,
+        status_id,
+        pipeline_id,
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error editing lead', { error });
+      throw new UnauthorizedException('Failed to edit lead data');
+    }
   }
 
-  /**
-   * Создание дополнительных полей сущности
-   *
-   * https://www.amocrm.ru/developers/content/crm_platform/custom-fields#Создание-дополнительных-полей-сущности
-   */
+  @HandleAccessTokenExpiration()
   async createLeadField({
     amoCrmDomain,
     fields,
@@ -227,29 +224,29 @@ export class AmoCrmService {
       is_api_only?: boolean;
     }>;
   }): Promise<any> {
-    const response = await this.axios.post<any>(`https://${amoCrmDomain}/api/v4/leads/custom_fields`, fields);
+    try {
+      const response = await this.axios.post<any>(`https://${amoCrmDomain}/api/v4/leads/custom_fields`, fields);
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error creating lead field', { error });
+      throw new UnauthorizedException('Failed to create lead field');
+    }
   }
 
-  /**
-   * Создание лида, если его нет
-   */
+  @HandleAccessTokenExpiration()
   async createLeadIfNotExists({ amoCrmDomain, amoCrmLeadId, name }: { amoCrmDomain: string; amoCrmLeadId: number; name: string }) {
-    const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
+    try {
+      const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId });
 
-    console.log('---------------------------------------this.getLeadById---------------------------------------', lead);
-    if (lead) return lead;
+      if (lead) return lead;
 
-    const actualLead = await this.addLead({ amoCrmDomain, leads: [{ name }] });
-    console.log('---------------------------------------addLead---------------------------------------', actualLead);
+      const actualLead = await this.addLead({ amoCrmDomain, leads: [{ name }] });
 
-    return actualLead;
+      return actualLead;
+    } catch (error) {
+      this.logger.error('Error creating lead if not exists', { error });
+      throw new UnauthorizedException('Failed to create lead if not exists');
+    }
   }
-
-  // Редактирование дополнительных полей сущности *
-
-  // Список групп полей сущности *
-
-  // Создание групп полей *
 }
