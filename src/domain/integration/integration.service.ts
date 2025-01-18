@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SenlerApiClient } from 'senler-sdk';
-import { AmoCrmService } from 'src/external/amo-crm';
+import { AmoCrmService, AmoCrmToken } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto } from './integration.dto';
@@ -11,10 +11,17 @@ export class IntegrationService {
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
     // create lead if not exists
+    const senlerGroup = await prisma.senlerGroup.findUnique({ where: { senlerVkGroupId: body.senlerVkGroupId } });
+    const token: AmoCrmToken = {
+      amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
+      amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
+    };
+
     await this.createLeadIfNotExists({
       senlerLeadId: body.lead.id,
       name: body.lead.name,
       senlerGroupId: body.lead.senlerGroupId,
+      token,
     });
 
     const lead = await prisma.lead.findUniqueOrThrow({
@@ -41,7 +48,7 @@ export class IntegrationService {
   }
   // publicBotStepSettings
 
-  async createLeadIfNotExists({ senlerLeadId, senlerGroupId, name }: { senlerLeadId: string; senlerGroupId: string; name: string }) {
+  async createLeadIfNotExists({ senlerLeadId, senlerGroupId, name, token }: { senlerLeadId: string; senlerGroupId: string; name: string; token: AmoCrmToken }) {
     const amoCrmDomain = (await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: senlerGroupId } }))?.amoCrmDomainName;
     const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
 
@@ -50,6 +57,7 @@ export class IntegrationService {
         amoCrmDomain,
         amoCrmLeadId,
         name,
+        token,
       });
 
       if (amoCrmLeadId != actualAmoCrmLead.id) {
@@ -64,6 +72,7 @@ export class IntegrationService {
     const lead = await this.amoCrmService.addLead({
       amoCrmDomain,
       leads: [{ name }],
+      token,
     });
 
     await prisma.lead.create({
