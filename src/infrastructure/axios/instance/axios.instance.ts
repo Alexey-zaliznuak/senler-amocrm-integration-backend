@@ -95,8 +95,7 @@ export class AxiosService implements OnModuleDestroy {
   private setupInterceptors(): void {
     this.axios.interceptors.request.use(
       (config: InternalAxiosRequestConfig<any>) => {
-        console.log('----------------------------config------------------------------', config);
-        const logger = this.getRequestLogger((config as CustomAxiosRequestConfig).requestId);
+        const logger = this.getRequestLogger((config as CustomAxiosRequestConfig).requestId || config?.data?.requestId);
 
         logger.info(`Sending request to ${config.url}`, {
           method: config.method,

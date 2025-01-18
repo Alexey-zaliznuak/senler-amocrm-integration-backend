@@ -72,7 +72,7 @@ export class BotStepWebhookDto {
   @ApiProperty({ description: 'Senler group id.' })
   @IsNotEmpty()
   @IsString()
-  senlerGroupId: string
+  senlerGroupId: string;
 
   @ApiProperty({ description: 'Lead.' })
   @IsNotEmpty()
