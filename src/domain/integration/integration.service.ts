@@ -11,7 +11,8 @@ export class IntegrationService {
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
     // create lead if not exists
-    const senlerGroup = await prisma.senlerGroup.findUnique({ where: { senlerVkGroupId: body.senlerVkGroupId } });
+    const senlerGroup = await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: body.lead.senlerGroupId } });
+
     const token: AmoCrmToken = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
       amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
