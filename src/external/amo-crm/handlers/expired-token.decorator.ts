@@ -49,6 +49,7 @@ export function HandleAccessTokenExpiration() {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
+      console.log('----------------HandleAccessTokenExpiration--------------------------')
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
