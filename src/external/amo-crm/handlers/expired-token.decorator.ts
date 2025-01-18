@@ -52,7 +52,7 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        if (error.response && error.response.status === 401) {
+        if (error.status === 401) {
           const originalMethodProperty = args[0];
 
           const token: Token = originalMethodProperty.token;
