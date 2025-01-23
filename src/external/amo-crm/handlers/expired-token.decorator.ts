@@ -52,15 +52,14 @@ async function refreshAccessToken({
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       const body = JSON.stringify(error.response?.data);
-      throw new Error(
-        `Unauthorized ${body} : ${{
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'refresh_token',
-          refresh_token: token.amoCrmRefreshToken,
-          redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
-        }}`
-      );
+      const body2 = JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: 'refresh_token',
+        refresh_token: token.amoCrmRefreshToken,
+        redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
+      });
+      throw new Error(`Unauthorized ${body} : ${body2}`);
     }
     throw new ServiceUnavailableException('Не удалось обновить токен');
   }
