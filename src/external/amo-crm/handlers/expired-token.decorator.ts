@@ -22,7 +22,7 @@ async function refreshAccessToken({
   clientId: string;
   clientSecret: string;
 }): Promise<AmoCrmToken> {
-  try {
+  // try {
     const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
       client_id: clientId,
       client_secret: clientSecret,
@@ -50,9 +50,9 @@ async function refreshAccessToken({
       amoCrmAccessToken: response.data.access_token,
       amoCrmRefreshToken: response.data.refresh_token,
     };
-  } catch {
-    throw new UnauthorizedException('Не удалось обновить токен');
-  }
+  // } catch (e) {
+  //   throw new UnauthorizedException(`Не удалось обновить токен ${e}`);
+  // }
 }
 
 export function HandleAccessTokenExpiration() {

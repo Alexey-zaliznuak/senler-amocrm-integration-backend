@@ -222,6 +222,8 @@ export class AmoCrmService {
 
       return response.data;
     } catch (error) {
+      this.logger.error('Error Could not try newAccessToken', { error });
+
       this.logger.error('Error getting lead by ID', { error });
       throw new UnauthorizedException('Failed to get lead data');
     }
