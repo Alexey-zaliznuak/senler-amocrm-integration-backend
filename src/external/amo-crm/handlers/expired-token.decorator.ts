@@ -32,7 +32,8 @@ async function refreshAccessToken({
     });
 
     if (response.status !== 200) {
-      throw new ServiceUnavailableException('Не удалось обновить токен');
+      const body = response.data;
+      throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${body}`);
     }
 
     prisma.senlerGroup.update({
