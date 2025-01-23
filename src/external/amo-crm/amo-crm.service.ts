@@ -204,7 +204,11 @@ export class AmoCrmService {
       });
       return response.data;
     } catch (e) {
-      throw new UnauthorizedException('Failed to add lead', { description: e });
+      const body = JSON.stringify(e.response?.data);
+
+      this.logger.error('Error getting lead by ID eororor', { body });
+
+      throw new UnauthorizedException(`Failed to add lead ${body}`, { description: e });
     }
   }
 
