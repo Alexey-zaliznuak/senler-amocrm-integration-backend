@@ -53,7 +53,7 @@ async function refreshAccessToken({
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       const body = JSON.stringify(error.response?.data);
-      throw new Error(`Unauthorized ${body}`);
+      throw new Error(`Unauthorized ${body} : ${env.AMO_CRM_REDIRECT_URI}`);
     }
     throw new ServiceUnavailableException('Не удалось обновить токен');
   }
