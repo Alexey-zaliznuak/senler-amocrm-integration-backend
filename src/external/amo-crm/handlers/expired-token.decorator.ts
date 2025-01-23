@@ -52,7 +52,7 @@ async function refreshAccessToken({
     };
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      const body = error.response?.data;
+      const body = JSON.stringify(error.response?.data);
       throw new Error(`Unauthorized ${body}`);
     }
     throw new ServiceUnavailableException('Не удалось обновить токен');
