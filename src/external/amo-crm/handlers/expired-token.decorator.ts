@@ -1,7 +1,6 @@
 // handle-token-refresh.decorator.ts
 import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
-import { env } from 'process';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
 import { AmoCrmToken } from '../amo-crm.service';
@@ -28,7 +27,7 @@ async function refreshAccessToken({
       client_secret: clientSecret,
       grant_type: 'refresh_token',
       refresh_token: token.amoCrmRefreshToken,
-      redirect_uri: env.AMO_CRM_REDIRECT_URI,
+      redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
     });
 
     if (response.status !== 200) {
@@ -53,7 +52,15 @@ async function refreshAccessToken({
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       const body = JSON.stringify(error.response?.data);
-      throw new Error(`Unauthorized ${body} : ${env.AMO_CRM_REDIRECT_URI}`);
+      throw new Error(
+        `Unauthorized ${body} : ${{
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: token.amoCrmRefreshToken,
+          redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
+        }}`
+      );
     }
     throw new ServiceUnavailableException('Не удалось обновить токен');
   }
