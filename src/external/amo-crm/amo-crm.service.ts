@@ -203,9 +203,8 @@ export class AmoCrmService {
         },
       });
       return response.data;
-    } catch (error) {
-      this.logger.error('Error adding lead', { error });
-      throw new UnauthorizedException('Failed to add lead');
+    } catch (e) {
+      throw new UnauthorizedException('Failed to add lead', { description: e });
     }
   }
 
