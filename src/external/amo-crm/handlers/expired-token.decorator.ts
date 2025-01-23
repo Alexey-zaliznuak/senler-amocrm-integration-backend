@@ -71,20 +71,20 @@ export function HandleAccessTokenExpiration() {
           const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
           const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
 
-          try {
-            const newAccessToken: AmoCrmToken = await refreshAccessToken({
-              token,
-              amoCrmDomain,
-              clientId,
-              clientSecret,
-            });
+          // try {
+          const newAccessToken: AmoCrmToken = await refreshAccessToken({
+            token,
+            amoCrmDomain,
+            clientId,
+            clientSecret,
+          });
 
-            args[0].token = newAccessToken;
+          args[0].token = newAccessToken;
 
-            return await originalMethod.apply(this, args);
-          } catch (e) {
-            throw new UnauthorizedException('Could not update the token', { description: e });
-          }
+          return await originalMethod.apply(this, args);
+          // } catch (e) {
+          //   throw new UnauthorizedException('Could not update the token', { description: e });
+          // }
         } else {
           throw error;
         }
