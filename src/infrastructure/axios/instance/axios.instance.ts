@@ -35,10 +35,10 @@ export class AxiosService implements OnModuleDestroy {
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    this.setRequestLogger(url, customConfig);
+    const logger = this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.post<T>(url, customConfig);
+      return await this.axios.get<T>(url, customConfig);
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -47,10 +47,14 @@ export class AxiosService implements OnModuleDestroy {
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    this.setRequestLogger(url, customConfig);
+    const logger = this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.post<T>(url, data, customConfig);
+      const response = await this.axios.post<T>(url, data, customConfig);
+
+      logger.debug("Axios response received: ", response)
+
+      return response
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -59,10 +63,14 @@ export class AxiosService implements OnModuleDestroy {
   async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    this.setRequestLogger(url, customConfig);
+    const logger = this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.patch<T>(url, data, customConfig);
+      const response = await this.axios.patch<T>(url, data, customConfig);
+
+      logger.debug("Axios response received: ", response)
+
+      return response
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }

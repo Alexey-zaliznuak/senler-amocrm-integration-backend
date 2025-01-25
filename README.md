@@ -14,3 +14,6 @@ https://www.amocrm.ru/developers/content/oauth/step-by-step#%D0%9E%D0%B1%D0%BC%D
 
 
 учет что пагинация до 250 полей
+
+
+401 - если акк не оплачен
