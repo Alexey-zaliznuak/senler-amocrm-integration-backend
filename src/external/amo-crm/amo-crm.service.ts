@@ -199,7 +199,7 @@ export class AmoCrmService {
     try {
       const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads, {
         headers: {
-          Authorization: `Bearer${token.amoCrmAccessToken}`,
+          Authorization: `Bearer ${token.amoCrmAccessToken}`,
         },
       });
       return response.data;
