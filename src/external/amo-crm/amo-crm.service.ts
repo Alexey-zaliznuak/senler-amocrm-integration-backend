@@ -236,26 +236,35 @@ export class AmoCrmService {
   @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomain,
-    id,
+    amoCrmLeadId: AmoCRMLeadId,
     price,
     status_id,
     pipeline_id,
     token,
+    customFieldsValues,
   }: {
     amoCrmDomain: string;
-    id: string;
-    price: string;
-    status_id: string;
-    pipeline_id: string;
+    amoCrmLeadId: number;
+    price?: string;
+    status_id?: string;
+    pipeline_id?: string;
     token: AmoCrmToken;
+    // custom_fields_values вынести, добавить типы
+    customFieldsValues?: {
+      field_id: string;
+      values: {
+        value: any;
+      }[];
+    };
   }): Promise<UpdateLeadResponse> {
     try {
       const response = await this.axios.patch<UpdateLeadResponse>(
-        `https://${amoCrmDomain}/api/v4/leads/${id}`,
+        `https://${amoCrmDomain}/api/v4/leads/${AmoCRMLeadId}`,
         {
           price,
           status_id,
           pipeline_id,
+          custom_fields_values: customFieldsValues,
         },
         {
           headers: {
