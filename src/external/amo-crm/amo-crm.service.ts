@@ -214,16 +214,16 @@ export class AmoCrmService {
   }
 
   @HandleAccessTokenExpiration()
-  async getLeadById(request: GetLeadRequest): Promise<GetLeadResponse> {
+  async getLeadById(data: GetLeadRequest): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
 
     params.append('with', 'custom_fields_values');
 
     const response = await this.axios.get<GetLeadResponse>(
-      `https://${request.amoCrmDomainName}/api/v4/leads/${request.leadId}?${params}`,
+      `https://${data.amoCrmDomainName}/api/v4/leads/${data.leadId}?${params}`,
       {
         headers: {
-          Authorization: `Bearer ${request.amoCrmAccessToken}`,
+          Authorization: `Bearer ${data.tokens.amoCrmAccessToken}`,
         },
       }
     );
@@ -312,8 +312,8 @@ export class AmoCrmService {
     try {
       const lead = await this.getLeadById({
         amoCrmDomainName,
+        tokens,
         leadId: amoCrmLeadId,
-        amoCrmAccessToken: tokens.amoCrmAccessToken,
       });
 
       if (lead) return lead;

@@ -38,7 +38,12 @@ export class AxiosService implements OnModuleDestroy {
     const logger = this.setRequestLogger(url, customConfig);
 
     try {
-      return await this.axios.get<T>(url, customConfig);
+      const response = await this.axios.get<T>(url, customConfig);
+
+      logger.debug("Axios response received: ", response.data)
+
+      return response
+
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -52,7 +57,7 @@ export class AxiosService implements OnModuleDestroy {
     try {
       const response = await this.axios.post<T>(url, data, customConfig);
 
-      logger.debug("Axios response received: ", response)
+      logger.debug("Axios response received: ", response.data)
 
       return response
     } finally {
@@ -68,7 +73,7 @@ export class AxiosService implements OnModuleDestroy {
     try {
       const response = await this.axios.patch<T>(url, data, customConfig);
 
-      logger.debug("Axios response received: ", response)
+      logger.debug("Axios response received: ", response.data)
 
       return response
     } finally {

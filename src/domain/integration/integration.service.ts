@@ -10,7 +10,7 @@ export class IntegrationService {
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    const senlerGroup = await prisma.senlerGroup.findFirst({ where: { senlerGroupId: body.senlerGroupId } });
+    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
@@ -27,7 +27,7 @@ export class IntegrationService {
 
     const lead = await prisma.lead.findUniqueOrThrow({
       where: { senlerLeadId: body.lead.id },
-      select: { senlerGroup: true },
+      include: { senlerGroup: true },
     });
 
     const senlerClient = new SenlerApiClient({
@@ -42,8 +42,9 @@ export class IntegrationService {
       return {};
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      // const amoCrmVariablesIds = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-      // const amoCrmVariables = this.amoCrmService.getUnsortedByUID
+      const amoCrmVariablesIds = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
+      const amoCrmLead = await this.amoCrmService.getLeadById({tokens, amoCrmDomainName: senlerGroup.amoCrmDomainName, leadId: lead.amoCrmLeadId })
+
     }
   }
 

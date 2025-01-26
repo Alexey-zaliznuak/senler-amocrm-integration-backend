@@ -1,3 +1,5 @@
+import { AmoCrmTokens } from "./amo-crm.service";
+
 export type AmoCrmOAuthTokenResponse = {
   token_type: string;
   expires_in: number;
@@ -69,7 +71,7 @@ export type GetUnsortedResponse = {
 
 export type GetLeadRequest = {
   leadId: string | number,
-  amoCrmAccessToken: string,
+  tokens: AmoCrmTokens,
   amoCrmDomainName: string,
 }
 
