@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SenlerApiClient } from 'senler-sdk';
-import { AmoCrmService, AmoCrmToken } from 'src/external/amo-crm';
+import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto } from './integration.dto';
@@ -10,9 +10,9 @@ export class IntegrationService {
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    const senlerGroup = await prisma.senlerGroup.findFirst({ where: { senlerVkGroupId: body.lead.senlerGroupId } });
+    const senlerGroup = await prisma.senlerGroup.findFirst({ where: { senlerGroupId: body.senlerGroupId } });
 
-    const token: AmoCrmToken = {
+    const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
       amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
     };
@@ -20,9 +20,9 @@ export class IntegrationService {
     await this.createLeadIfNotExists({
       senlerLeadId: body.lead.id,
       name: body.lead.name,
-      senlerGroupId: body.lead.senlerGroupId,
-      amoCrmDomain: senlerGroup.amoCrmDomainName,
-      token,
+      senlerGroupId: body.senlerGroupId,
+      amoCrmDomainName: senlerGroup.amoCrmDomainName,
+      tokens,
     });
 
     const lead = await prisma.lead.findUniqueOrThrow({
@@ -32,45 +32,42 @@ export class IntegrationService {
 
     const senlerClient = new SenlerApiClient({
       accessToken: lead.senlerGroup.senlerAccessToken,
-      vkGroupId: lead.senlerGroup.senlerVkGroupId,
+      vkGroupId: body.senlerVkGroupId,
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-      //await senlerClient.vars.get({vk_user_id: body.lead.vkUserId})
-      // console.info(temp)
+      // const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
+      // await senlerClient.vars.get({vk_user_id: body.lead.vkUserId})
+
       return {};
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      // const _amoCrmVariables = body.publicBotStepSettings.syncableVariables.forEach(
-      //     (value, _index) => value.from,
-      //   );
+      // const amoCrmVariablesIds = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
+      // const amoCrmVariables = this.amoCrmService.getUnsortedByUID
     }
   }
-
-  // publicBotStepSettings
 
   async createLeadIfNotExists({
     senlerLeadId,
     senlerGroupId,
     name,
-    token,
-    amoCrmDomain,
+    tokens,
+    amoCrmDomainName,
   }: {
     senlerLeadId: string;
     senlerGroupId: string;
     name: string;
-    token: AmoCrmToken;
-    amoCrmDomain: string;
+    tokens: AmoCrmTokens;
+    amoCrmDomainName: string;
   }) {
     const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
 
     if (await prisma.lead.exists({ amoCrmLeadId, senlerLeadId })) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
-        amoCrmDomain,
+        amoCrmDomainName,
         amoCrmLeadId,
         name,
-        token,
+        tokens,
       });
 
       if (amoCrmLeadId != actualAmoCrmLead.id) {
@@ -83,9 +80,9 @@ export class IntegrationService {
     }
 
     const lead = await this.amoCrmService.addLead({
-      amoCrmDomain,
+      amoCrmDomainName,
       leads: [{ name }],
-      token,
+      tokens,
     });
 
     await prisma.lead.create({

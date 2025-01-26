@@ -1,32 +1,32 @@
-// handle-token-refresh.decorator.ts
+// handle-tokens-refresh.decorator.ts
 import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
-import { AmoCrmToken } from '../amo-crm.service';
+import { AmoCrmTokens } from '../amo-crm.service';
 
 /**
  * Функция для обновления accessToken с использованием refreshToken.
  * @param refreshToken Текущий refreshToken
- * @returns Новый Token - связка accessToken и refreshToken
+ * @returns Новый tokens - связка accessToken и refreshToken
  */
 async function refreshAccessToken({
   amoCrmDomain,
   clientId,
   clientSecret,
-  token,
+  tokens,
 }: {
-  token: AmoCrmToken;
+  tokens: AmoCrmTokens;
   amoCrmDomain: string;
   clientId: string;
   clientSecret: string;
-}): Promise<AmoCrmToken> {
+}): Promise<AmoCrmTokens> {
   try {
     const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
       client_id: clientId,
       client_secret: clientSecret,
       grant_type: 'refresh_token',
-      refresh_token: token.amoCrmRefreshToken,
+      refresh_token: tokens.amoCrmRefreshToken,
       redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
     });
 
@@ -37,7 +37,7 @@ async function refreshAccessToken({
 
     prisma.senlerGroup.update({
       where: {
-        amoCrmAccessToken: token.amoCrmAccessToken,
+        amoCrmAccessToken: tokens.amoCrmAccessToken,
       },
       data: {
         amoCrmAccessToken: response.data.access_token,
@@ -56,7 +56,7 @@ async function refreshAccessToken({
         client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'refresh_token',
-        refresh_token: token.amoCrmRefreshToken,
+        refresh_token: tokens.amoCrmRefreshToken,
         redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
       });
       throw new Error(`Unauthorized ${body} : ${body2}`);
@@ -76,25 +76,24 @@ export function HandleAccessTokenExpiration() {
         if (error.status === 401) {
           const originalMethodProperty = args[0];
 
-          const token: AmoCrmToken = originalMethodProperty.token;
+          const tokens: AmoCrmTokens = originalMethodProperty.tokens;
 
           const amoCrmDomain: string = originalMethodProperty.amoCrmDomain;
           const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
           const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
 
-          // try {
-          const newAccessToken: AmoCrmToken = await refreshAccessToken({
-            token,
+          const newAccessToken: AmoCrmTokens = await refreshAccessToken({
+            tokens,
             amoCrmDomain,
             clientId,
             clientSecret,
           });
 
-          args[0].token = newAccessToken;
+          args[0].tokens = newAccessToken;
 
           return await originalMethod.apply(this, args);
           // } catch (e) {
-          //   throw new UnauthorizedException('Could not update the token', { description: e });
+          //   throw new UnauthorizedException('Could not update the tokens', { description: e });
           // }
         } else {
           throw error;

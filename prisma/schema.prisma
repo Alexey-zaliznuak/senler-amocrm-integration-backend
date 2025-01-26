@@ -8,16 +8,16 @@ datasource db {
 }
 
 model SenlerGroup {
-  id                              String            @id @default(uuid())
-  createdAt                       DateTime          @default(now())
-  updatedAt                       DateTime          @updatedAt
+  id                              String   @id @default(uuid())
+  createdAt                       DateTime @default(now())
+  updatedAt                       DateTime @updatedAt
 
   amoCrmDomainName                String
 
-  amoCrmAccessToken               String            @unique
-  amoCrmRefreshToken              String            @unique
+  amoCrmAccessToken               String @unique
+  amoCrmRefreshToken              String @unique
 
-  senlerVkGroupId                 String            @unique
+  senlerGroupId                   String @unique
   senlerAccessToken               String
 
   leads                           Lead[]
@@ -25,27 +25,27 @@ model SenlerGroup {
 }
 
 model SenlerIntegrationStepTemplate {
-  id                   String            @id @default(uuid())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  settings             Json
+  settings    Json
 
-  senlerGroup          SenlerGroup       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId               String
+  senlerGroup SenlerGroup @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
 }
 
 model Lead {
-  id                   String            @id @default(uuid())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  amoCrmLeadId         Int
+  amoCrmLeadId  Int
 
-  senlerLeadId         String            @unique
+  senlerLeadId  String @unique
 
-  senlerGroupId        String
-  senlerGroup          SenlerGroup       @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
+  senlerGroupId String
+  senlerGroup   SenlerGroup @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
 
   @@unique([senlerLeadId, senlerGroupId])
 }

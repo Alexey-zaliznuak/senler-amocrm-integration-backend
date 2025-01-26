@@ -10,13 +10,14 @@ import {
   AddUnsortedResponse,
   AmoCrmOAuthTokenResponse,
   CreateContactResponse,
+  GetLeadRequest,
   GetLeadResponse,
   GetUnsortedResponse,
   UpdateLeadResponse,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 
-export type AmoCrmToken = {
+export type AmoCrmTokens = {
   amoCrmAccessToken: string;
   amoCrmRefreshToken: string;
 };
@@ -29,8 +30,8 @@ export class AmoCrmService {
     @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
 
-  async getAccessAndRefreshTokens(amoCrmDomain: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
-    const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomain}/oauth2/access_token`, {
+  async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
+    const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomainName}/oauth2/access_token`, {
       client_id: this.config.AMO_CRM_CLIENT_ID,
       client_secret: this.config.AMO_CRM_CLIENT_SECRET,
       grant_type: 'authorization_code',
@@ -39,7 +40,7 @@ export class AmoCrmService {
     });
 
     this.logger.info('Success got amo crm tokens', {
-      amoCrmDomain,
+      amoCrmDomainName,
       code,
       data: response.data,
     });
@@ -49,21 +50,21 @@ export class AmoCrmService {
 
   @HandleAccessTokenExpiration()
   async addContact({
-    amoCrmDomain,
+    amoCrmDomainName,
     name,
     first_name,
     last_name,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     name: string;
     first_name: string;
     last_name: string;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<CreateContactResponse> {
     try {
       const response = await this.axios.post<CreateContactResponse>(
-        `https://${amoCrmDomain}/api/v4/contacts`,
+        `https://${amoCrmDomainName}/api/v4/contacts`,
         {
           name,
           first_name,
@@ -71,7 +72,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${token.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
           },
         }
       );
@@ -79,31 +80,31 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
-      throw new UnauthorizedException('Access token истек');
+      throw new UnauthorizedException('Access tokens истек');
     }
   }
 
   @HandleAccessTokenExpiration()
   async addUnsorted({
-    amoCrmDomain,
+    amoCrmDomainName,
     source_name,
     source_uid,
     metadata,
     pipeline_id,
     contactName,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     source_name: string;
     source_uid: string;
     metadata: object;
     pipeline_id: string;
     contactName: string;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<AddUnsortedResponse> {
     try {
       const response = await this.axios.post<AddUnsortedResponse>(
-        `https://${amoCrmDomain}/api/v4/leads/unsorted/forms`,
+        `https://${amoCrmDomainName}/api/v4/leads/unsorted/forms`,
         {
           source_name,
           source_uid,
@@ -119,7 +120,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${token.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
           },
         }
       );
@@ -133,28 +134,28 @@ export class AmoCrmService {
 
   @HandleAccessTokenExpiration()
   async acceptUnsorted({
-    amoCrmDomain,
+    amoCrmDomainName,
     uid,
     user_id,
     status_id,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     uid: string;
     user_id: string;
     status_id: string;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<AcceptUnsortedResponse> {
     try {
       const response = await this.axios.post<AcceptUnsortedResponse>(
-        `https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}/accept`,
+        `https://${amoCrmDomainName}/api/v4/leads/unsorted/${uid}/accept`,
         {
           user_id,
           status_id,
         },
         {
           headers: {
-            Authorization: `Bearer ${token.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
           },
         }
       );
@@ -167,11 +168,19 @@ export class AmoCrmService {
   }
 
   @HandleAccessTokenExpiration()
-  async getUnsortedByUID({ amoCrmDomain, uid, token }: { amoCrmDomain: string; uid: string; token: AmoCrmToken }): Promise<GetUnsortedResponse> {
+  async getUnsortedByUID({
+    amoCrmDomainName,
+    uid,
+    tokens,
+  }: {
+    amoCrmDomainName: string;
+    uid: string;
+    tokens: AmoCrmTokens;
+  }): Promise<GetUnsortedResponse> {
     try {
-      const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomain}/api/v4/leads/unsorted/${uid}`, {
+      const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomainName}/api/v4/leads/unsorted/${uid}`, {
         headers: {
-          Authorization: `Bearer ${token.amoCrmAccessToken}`,
+          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
         },
       });
 
@@ -184,74 +193,63 @@ export class AmoCrmService {
 
   @HandleAccessTokenExpiration()
   async addLead({
-    amoCrmDomain,
+    amoCrmDomainName,
     leads,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     leads: Array<{
       name: string;
       price?: number;
       status_id?: number;
     }>;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {
-    try {
-      const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads`, leads, {
-        headers: {
-          Authorization: `Bearer ${token.amoCrmAccessToken}`,
-        },
-      });
-      return response.data;
-    } catch (e) {
-      const body = JSON.stringify(e.response?.data);
-
-      this.logger.error('Error getting lead by ID eororor', { body });
-
-      throw new UnauthorizedException(`Failed to add lead ${body}`, { description: e });
-    }
+    const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomainName}/api/v4/leads`, leads, {
+      headers: {
+        Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+      },
+    });
+    return response.data;
   }
 
   @HandleAccessTokenExpiration()
-  async getLeadById({ amoCrmDomain, id, _with, token }: { amoCrmDomain: string; id: number; _with?: string; token: AmoCrmToken }): Promise<GetLeadResponse> {
-    try {
-      const params = new URLSearchParams();
-      params.append('with', _with);
+  async getLeadById(request: GetLeadRequest): Promise<GetLeadResponse> {
+    const params = new URLSearchParams();
 
-      const response = await this.axios.get<GetLeadResponse>(`https://${amoCrmDomain}/api/v4/leads/${id}?${params}`, {
+    params.append('with', 'custom_fields_values');
+
+    const response = await this.axios.get<GetLeadResponse>(
+      `https://${request.amoCrmDomainName}/api/v4/leads/${request.leadId}?${params}`,
+      {
         headers: {
-          Authorization: `Bearer ${token.amoCrmAccessToken}`,
+          Authorization: `Bearer ${request.amoCrmAccessToken}`,
         },
-      });
-
-      return response.data;
-    } catch (error) {
-      this.logger.error('Error Could not try newAccessToken', { error });
-
-      this.logger.error('Error getting lead by ID', { error });
-      throw new UnauthorizedException('Failed to get lead data');
-    }
+      }
+    );
+    this.logger.debug('Get lead by id response data:', response.data);
+    return response.data;
   }
 
   @HandleAccessTokenExpiration()
   async editLeadsById({
-    amoCrmDomain,
+    amoCrmDomainName,
     id,
     price,
     status_id,
     pipeline_id,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     id: string;
     price: string;
     status_id: string;
     pipeline_id: string;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<UpdateLeadResponse> {
     try {
       const response = await this.axios.patch<UpdateLeadResponse>(
-        `https://${amoCrmDomain}/api/v4/leads/${id}`,
+        `https://${amoCrmDomainName}/api/v4/leads/${id}`,
         {
           price,
           status_id,
@@ -259,7 +257,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${token.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
           },
         }
       );
@@ -273,22 +271,22 @@ export class AmoCrmService {
 
   @HandleAccessTokenExpiration()
   async createLeadField({
-    amoCrmDomain,
+    amoCrmDomainName,
     fields,
-    token,
+    tokens,
   }: {
-    amoCrmDomain: string;
+    amoCrmDomainName: string;
     fields: Array<{
       type: string;
       name: string;
       is_api_only?: boolean;
     }>;
-    token: AmoCrmToken;
+    tokens: AmoCrmTokens;
   }): Promise<any> {
     try {
-      const response = await this.axios.post<any>(`https://${amoCrmDomain}/api/v4/leads/custom_fields`, fields, {
+      const response = await this.axios.post<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, fields, {
         headers: {
-          Authorization: `Bearer ${token.amoCrmAccessToken}`,
+          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
         },
       });
 
@@ -300,13 +298,27 @@ export class AmoCrmService {
   }
 
   @HandleAccessTokenExpiration()
-  async createLeadIfNotExists({ amoCrmDomain, amoCrmLeadId, name, token }: { amoCrmDomain: string; amoCrmLeadId: number; name: string; token: AmoCrmToken }) {
+  async createLeadIfNotExists({
+    amoCrmDomainName,
+    amoCrmLeadId,
+    name,
+    tokens,
+  }: {
+    amoCrmDomainName: string;
+    amoCrmLeadId: number;
+    name: string;
+    tokens: AmoCrmTokens;
+  }) {
     try {
-      const lead = await this.getLeadById({ amoCrmDomain, id: amoCrmLeadId, token });
+      const lead = await this.getLeadById({
+        amoCrmDomainName,
+        leadId: amoCrmLeadId,
+        amoCrmAccessToken: tokens.amoCrmAccessToken,
+      });
 
       if (lead) return lead;
 
-      const actualLead = await this.addLead({ amoCrmDomain, leads: [{ name }], token });
+      const actualLead = await this.addLead({ amoCrmDomainName, leads: [{ name }], tokens });
 
       return actualLead;
     } catch (error) {
