@@ -36,9 +36,13 @@ export class IntegrationService {
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      // const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-      // await senlerClient.vars.get({vk_user_id: body.lead.vkUserId})
-
+      this.sendVarsToAmo({
+        senlerLeadId: body.lead.id,
+        amoCrmDomainName: senlerGroup.amoCrmDomainName,
+        tokens,
+        syncableVariables: body.publicBotStepSettings.syncableVariables,
+        senlerLeadVars: body.lead.personalVars,
+      });
       return {};
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
@@ -46,6 +50,33 @@ export class IntegrationService {
       const amoCrmLead = await this.amoCrmService.getLeadById({tokens, amoCrmDomainName: senlerGroup.amoCrmDomainName, leadId: lead.amoCrmLeadId })
 
     }
+  }
+
+  async sendVarsToAmo({
+    senlerLeadId,
+    amoCrmDomainName,
+    tokens,
+    syncableVariables,
+    senlerLeadVars,
+  }: {
+    tokens: AmoCrmTokens;
+    senlerLeadId: string;
+    amoCrmDomainName: string;
+    syncableVariables: any;
+    senlerLeadVars: any;
+  }) {
+    const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
+
+    // const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
+
+    const customFieldsValues = SenlerVarsToAmoFields(syncableVariables, senlerLeadVars);
+
+    await this.amoCrmService.editLeadsById({
+      amoCrmDomainName,
+      amoCrmLeadId,
+      token,
+      customFieldsValues,
+    });
   }
 
   async createLeadIfNotExists({
@@ -94,4 +125,7 @@ export class IntegrationService {
       },
     });
   }
+}
+function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any {
+  throw new Error('Function not implemented.');
 }
