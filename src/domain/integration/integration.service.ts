@@ -74,7 +74,7 @@ export class IntegrationService {
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName,
       amoCrmLeadId,
-      token,
+      tokens,
       customFieldsValues,
     });
   }
