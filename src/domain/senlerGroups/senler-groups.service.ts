@@ -28,7 +28,9 @@ export class SenlerGroupsService {
         },
       });
     } catch (exception) {
-      if (exception instanceof AxiosError && exception.status === HttpStatusCode.BadRequest) throw new ServiceUnavailableException();
+      if (exception instanceof AxiosError && exception.status === HttpStatusCode.BadRequest) {
+        throw new ServiceUnavailableException();
+      }
 
       if (exception instanceof AxiosError && exception.code === 'ENOTFOUND') {
         throw new BadRequestException('Invalid AmoCrm domain name');

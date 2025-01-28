@@ -247,7 +247,6 @@ export class AmoCrmService {
     status_id?: string;
     pipeline_id?: string;
     tokens: AmoCrmTokens;
-    // custom_fields_values вынести, добавить типы
     customFieldsValues?: {
       field_id: string;
       values: {
