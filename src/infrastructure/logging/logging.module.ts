@@ -40,7 +40,7 @@ export class LoggingModule {
                   ...options,
                   defaultMeta: { context },
                 })
-              : loggingService.createLogger({ defaultMeta: { context } });
+              : loggingService.createLogger({  defaultMeta: { context } });
 
             return logger;
           },

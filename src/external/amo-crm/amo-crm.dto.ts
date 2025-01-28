@@ -1,11 +1,9 @@
-export type AmoExchangeOAuthCodeRequestPayload = {
-  amoCrmDomain: string;
-  code: string;
-};
+import { AmoCrmTokens } from "./amo-crm.service";
 
 export type AmoCrmOAuthTokenResponse = {
   token_type: string;
-  expires_in: number;  access_token: string;
+  expires_in: number;
+  access_token: string;
   refresh_token: string;
 };
 
@@ -70,6 +68,12 @@ export type GetUnsortedResponse = {
     }>;
   };
 };
+
+export type GetLeadRequest = {
+  leadId: string | number,
+  tokens: AmoCrmTokens,
+  amoCrmDomainName: string,
+}
 
 export type GetLeadResponse = {
   id: number;

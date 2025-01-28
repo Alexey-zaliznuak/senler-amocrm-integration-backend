@@ -17,12 +17,12 @@ export class SenlerGroupsService {
       return await prisma.senlerGroup.create({
         select: {
           id: true,
-          senlerVkGroupId: true,
+          senlerGroupId: true,
         },
         data: {
           amoCrmDomainName: data.amoCrmDomainName,
           senlerAccessToken: data.senlerAccessToken,
-          senlerVkGroupId: data.senlerVkGroupId,
+          senlerGroupId: data.senlerGroupId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
         },
@@ -39,11 +39,11 @@ export class SenlerGroupsService {
   }
 
   async validateCreateSenlerGroupData(data: CreateSenlerGroupRequestDto) {
-    await this.checkConstraintsOrThrow(data.senlerVkGroupId);
+    await this.checkConstraintsOrThrow(data.senlerGroupId);
   }
 
-  async checkConstraintsOrThrow(senlerVkGroupId: string): Promise<void> {
-    if (await prisma.senlerGroup.exists({ senlerVkGroupId })) {
+  async checkConstraintsOrThrow(senlerGroupId: string): Promise<void> {
+    if (await prisma.senlerGroup.exists({ senlerGroupId })) {
       throw new ConflictException('SenlerGroup with same Vk id already exists.');
     }
   }
