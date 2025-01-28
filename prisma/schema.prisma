@@ -44,8 +44,8 @@ model Lead {
 
   senlerLeadId  String @unique
 
-  senlerGroupId String
-  senlerGroup   SenlerGroup @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
+  senlerVkGroupId String
+  senlerGroup   SenlerGroup @relation(fields: [senlerVkGroupId], references: [id], onDelete: Cascade)
 
-  @@unique([senlerLeadId, senlerGroupId])
+  @@unique([senlerLeadId, senlerVkGroupId])
 }
