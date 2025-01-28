@@ -126,6 +126,7 @@ export class IntegrationService {
     });
   }
 }
+
 function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any {
-  throw new Error('Function not implemented.');
+  throw new Error(`Function not implemented. syncableVariables: ${syncableVariables} senlerLeadVars: ${senlerLeadVars}`);
 }
