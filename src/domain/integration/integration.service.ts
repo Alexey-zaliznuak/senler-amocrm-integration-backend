@@ -47,8 +47,11 @@ export class IntegrationService {
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
       const amoCrmVariablesIds = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-      const amoCrmLead = await this.amoCrmService.getLeadById({tokens, amoCrmDomainName: senlerGroup.amoCrmDomainName, leadId: lead.amoCrmLeadId })
-
+      const amoCrmLead = await this.amoCrmService.getLeadById({
+        tokens,
+        amoCrmDomainName: senlerGroup.amoCrmDomainName,
+        leadId: lead.amoCrmLeadId,
+      });
     }
   }
 
@@ -121,7 +124,11 @@ export class IntegrationService {
       data: {
         amoCrmLeadId: lead.id,
         senlerLeadId: senlerLeadId,
-        senlerGroupId: senlerGroupId,
+        senlerGroup: {
+          connect: {
+            senlerGroupId,
+          },
+        },
       },
     });
   }
