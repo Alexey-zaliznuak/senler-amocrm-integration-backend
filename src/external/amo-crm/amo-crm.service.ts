@@ -210,7 +210,7 @@ export class AmoCrmService {
         Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
       },
     });
-    return response.data;
+    return response.data['_embedded']['leads'][0];
   }
 
   @HandleAccessTokenExpiration()
