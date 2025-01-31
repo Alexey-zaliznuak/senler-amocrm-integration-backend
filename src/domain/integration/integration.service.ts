@@ -76,12 +76,12 @@ export class IntegrationService {
 
     const customFieldsValues = SenlerVarsToAmoFields(syncableVariables, senlerLeadVars);
 
-    await this.amoCrmService.editLeadsById({
-      amoCrmDomainName,
-      amoCrmLeadId,
-      tokens,
-      customFieldsValues,
-    });
+    // await this.amoCrmService.editLeadsById({
+    //   amoCrmDomainName,
+    //   amoCrmLeadId,
+    //   tokens,
+    //   customFieldsValues,
+    // });
   }
 
   async createLeadIfNotExists({
@@ -139,6 +139,4 @@ function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any
   const logger = new LoggingService(AppConfig).createLogger();
 
   logger.debug('syncableVariables: ', syncableVariables, ' senlerLeadVars: ', senlerLeadVars);
-
-  throw new Error('Function not implemented.');
 }
