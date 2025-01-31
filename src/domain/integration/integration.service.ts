@@ -4,6 +4,8 @@ import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto } from './integration.dto';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 
 @Injectable()
 export class IntegrationService {
@@ -134,5 +136,9 @@ export class IntegrationService {
   }
 }
 function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any {
+  const logger = new LoggingService(AppConfig).createLogger();
+
+  logger.debug('syncableVariables: ', syncableVariables, ' senlerLeadVars: ', senlerLeadVars);
+
   throw new Error('Function not implemented.');
 }
