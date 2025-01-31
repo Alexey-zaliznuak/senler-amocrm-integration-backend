@@ -138,5 +138,6 @@ export class IntegrationService {
 function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any {
   const logger = new LoggingService(AppConfig).createLogger();
 
-  logger.debug('syncableVariables: ', syncableVariables, ' senlerLeadVars: ', senlerLeadVars);
+  logger.debug('syncableVariables: ', syncableVariables);
+  logger.debug('senlerLeadVars: ', senlerLeadVars);
 }
