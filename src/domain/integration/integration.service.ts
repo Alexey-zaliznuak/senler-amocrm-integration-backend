@@ -6,6 +6,7 @@ import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto } from './integration.dto';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
+import { editLeadsByIdRequestCustomFieldsValue } from 'src/external/amo-crm/amo-crm.dto';
 
 @Injectable()
 export class IntegrationService {
@@ -79,12 +80,13 @@ export class IntegrationService {
     const logger = new LoggingService(AppConfig).createLogger();
 
     logger.debug('customFieldsValues ', customFieldsValues);
-    // await this.amoCrmService.editLeadsById({
-    //   amoCrmDomainName,
-    //   amoCrmLeadId,
-    //   tokens,
-    //   customFieldsValues,
-    // });
+
+    await this.amoCrmService.editLeadsById({
+      amoCrmDomainName,
+      amoCrmLeadId,
+      tokens,
+      customFieldsValues,
+    });
   }
 
   async createLeadIfNotExists({
@@ -147,7 +149,7 @@ function replaceVariables(str, vars) {
 
 // Формируем custom_fields_values
 function SenlerVarsToAmoFields(syncableVariables, senlerLeadVars) {
-  const customFieldsValues = [];
+  const customFieldsValues: editLeadsByIdRequestCustomFieldsValue[] = [];
 
   for (const key in syncableVariables) {
     const fromValue = syncableVariables[key].from;

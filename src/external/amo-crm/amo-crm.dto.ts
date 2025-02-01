@@ -1,4 +1,4 @@
-import { AmoCrmTokens } from "./amo-crm.service";
+import { AmoCrmTokens } from './amo-crm.service';
 
 export type AmoCrmOAuthTokenResponse = {
   token_type: string;
@@ -70,10 +70,10 @@ export type GetUnsortedResponse = {
 };
 
 export type GetLeadRequest = {
-  leadId: string | number,
-  tokens: AmoCrmTokens,
-  amoCrmDomainName: string,
-}
+  leadId: string | number;
+  tokens: AmoCrmTokens;
+  amoCrmDomainName: string;
+};
 
 export type GetLeadResponse = {
   id: number;
@@ -127,4 +127,21 @@ export type GetLeadResponse = {
 export type UpdateLeadResponse = {
   id: number;
   updated_at: number;
+};
+
+export type editLeadsByIdRequest = {
+  amoCrmDomainName: string;
+  amoCrmLeadId: number;
+  price?: string;
+  status_id?: string;
+  pipeline_id?: string;
+  tokens: AmoCrmTokens;
+  customFieldsValues?: editLeadsByIdRequestCustomFieldsValue[];
+};
+
+export type editLeadsByIdRequestCustomFieldsValue = {
+  field_id: string;
+  values: {
+    value: any;
+  }[];
 };
