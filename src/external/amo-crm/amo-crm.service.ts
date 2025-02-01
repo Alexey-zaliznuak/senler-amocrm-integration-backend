@@ -10,6 +10,7 @@ import {
   AddUnsortedResponse,
   AmoCrmOAuthTokenResponse,
   CreateContactResponse,
+  editLeadsByIdRequest,
   GetLeadRequest,
   GetLeadResponse,
   GetUnsortedResponse,
@@ -240,20 +241,7 @@ export class AmoCrmService {
     pipeline_id,
     tokens,
     customFieldsValues,
-  }: {
-    amoCrmDomainName: string;
-    amoCrmLeadId: number;
-    price?: string;
-    status_id?: string;
-    pipeline_id?: string;
-    tokens: AmoCrmTokens;
-    customFieldsValues?: {
-      field_id: string;
-      values: {
-        value: any;
-      }[];
-    };
-  }): Promise<UpdateLeadResponse> {
+  }: editLeadsByIdRequest): Promise<UpdateLeadResponse> {
     try {
       const response = await this.axios.patch<UpdateLeadResponse>(
         `https://${amoCrmDomainName}/api/v4/leads/${AmoCRMLeadId}`,
