@@ -12,13 +12,14 @@ model SenlerGroup {
   createdAt                       DateTime @default(now())
   updatedAt                       DateTime @updatedAt
 
-  amoCrmDomainName                String
+  amoCrmDomainName                String   @unique
 
-  amoCrmAccessToken               String @unique
-  amoCrmRefreshToken              String @unique
+  amoCrmAccessToken               String   @unique
+  amoCrmRefreshToken              String   @unique
 
-  senlerGroupId                 String @unique
-  senlerAccessToken               String
+  senlerGroupId                   String   @unique
+  senlerAccessToken               String   @unique
+  senlerSign                      String   @unique @default(dbgenerated("substring(gen_random_uuid()::text from 1 for 32)"))
 
   leads                           Lead[]
   senlerIntegrationStepsTemplates SenlerIntegrationStepTemplate[]

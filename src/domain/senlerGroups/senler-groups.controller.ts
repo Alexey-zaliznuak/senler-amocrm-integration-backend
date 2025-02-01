@@ -10,12 +10,12 @@ export class SenlerGroupsController {
   @Post('')
   @HttpCode(HttpStatus.CREATED)
   @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Conflict when creating new senler group.',
-  })
-  @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Success created new senler group.',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Conflict when creating new senler group.',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
