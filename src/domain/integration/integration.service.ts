@@ -76,6 +76,9 @@ export class IntegrationService {
 
     const customFieldsValues = SenlerVarsToAmoFields(syncableVariables, senlerLeadVars);
 
+    const logger = new LoggingService(AppConfig).createLogger();
+
+    logger.debug('customFieldsValues ', customFieldsValues);
     // await this.amoCrmService.editLeadsById({
     //   amoCrmDomainName,
     //   amoCrmLeadId,
@@ -135,9 +138,30 @@ export class IntegrationService {
     });
   }
 }
-function SenlerVarsToAmoFields(syncableVariables: any, senlerLeadVars: any): any {
-  const logger = new LoggingService(AppConfig).createLogger();
 
-  logger.debug('syncableVariables: ', syncableVariables);
-  logger.debug('senlerLeadVars: ', senlerLeadVars);
+function replaceVariables(str, vars) {
+  return str.replace(/{%(\w+)%}/g, (match, p1) => {
+    return vars[p1] !== undefined ? vars[p1] : match;
+  });
+}
+
+// Формируем custom_fields_values
+function SenlerVarsToAmoFields(syncableVariables, senlerLeadVars) {
+  const customFieldsValues = [];
+
+  for (const key in syncableVariables) {
+    const fromValue = syncableVariables[key].from;
+    const toValue = syncableVariables[key].to;
+
+    // Заменяем переменные в 'from' и 'to'
+    const field_id = replaceVariables(fromValue, senlerLeadVars);
+    const value = replaceVariables(toValue, senlerLeadVars);
+
+    customFieldsValues.push({
+      field_id: field_id,
+      values: [{ value: value.toString() }],
+    });
+  }
+
+  return customFieldsValues;
 }
