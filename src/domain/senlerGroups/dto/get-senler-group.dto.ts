@@ -1,6 +1,11 @@
-import { SenlerIntegrationStepTemplate } from '@prisma/client';
+import { Prisma, SenlerIntegrationStepTemplate } from '@prisma/client';
 import { BaseSenlerGroup } from './basic-senler-group.dto';
 
-export type GetSenlerGroupResponse = BaseSenlerGroup & {
-  senlerIntegrationStepsTemplates: SenlerIntegrationStepTemplate[];
-};
+export type SenlerGroupFieldForGetByUniqueField = keyof Pick<Prisma.SenlerGroupWhereUniqueInput, 'id' | 'senlerSign'>;
+export enum SenlerGroupFieldForGetByUniqueFieldEnum {
+  id = 'id',
+  senlerSign = 'senlerSign',
+}
+
+export type GetSenlerGroupResponse = BaseSenlerGroup
+

@@ -1,7 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import { SenlerGroupsService } from './senler-groups.service';
+import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField, SenlerGroupFieldForGetByUniqueFieldEnum } from './dto/get-senler-group.dto';
+
 
 @Controller('senlerGroups')
 export class SenlerGroupsController {
@@ -23,5 +25,14 @@ export class SenlerGroupsController {
   })
   async create(@Body() data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     return await this.senlerGroupsService.create(data);
+  }
+
+  @Get(':identifier/')
+  @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
+  async getByUniqueField(
+    @Param('identifier') identifier: string,
+    @Query('field') field: SenlerGroupFieldForGetByUniqueField,
+  ): Promise<GetSenlerGroupResponse> {
+    return await this.senlerGroupsService.getByUniqueField(identifier, field);
   }
 }

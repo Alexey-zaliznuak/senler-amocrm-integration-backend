@@ -1,9 +1,16 @@
-import { BadRequestException, ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
+import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField } from './dto/get-senler-group.dto';
 
 @Injectable()
 export class SenlerGroupsService {
@@ -41,6 +48,21 @@ export class SenlerGroupsService {
 
       throw exception;
     }
+  }
+
+  async getByUniqueField(
+    identifier: string,
+    field: SenlerGroupFieldForGetByUniqueField
+  ): Promise<GetSenlerGroupResponse | never> {
+    const SenlerGroup = await prisma.senlerGroup.findUnique({
+      where: { [field]: identifier } as any,
+    });
+
+    if (!SenlerGroup) {
+      throw new NotFoundException('SenlerGroup not found');
+    }
+
+    return SenlerGroup;
   }
 
   async validateCreateSenlerGroupData(data: CreateSenlerGroupRequestDto) {
