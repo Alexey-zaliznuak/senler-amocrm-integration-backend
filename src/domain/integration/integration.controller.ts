@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpCode, Inject, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepWebhookDto, GetAmoFieldsDto } from './integration.dto';
+import { BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { AmoCrmService } from 'src/external/amo-crm';
 
 class TestDto {
@@ -45,11 +45,11 @@ export class IntegrationController {
 
   @Get('/getAmoFields')
   @HttpCode(201)
-  @ApiBody({ type: GetAmoFieldsDto })
-  async getAmoFields(@Request() req: CustomRequest, @Body() body: GetAmoFieldsDto): Promise<any> {
-    req.logger.debug('getAmoFields body', body);
+  @ApiBody({ type: GetSenlerGroupFieldsDto })
+  async getAmoFields(@Request() req: CustomRequest, @Query() query: GetSenlerGroupFieldsDto): Promise<any> {
+    req.logger.debug('getAmoFields body', query);
 
-    return await this.integrationService.getSenlerGroupFields(req, body);
+    return await this.integrationService.getSenlerGroupFields(req, query);
   }
 
   // @Post('/kek2')

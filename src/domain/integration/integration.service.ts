@@ -3,7 +3,7 @@ import { SenlerApiClient } from 'senler-sdk';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepType, BotStepWebhookDto, GetAmoFieldsDto } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { editLeadsByIdRequestCustomFieldsValue } from 'src/external/amo-crm/amo-crm.dto';
@@ -140,7 +140,7 @@ export class IntegrationService {
     });
   }
 
-  async getSenlerGroupFields(req: CustomRequest, body: GetAmoFieldsDto) {
+  async getSenlerGroupFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
     const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
 
     const tokens: AmoCrmTokens = {
