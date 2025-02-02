@@ -141,7 +141,7 @@ export class IntegrationService {
   }
 
   async getSenlerGroupFields(req: CustomRequest, body: GetAmoFieldsDto) {
-    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { sign: body.sign } });
+    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,

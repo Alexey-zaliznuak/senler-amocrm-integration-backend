@@ -48,8 +48,8 @@ export class IntegrationController {
   @ApiBody({ type: GetAmoFieldsDto })
   async getAmoFields(@Request() req: CustomRequest, @Body() body: GetAmoFieldsDto): Promise<any> {
     req.logger.debug('getAmoFields body', body);
-    return true;
-    // return await this.integrationService.processBotStepWebhook(req, body);
+
+    return await this.integrationService.getSenlerGroupFields(req, body);
   }
 
   // @Post('/kek2')
