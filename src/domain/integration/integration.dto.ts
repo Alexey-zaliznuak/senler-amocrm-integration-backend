@@ -92,3 +92,10 @@ export class BotStepWebhookDto {
   @Type(() => PublicBotStepSettingsDto)
   publicBotStepSettings: PublicBotStepSettingsDto;
 }
+
+export class GetAmoFieldsDto {
+  @ApiProperty({ description: 'Sing of Senler group.' })
+  @IsNotEmpty()
+  @IsString()
+  sign: string;
+}

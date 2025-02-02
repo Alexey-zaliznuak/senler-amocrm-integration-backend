@@ -1,22 +1,22 @@
-import { Body, Controller, HttpCode, Inject, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepWebhookDto } from './integration.dto';
+import { BotStepWebhookDto, GetAmoFieldsDto } from './integration.dto';
 import { AmoCrmService } from 'src/external/amo-crm';
 
 class TestDto {
   @ApiProperty({ description: 'lead id' })
-  leadId: number
+  leadId: number;
 
   @ApiProperty({ description: 'amoCrmAccessToken' })
-  amoCrmAccessToken: string
+  amoCrmAccessToken: string;
 
   @ApiProperty({ description: 'amoCrmDomainName' })
-  amoCrmDomainName: string
+  amoCrmDomainName: string;
 }
 
 @Controller('integration')
@@ -31,22 +31,25 @@ export class IntegrationController {
   @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
-  async botStepWebhook(
-    @Request() req: CustomRequest,
-    @Body() body: BotStepWebhookDto
-  ): Promise<any> {
+  async botStepWebhook(@Request() req: CustomRequest, @Body() body: BotStepWebhookDto): Promise<any> {
     return await this.integrationService.processBotStepWebhook(req, body);
   }
 
   @Post('/test')
   @HttpCode(201)
   @ApiBody({ type: TestDto })
-  async test(
-    @Request() req: CustomRequest,
-    @Body() body: any
-): Promise<any> {
-    req.logger.error("BODY", body)
+  async test(@Request() req: CustomRequest, @Body() body: any): Promise<any> {
+    req.logger.error('BODY', body);
     return await this.amo.getLeadById(body);
+  }
+
+  @Get('/getAmoFields')
+  @HttpCode(201)
+  @ApiBody({ type: GetAmoFieldsDto })
+  async getAmoFields(@Request() req: CustomRequest, @Body() body: GetAmoFieldsDto): Promise<any> {
+    req.logger.debug('getAmoFields body', body);
+    return true;
+    // return await this.integrationService.processBotStepWebhook(req, body);
   }
 
   // @Post('/kek2')

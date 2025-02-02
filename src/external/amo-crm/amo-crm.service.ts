@@ -294,6 +294,30 @@ export class AmoCrmService {
   }
 
   @HandleAccessTokenExpiration()
+  async getLeadFields({
+    amoCrmDomainName,
+    tokens,
+  }: {
+    amoCrmDomainName: string;
+    tokens: AmoCrmTokens;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    try {
+      const response = await this.axios.get<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, {
+        headers: {
+          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error creating lead field', { error });
+      throw new UnauthorizedException('Failed to create lead field');
+    }
+  }
+
+  @HandleAccessTokenExpiration()
   async createLeadIfNotExists({
     amoCrmDomainName,
     amoCrmLeadId,

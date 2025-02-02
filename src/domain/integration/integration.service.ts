@@ -3,7 +3,7 @@ import { SenlerApiClient } from 'senler-sdk';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepType, BotStepWebhookDto } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, GetAmoFieldsDto } from './integration.dto';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { editLeadsByIdRequestCustomFieldsValue } from 'src/external/amo-crm/amo-crm.dto';
@@ -138,6 +138,25 @@ export class IntegrationService {
         },
       },
     });
+  }
+
+  async getSenlerGroupFields(req: CustomRequest, body: GetAmoFieldsDto) {
+    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { sign: body.sign } });
+
+    const tokens: AmoCrmTokens = {
+      amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
+      amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
+    };
+
+    const leadFields = await this.amoCrmService.getLeadFields({
+      amoCrmDomainName: senlerGroup.amoCrmDomainName,
+      tokens,
+    });
+    const logger = new LoggingService(AppConfig).createLogger();
+
+    logger.debug('getSenlerGroupFields', leadFields);
+
+    return leadFields;
   }
 }
 
