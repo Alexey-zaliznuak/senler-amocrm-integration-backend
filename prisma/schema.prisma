@@ -18,7 +18,7 @@ model SenlerGroup {
   amoCrmRefreshToken              String   @unique
 
   senlerGroupId                   String   @unique
-  senlerGroupVkId                 String   @unique @db.Char(32) @default(dbgenerated("substring(gen_random_uuid()::text from 1 for 32)"))
+  senlerGroupVkId                 String   @unique @db.Char(32)
   senlerAccessToken               String   @unique
   senlerSign                      String   @unique @db.Char(32)
 

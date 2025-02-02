@@ -7,7 +7,7 @@ CREATE TABLE "SenlerGroup" (
     "amoCrmAccessToken" TEXT NOT NULL,
     "amoCrmRefreshToken" TEXT NOT NULL,
     "senlerGroupId" TEXT NOT NULL,
-    "senlerGroupVkId" CHAR(32) NOT NULL DEFAULT substring(gen_random_uuid()::text from 1 for 32),
+    "senlerGroupVkId" CHAR(32) NOT NULL,
     "senlerAccessToken" TEXT NOT NULL,
     "senlerSign" CHAR(32) NOT NULL,
 
