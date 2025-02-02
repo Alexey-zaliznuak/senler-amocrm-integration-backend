@@ -27,14 +27,14 @@ model SenlerGroup {
 }
 
 model SenlerIntegrationStepTemplate {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  settings    Json
+  settings      Json
 
-  senlerGroup SenlerGroup @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  senlerGroup   SenlerGroup @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
+  senlerGroupId String
 }
 
 model Lead {
