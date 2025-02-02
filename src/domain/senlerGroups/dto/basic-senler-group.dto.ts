@@ -5,7 +5,7 @@ import { BaseModelDto } from 'src/infrastructure/dto';
 
 export type BaseSenlerGroup = Pick<
   SenlerGroup,
-  'id' | 'createdAt' | 'updatedAt' | 'amoCrmDomainName' | 'amoCrmAccessToken' | 'amoCrmRefreshToken' | 'senlerAccessToken' | 'senlerGroupId' | 'senlerSign'
+  'id' | 'createdAt' | 'updatedAt' | 'amoCrmDomainName' | 'amoCrmAccessToken' | 'amoCrmRefreshToken' | 'senlerAccessToken' | 'senlerGroupId' | 'senlerGroupVkId' | 'senlerSign'
 >;
 
 export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
@@ -29,10 +29,15 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   @IsNotEmpty()
   senlerAccessToken: string;
 
-  @ApiProperty({ description: 'Senler VK Group Id' })
+  @ApiProperty({ description: 'Senler group Id' })
   @IsString()
   @IsNotEmpty()
   senlerGroupId: string;
+
+  @ApiProperty({ description: 'Senler VK Group Id' })
+  @IsString()
+  @IsNotEmpty()
+  senlerGroupVkId: string;
 
   @ApiProperty({ description: 'Senler sign' })
   @IsString()

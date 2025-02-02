@@ -24,6 +24,7 @@ export class SenlerGroupsService {
           amoCrmDomainName: data.amoCrmDomainName,
           senlerAccessToken: data.senlerAccessToken,
           senlerGroupId: data.senlerGroupId,
+          senlerGroupVkId: data.senlerGroupVkId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
           senlerSign: data.senlerSign,
@@ -56,6 +57,7 @@ export class SenlerGroupsService {
         | 'amoCrmRefreshToken'
         | 'senlerAccessToken'
         | 'senlerGroupId'
+        | 'senlerGroupVkId'
         | 'senlerSign'
       >
     >
