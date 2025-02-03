@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SenlerGroup } from '@prisma/client';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { BaseModelDto } from 'src/infrastructure/dto';
 
 export type BaseSenlerGroup = Pick<
@@ -34,10 +34,10 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   @IsNotEmpty()
   senlerGroupId: string;
 
-  @ApiProperty({ description: 'Senler VK Group Id' })
+  @ApiProperty({ description: 'Senler VK Group Id', required: false, default: null })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  senlerGroupVkId: string;
+  senlerGroupVkId: string | null;
 
   @ApiProperty({ description: 'Senler sign' })
   @IsString()
