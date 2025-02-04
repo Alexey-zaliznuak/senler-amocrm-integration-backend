@@ -58,7 +58,7 @@ async function refreshAccessToken({
         redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
       });
       logger.debug('body', body, 'body2', body2);
-      // throw new Error(`Unauthorized ${body} : ${body2}`);
+      // throw new UnauthorizedException(`Unauthorized ${body} : ${body2}`);
     }
     const body2 = JSON.stringify({
       client_id: clientId,
