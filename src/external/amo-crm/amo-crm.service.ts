@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -261,7 +261,8 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error editing lead', { error });
-      throw new HttpException('Failed to edit lead data', HttpStatus.SERVICE_UNAVAILABLE);
+
+      throw new UnauthorizedException('Error editing lead');
     }
   }
 
