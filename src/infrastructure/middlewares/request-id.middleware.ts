@@ -1,8 +1,8 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { CustomRequest } from '../requests';
 import { UUID } from 'crypto';
+import { generateRequestId } from 'src/utils';
 
 /**
  * Add X-Request-id in response headers.
@@ -10,7 +10,7 @@ import { UUID } from 'crypto';
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
   use(req: CustomRequest, res: Response, next: NextFunction) {
-    const requestId = uuidv4();
+    const requestId = generateRequestId();
 
     res.set('X-Request-Id', requestId);
     req.id = requestId as UUID;
