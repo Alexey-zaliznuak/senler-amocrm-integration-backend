@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -78,11 +78,11 @@ export class AmoCrmService {
         }
       );
 
-      
+
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
-      throw new UnauthorizedException('Access tokens истек');
+      throw new HttpException('Access tokens истек', HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 

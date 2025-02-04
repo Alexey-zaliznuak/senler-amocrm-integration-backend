@@ -16,7 +16,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const exceptionMessage = this.getExceptionMessage(exception);
 
     if (status != 404) {
-      this.logger.error(`HTTP ${status} ${exception.name}:`, {
+      this.logger.error(`Handled exception: HTTP ${status} ${exception.name}:`, {
         exceptionMessage,
         stack: exception.stack,
       });
