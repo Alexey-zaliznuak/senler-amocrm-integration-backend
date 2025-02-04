@@ -15,7 +15,7 @@ export class LoggingService {
   }
 
   public createLogger(options?: winston.LoggerOptions) {
-    options = Object.assign(this.BASE_CONFIG, options)
+    options = Object.assign(this.BASE_CONFIG, options);
 
     return createLogger(options);
   }

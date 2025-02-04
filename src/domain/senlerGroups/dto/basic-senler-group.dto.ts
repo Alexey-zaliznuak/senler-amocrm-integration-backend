@@ -5,7 +5,16 @@ import { BaseModelDto } from 'src/infrastructure/dto';
 
 export type BaseSenlerGroup = Pick<
   SenlerGroup,
-  'id' | 'createdAt' | 'updatedAt' | 'amoCrmDomainName' | 'amoCrmAccessToken' | 'amoCrmRefreshToken' | 'senlerAccessToken' | 'senlerGroupId' | 'senlerGroupVkId' | 'senlerSign'
+  | 'id'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'amoCrmDomainName'
+  | 'amoCrmAccessToken'
+  | 'amoCrmRefreshToken'
+  | 'senlerAccessToken'
+  | 'senlerGroupId'
+  | 'senlerGroupVkId'
+  | 'senlerSign'
 >;
 
 export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {

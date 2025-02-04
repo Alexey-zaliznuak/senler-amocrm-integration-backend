@@ -99,4 +99,3 @@ export class GetSenlerGroupFieldsDto {
   @IsString()
   sign: string;
 }
-

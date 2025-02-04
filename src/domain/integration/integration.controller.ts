@@ -1,12 +1,12 @@
 import { Body, Controller, Get, HttpCode, Inject, Post, Query, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiProperty } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
+import { AmoCrmService } from 'src/external/amo-crm';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
-import { AmoCrmService } from 'src/external/amo-crm';
 
 class TestDto {
   @ApiProperty({ description: 'lead id' })
@@ -48,7 +48,7 @@ export class IntegrationController {
   @HttpCode(201)
   @ApiBody({ type: TestDto })
   async drop(): Promise<any> {
-    throw new UnauthorizedException("test")
+    throw new UnauthorizedException('test');
   }
 
   @Post('/test')
@@ -58,5 +58,4 @@ export class IntegrationController {
     req.logger.error('BODY', body);
     return await this.amoCrmService.getLeadById(body);
   }
-
 }
