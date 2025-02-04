@@ -1,21 +1,17 @@
-import { Logger } from 'winston';
-import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
-import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
+import { Logger } from 'winston';
 import { AXIOS_INSTANCE_LOGGER, BASE_RETRY_CONFIG } from './axios.instance.config';
-import { timeToMilliseconds } from 'src/utils';
+import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
+import { generateRequestId } from 'src/utils';
 
 @Injectable()
-export class AxiosService implements OnModuleDestroy {
+export class AxiosService {
   private readonly axios: AxiosInstance;
   private readonly defaults: CreateCustomAxiosInstanceOptions;
 
   private readonly requestLoggers = new Map<string, RequestLoggerData>();
-  private readonly maxLoggerAge = timeToMilliseconds({ minutes: 5 });
-  private readonly cleanupInterval = timeToMilliseconds({ minutes: 10 });
-
-  private cleanupTimer: NodeJS.Timeout;
 
   constructor(
     @Inject(AXIOS_INSTANCE_LOGGER) private readonly logger: Logger,
@@ -28,22 +24,16 @@ export class AxiosService implements OnModuleDestroy {
 
     this.axios = this.createAxiosClient();
 
-    this.startCleanupTask();
     this.setupInterceptors();
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    const logger = this.setRequestLogger(url, customConfig);
+    this.setRequestLogger(url, customConfig);
 
     try {
-      const response = await this.axios.get<T>(url, customConfig);
-
-      logger.debug("Axios response received: ", response.data)
-
-      return response
-
+      return await this.axios.get<T>(url, customConfig);
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -52,14 +42,10 @@ export class AxiosService implements OnModuleDestroy {
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    const logger = this.setRequestLogger(url, customConfig);
+    this.setRequestLogger(url, customConfig);
 
     try {
-      const response = await this.axios.post<T>(url, data, customConfig);
-
-      logger.debug("Axios response received: ", response.data)
-
-      return response
+      return await this.axios.post<T>(url, data, customConfig);
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -68,14 +54,10 @@ export class AxiosService implements OnModuleDestroy {
   async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
-    const logger = this.setRequestLogger(url, customConfig);
+    this.setRequestLogger(url, customConfig);
 
     try {
-      const response = await this.axios.patch<T>(url, data, customConfig);
-
-      logger.debug("Axios response received: ", response.data)
-
-      return response
+      return await this.axios.patch<T>(url, data, customConfig);
     } finally {
       this.deleteRequestLogger(customConfig.requestId);
     }
@@ -83,6 +65,7 @@ export class AxiosService implements OnModuleDestroy {
 
   private createAxiosClient(): AxiosInstance {
     const instance = axios.create(this.defaults.axiosConfig);
+
     axiosRetry(instance, this.defaults.retryConfig);
 
     return instance;
@@ -99,7 +82,9 @@ export class AxiosService implements OnModuleDestroy {
     return {
       ...oldRetryConfig,
       onRetry: async (retryCount: number, error: AxiosError, requestConfig: CustomAxiosRequestConfig): Promise<void> => {
-        if (oldRetryConfig.onRetry) await oldRetryConfig.onRetry(retryCount, error, requestConfig);
+        if (oldRetryConfig.onRetry) {
+          await oldRetryConfig.onRetry(retryCount, error, requestConfig);
+        }
         this.logRetrying(retryCount, error, requestConfig);
       },
     };
@@ -158,7 +143,7 @@ export class AxiosService implements OnModuleDestroy {
   }
 
   private setRequestId(config: AxiosRequestConfig): AxiosRequestConfig & { requestId: string } {
-    return { ...config, requestId: this.generateRequestId() };
+    return { ...config, requestId: generateRequestId() };
   }
 
   private setRequestLogger(url: string, config: CustomAxiosRequestConfig): Logger {
@@ -189,25 +174,5 @@ export class AxiosService implements OnModuleDestroy {
 
   private createChildRequestLogger(url: string, requestId: string): Logger {
     return this.logger.child({ url, requestId });
-  }
-
-  private startCleanupTask(): void {
-    this.cleanupTimer = setInterval(() => {
-      const now = Date.now();
-      this.requestLoggers.forEach((data, requestId) => {
-        if (now - data.createdAt > this.maxLoggerAge) {
-          this.requestLoggers.delete(requestId);
-        }
-      });
-    }, this.cleanupInterval);
-  }
-
-  private generateRequestId = (): string => Math.random().toString(16).slice(2);
-
-  onModuleDestroy() {
-    if (this.cleanupTimer) {
-      this.logger.debug('Clear timer interval.');
-      clearInterval(this.cleanupTimer);
-    }
   }
 }
