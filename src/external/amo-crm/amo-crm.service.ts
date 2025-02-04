@@ -78,6 +78,7 @@ export class AmoCrmService {
         }
       );
 
+      
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
