@@ -3,10 +3,7 @@ import { ServiceUnavailableException } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { AmoCrmTokens } from '../amo-crm.service';
-
-const logger = new LoggingService(AppConfig).createLogger();
 
 async function refreshAccessToken({
   amoCrmDomain,
@@ -19,58 +16,33 @@ async function refreshAccessToken({
   clientId: string;
   clientSecret: string;
 }): Promise<AmoCrmTokens> {
-  try {
-    const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'refresh_token',
-      refresh_token: tokens.amoCrmRefreshToken,
-      redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
-    });
+  const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: 'refresh_token',
+    refresh_token: tokens.amoCrmRefreshToken,
+    redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
+  });
 
-    if (response.status !== 200) {
-      const body = response.data;
-      throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${body}`);
-    }
+  if (response.status !== 200) {
+    throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${response.data}`);
+  }
 
-    prisma.senlerGroup.update({
-      where: {
-        amoCrmAccessToken: tokens.amoCrmAccessToken,
-      },
-      data: {
-        amoCrmAccessToken: response.data.access_token,
-        amoCrmRefreshToken: response.data.refresh_token,
-      },
-    });
-
-    return {
+  prisma.senlerGroup.update({
+    where: {
+      amoCrmAccessToken: tokens.amoCrmAccessToken,
+      amoCrmRefreshToken: tokens.amoCrmRefreshToken,
+    },
+    data: {
       amoCrmAccessToken: response.data.access_token,
       amoCrmRefreshToken: response.data.refresh_token,
-    };
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const body = JSON.stringify(error.response?.data);
-      const body2 = JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'refresh_token',
-        refresh_token: tokens.amoCrmRefreshToken,
-        redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
-      });
-      logger.debug('body', body, 'body2', body2);
-      // throw new UnauthorizedException(`Unauthorized ${body} : ${body2}`);
-    }
-    const body2 = JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'refresh_token',
-      refresh_token: tokens.amoCrmRefreshToken,
-      redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
-    });
-    logger.debug('body2', body2);
+    },
+  });
 
-    throw error;
-  }
+  return {
+    amoCrmAccessToken: response.data.access_token,
+    amoCrmRefreshToken: response.data.refresh_token,
+  };
 }
 
 export function HandleAccessTokenExpiration() {
@@ -93,14 +65,14 @@ export function HandleAccessTokenExpiration() {
         const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
         const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
 
-        const newAccessToken: AmoCrmTokens = await refreshAccessToken({
+        const newTokens: AmoCrmTokens = await refreshAccessToken({
           tokens,
           amoCrmDomain,
           clientId,
           clientSecret,
         });
 
-        args[0].tokens = newAccessToken;
+        args[0].tokens = newTokens;
 
         return await originalMethod.apply(this, args);
       }
