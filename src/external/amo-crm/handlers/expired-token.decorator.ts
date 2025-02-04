@@ -60,7 +60,16 @@ async function refreshAccessToken({
       logger.debug('body', body, 'body2', body2);
       // throw new Error(`Unauthorized ${body} : ${body2}`);
     }
-    throw new ServiceUnavailableException('Не удалось обновить токен ^ !axios.isAxiosError(error)');
+    const body2 = JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: tokens.amoCrmRefreshToken,
+      redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
+    });
+    logger.debug('body2', body2);
+
+    throw error;
   }
 }
 
