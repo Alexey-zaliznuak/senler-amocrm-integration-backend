@@ -1,10 +1,10 @@
 // handle-tokens-refresh.decorator.ts
-import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { ServiceUnavailableException } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
-import { AmoCrmTokens } from '../amo-crm.service';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
+import { AmoCrmTokens } from '../amo-crm.service';
 
 const logger = new LoggingService(AppConfig).createLogger();
 
@@ -81,31 +81,28 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        if (error.status === 401) {
-          const originalMethodProperty = args[0];
-
-          const tokens: AmoCrmTokens = originalMethodProperty.tokens;
-
-          const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
-          const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
-          const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
-
-          const newAccessToken: AmoCrmTokens = await refreshAccessToken({
-            tokens,
-            amoCrmDomain,
-            clientId,
-            clientSecret,
-          });
-
-          args[0].tokens = newAccessToken;
-
-          return await originalMethod.apply(this, args);
-          // } catch (e) {
-          //   throw new UnauthorizedException('Could not update the tokens', { description: e });
-          // }
-        } else {
+        if (error.status !== 401) {
           throw error;
         }
+
+        const originalMethodProperty = args[0];
+
+        const tokens: AmoCrmTokens = originalMethodProperty.tokens;
+
+        const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
+        const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
+        const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
+
+        const newAccessToken: AmoCrmTokens = await refreshAccessToken({
+          tokens,
+          amoCrmDomain,
+          clientId,
+          clientSecret,
+        });
+
+        args[0].tokens = newAccessToken;
+
+        return await originalMethod.apply(this, args);
       }
     };
 

@@ -99,6 +99,7 @@ export class AxiosService {
           method: config.method,
           url: config.url,
           data: config.data,
+          headers: config.headers,
         });
 
         return config;
