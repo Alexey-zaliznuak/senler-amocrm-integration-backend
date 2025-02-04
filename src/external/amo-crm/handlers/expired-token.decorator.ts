@@ -1,9 +1,15 @@
-// handle-tokens-refresh.decorator.ts
 import { ServiceUnavailableException } from '@nestjs/common';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
 import { AmoCrmTokens } from '../amo-crm.service';
+import { AxiosService } from 'src/infrastructure/axios/instance';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
+
+
+const axiosService = new AxiosService(
+  new LoggingService(AppConfig).createLogger({defaultMeta: "Axios/AmoCrmTokenUpdate"})
+)
 
 async function refreshAccessToken({
   amoCrmDomain,
@@ -16,7 +22,7 @@ async function refreshAccessToken({
   clientId: string;
   clientSecret: string;
 }): Promise<AmoCrmTokens> {
-  const response: AxiosResponse = await axios.post(`https://${amoCrmDomain}/oauth2/access_token`, {
+  const response: AxiosResponse = await axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
     client_id: clientId,
     client_secret: clientSecret,
     grant_type: 'refresh_token',
