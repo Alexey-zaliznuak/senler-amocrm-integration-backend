@@ -29,7 +29,11 @@ export class AmoCrmService {
     @Inject(AXIOS_INSTANCE) private readonly axios: AxiosService,
     @Inject(AMO_CRM_LOGGER) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType
-  ) {}
+  ) {
+    this.logger.warn(config)
+    this.logger.warn(config.AMO_CRM_CLIENT_ID)
+    this.logger.warn(config.AMO_CRM_CLIENT_SECRET)
+  }
 
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
     const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomainName}/oauth2/access_token`, {
