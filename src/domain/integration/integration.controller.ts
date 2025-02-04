@@ -49,7 +49,7 @@ export class IntegrationController {
   async getAmoFields(@Request() req: CustomRequest, @Query() query: GetSenlerGroupFieldsDto): Promise<any> {
     req.logger.debug('getAmoFields body', query);
 
-    return await this.integrationService.getSenlerGroupFields(req, query);
+    return await this.integrationService.getAmoCRMFields(req, query);
   }
 
   // @Post('/kek2')
