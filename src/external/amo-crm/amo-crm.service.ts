@@ -78,11 +78,10 @@ export class AmoCrmService {
         }
       );
 
-
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
-      throw new HttpException('Access tokens истек', HttpStatus.SERVICE_UNAVAILABLE);
+      throw new UnauthorizedException('Access tokens истек');
     }
   }
 
@@ -262,7 +261,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error editing lead', { error });
-      throw new UnauthorizedException('Failed to edit lead data');
+      throw new HttpException('Failed to edit lead data', HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 
