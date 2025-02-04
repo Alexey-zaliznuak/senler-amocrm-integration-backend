@@ -4,12 +4,10 @@ import axios, { AxiosResponse } from 'axios';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
 import { AmoCrmTokens } from '../amo-crm.service';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
 
-/**
- * Функция для обновления accessToken с использованием refreshToken.
- * @param refreshToken Текущий refreshToken
- * @returns Новый tokens - связка accessToken и refreshToken
- */
+const logger = new LoggingService(AppConfig).createLogger();
+
 async function refreshAccessToken({
   amoCrmDomain,
   clientId,
@@ -50,7 +48,7 @@ async function refreshAccessToken({
       amoCrmRefreshToken: response.data.refresh_token,
     };
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    if (axios.isAxiosError(error)) {
       const body = JSON.stringify(error.response?.data);
       const body2 = JSON.stringify({
         client_id: clientId,
@@ -59,9 +57,19 @@ async function refreshAccessToken({
         refresh_token: tokens.amoCrmRefreshToken,
         redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
       });
-      throw new Error(`Unauthorized ${body} : ${body2}`);
+      logger.debug('body', body, 'body2', body2);
+      // throw new Error(`Unauthorized ${body} : ${body2}`);
     }
-    throw new ServiceUnavailableException('Не удалось обновить токен');
+    const body2 = JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: tokens.amoCrmRefreshToken,
+      redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
+    });
+    logger.debug('body2', body2);
+
+    throw error;
   }
 }
 
@@ -78,7 +86,7 @@ export function HandleAccessTokenExpiration() {
 
           const tokens: AmoCrmTokens = originalMethodProperty.tokens;
 
-          const amoCrmDomain: string = originalMethodProperty.amoCrmDomain;
+          const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
           const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
           const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
 
