@@ -39,7 +39,7 @@ export class IntegrationService {
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      this.sendVarsToAmo({
+      await this.sendVarsToAmo({
         senlerLeadId: body.lead.id,
         amoCrmDomainName: senlerGroup.amoCrmDomainName,
         tokens,
