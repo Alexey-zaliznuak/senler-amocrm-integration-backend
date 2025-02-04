@@ -1,15 +1,14 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
+import { AxiosService } from 'src/infrastructure/axios/instance';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
-import { AmoCrmTokens } from '../amo-crm.service';
-import { AxiosService } from 'src/infrastructure/axios/instance';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
-
+import { AmoCrmTokens } from '../amo-crm.service';
 
 const axiosService = new AxiosService(
-  new LoggingService(AppConfig).createLogger({defaultMeta: "Axios/AmoCrmTokenUpdate"})
-)
+  new LoggingService(AppConfig).createLogger({ defaultMeta: { context: 'Axios/AmoCrmTokenUpdate' } })
+);
 
 async function refreshAccessToken({
   amoCrmDomain,
