@@ -88,7 +88,7 @@ export function HandleAccessTokenExpiration() {
 
           const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
           const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
-          const clientSecret: string = AppConfig.AMO_CRM_CLIENT_ID;
+          const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
 
           const newAccessToken: AmoCrmTokens = await refreshAccessToken({
             tokens,
