@@ -183,9 +183,6 @@ export class IntegrationService {
       amoCrmDomainName: senlerGroup.amoCrmDomainName,
       tokens,
     });
-    const logger = new LoggingService(AppConfig).createLogger();
-
-    logger.debug('getSenlerGroupFields', leadFields);
 
     return leadFields;
   }

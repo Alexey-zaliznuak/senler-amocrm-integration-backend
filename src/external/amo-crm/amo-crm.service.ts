@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
 import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -311,10 +311,10 @@ export class AmoCrmService {
         },
       });
 
-      return response.data;
+      return response.data["_embedded"]["customFields"];
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      throw new UnauthorizedException('Failed to create lead field');
+      throw new ServiceUnavailableException('Failed to create lead field');
     }
   }
 

@@ -36,7 +36,7 @@ export class IntegrationController {
   }
 
   @Get('/getAmoFields')
-  @HttpCode(201)
+  @HttpCode(200)
   @ApiBody({ type: GetSenlerGroupFieldsDto })
   async getAmoFields(@Request() req: CustomRequest, @Query() query: GetSenlerGroupFieldsDto): Promise<any> {
     req.logger.debug('getAmoFields body', query);
