@@ -87,5 +87,9 @@ export class IntegrationController {
         amoCrmRefreshToken: tokens.refresh_token,
       }
     })
+
+  const new_group = await prisma.senlerGroup.findUniqueOrThrow({where: {senlerGroupId: "953340"}})
+
+  return new_group
   }
 }
