@@ -10,15 +10,9 @@ import { BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { prisma } from 'src/infrastructure/database';
 import { refreshAccessToken } from 'src/external/amo-crm/handlers/expired-token.decorator';
 
-class TestDto {
-  @ApiProperty({ description: 'lead id' })
-  leadId: number;
-
-  @ApiProperty({ description: 'amoCrmAccessToken' })
-  amoCrmAccessToken: string;
-
-  @ApiProperty({ description: 'amoCrmDomainName' })
-  amoCrmDomainName: string;
+class TestSetToken {
+  @ApiProperty({ description: 'auth code' })
+  code: string;
 }
 
 @Controller('integration')
@@ -72,6 +66,23 @@ export class IntegrationController {
         amoCrmAccessToken: group.amoCrmAccessToken,
         amoCrmRefreshToken: group.senlerAccessToken
       },
+    })
+  }
+
+  @Post('/test/setTokens')
+  @HttpCode(201)
+  @ApiBody({ type: TestSetToken })
+  async test_set_tokens(@Request() req: CustomRequest, @Body() body: TestSetToken): Promise<any> {
+    const group = await prisma.senlerGroup.findUniqueOrThrow({where: {senlerGroupId: "953340"}})
+
+    const tokens = await this.amoCrmService.getAccessAndRefreshTokens(group.amoCrmDomainName, body.code);
+
+    await prisma.senlerGroup.update({
+      where: {amoCrmDomainName: group.amoCrmDomainName},
+      data: {
+        amoCrmAccessToken: tokens.access_token,
+        amoCrmRefreshToken: tokens.refresh_token,
+      }
     })
   }
 }
