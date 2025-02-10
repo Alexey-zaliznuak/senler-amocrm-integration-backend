@@ -63,6 +63,11 @@ export class IntegrationController {
   async test_refresh_tokens(@Request() req: CustomRequest, @Body() body: any): Promise<any> {
     const group = await prisma.senlerGroup.findUniqueOrThrow({where: {senlerGroupId: "953340"}})
 
+    req.logger.info("TOKENS-0", {
+      amoCrmAccessToken: group.amoCrmAccessToken,
+      amoCrmRefreshToken: group.senlerAccessToken
+    })
+
     await refreshAccessToken({
       amoCrmDomain: group.amoCrmDomainName,
       tokens: {

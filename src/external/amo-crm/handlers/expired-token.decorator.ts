@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { HttpStatus, ServiceUnavailableException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { AxiosService } from 'src/infrastructure/axios/instance';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
@@ -17,6 +17,10 @@ export async function refreshAccessToken({
   tokens: AmoCrmTokens;
   amoCrmDomain: string;
 }): Promise<AmoCrmTokens> {
+  const logger = new LoggingService(AppConfig).createLogger({ defaultMeta: { context: 'Axios/AmoCrmTokenUpdate' } })
+
+  logger.info("TOKENS", {tokens})
+
   const response: AxiosResponse = await axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
     client_id: AppConfig.AMO_CRM_CLIENT_ID,
     client_secret: AppConfig.AMO_CRM_CLIENT_SECRET,
@@ -25,7 +29,7 @@ export async function refreshAccessToken({
     redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
   });
 
-  if (response.status !== 200) {
+  if (response.status !== HttpStatus.OK) {
     throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${response.data}`);
   }
 
