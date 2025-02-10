@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { SenlerApiClient } from 'senler-sdk';
+import { Lead, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
-import { editLeadsByIdRequestCustomFieldsValue } from 'src/external/amo-crm/amo-crm.dto';
+import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
 export class IntegrationService {
+  private readonly utils = new IntegrationUtils();
+
   constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
@@ -33,11 +35,6 @@ export class IntegrationService {
       include: { senlerGroup: true },
     });
 
-    const senlerClient = new SenlerApiClient({
-      accessToken: lead.senlerGroup.senlerAccessToken,
-      vkGroupId: body.senlerVkGroupId,
-    });
-
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
       await this.sendVarsToAmo({
         senlerLeadId: body.lead.id,
@@ -49,12 +46,7 @@ export class IntegrationService {
       return {};
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      const amoCrmVariablesIds = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-      const amoCrmLead = await this.amoCrmService.getLeadById({
-        tokens,
-        amoCrmDomainName: senlerGroup.amoCrmDomainName,
-        leadId: lead.amoCrmLeadId,
-      });
+      await this.sendVarsToSenler(body, tokens, lead);
     }
   }
 
@@ -71,15 +63,8 @@ export class IntegrationService {
     syncableVariables: any;
     senlerLeadVars: any;
   }) {
-    const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
-
-    // const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-
-    const customFieldsValues = SenlerVarsToAmoFields(syncableVariables, senlerLeadVars);
-
-    const logger = new LoggingService(AppConfig).createLogger();
-
-    logger.debug('customFieldsValues ', customFieldsValues);
+    const customFieldsValues = this.utils.senlerVarsToAmoFields(syncableVariables, senlerLeadVars);
+    const amoCrmLeadId = (await prisma.lead.findUniqueOrThrow({ where: { senlerLeadId } })).amoCrmLeadId;
 
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName,
@@ -89,31 +74,18 @@ export class IntegrationService {
     });
   }
 
-  async sendVarsToSenler({
-    senlerLeadId,
-    amoCrmDomainName,
-    tokens,
-    syncableVariables,
-    senlerLeadVars,
-  }: {
-    tokens: AmoCrmTokens;
-    senlerLeadId: string;
-    amoCrmDomainName: string;
-    syncableVariables: any;
-    senlerLeadVars: any;
-  }) {
-    const amoCrmLeadId = (await prisma.lead.findFirst({ where: { senlerLeadId } }))?.amoCrmLeadId;
-
-    // const senlerVariables = body.publicBotStepSettings.syncableVariables.forEach((value, _index) => value.from);
-
-    const customFieldsValues = SenlerVarsToAmoFields(syncableVariables, senlerLeadVars);
+  async sendVarsToSenler(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
+    const amoCrmLeadId = (await prisma.lead.findUniqueOrThrow({ where: { senlerLeadId: body.lead.id } })).amoCrmLeadId;
+    const customFieldsValues = this.utils.senlerVarsToAmoFields(
+      body.publicBotStepSettings.syncableVariables,
+      body.lead.personalVars
+    );
 
     const logger = new LoggingService(AppConfig).createLogger();
-
     logger.debug('customFieldsValues ', customFieldsValues);
 
     await this.amoCrmService.editLeadsById({
-      amoCrmDomainName,
+      amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
       amoCrmLeadId,
       tokens,
       customFieldsValues,
@@ -171,7 +143,7 @@ export class IntegrationService {
     });
   }
 
-  async getAmoCRMFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
+  async getAmoCrmFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
     const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
 
     const tokens: AmoCrmTokens = {
@@ -186,29 +158,4 @@ export class IntegrationService {
 
     return leadFields;
   }
-}
-
-function replaceVariables(str, vars) {
-  return str.replace(/{%(\w+)%}/g, (match, p1) => {
-    return vars[p1] !== undefined ? vars[p1] : match;
-  });
-}
-
-function SenlerVarsToAmoFields(syncableVariables, senlerLeadVars) {
-  const customFieldsValues: editLeadsByIdRequestCustomFieldsValue[] = [];
-
-  for (const key in syncableVariables) {
-    const fromValue = syncableVariables[key].from;
-    const toValue = syncableVariables[key].to;
-
-    const field_id = replaceVariables(fromValue, senlerLeadVars);
-    const value = replaceVariables(toValue, senlerLeadVars);
-
-    customFieldsValues.push({
-      field_id: field_id,
-      values: [{ value: value.toString() }],
-    });
-  }
-
-  return customFieldsValues;
 }

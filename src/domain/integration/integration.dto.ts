@@ -42,7 +42,7 @@ export class PublicBotStepSettingsDto {
 }
 
 export class LeadDto {
-  @ApiProperty({ description: 'Lead id.' })
+  @ApiProperty({ description: 'Senler lead id.' })
   @IsNotEmpty()
   @IsString()
   id: string;

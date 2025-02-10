@@ -1,4 +1,4 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { LOGGER } from '../logging/logging.module';
@@ -15,7 +15,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const exceptionMessage = this.getExceptionMessage(exception);
 
-    if (status != 404) {
+    if (status != HttpStatus.NOT_FOUND) {
       this.logger.error(`Handled exception: HTTP ${status} ${exception.name}:`, {
         exceptionMessage,
         stack: exception.stack,
