@@ -100,7 +100,7 @@ export class IntegrationService {
     amoCrmDomainName,
   }: {
     senlerLeadId: string;
-    senlerGroupId: string;
+    senlerGroupId: number;
     name: string;
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;

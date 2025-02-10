@@ -17,7 +17,7 @@ model SenlerGroup {
   amoCrmAccessToken               String   @unique
   amoCrmRefreshToken              String   @unique
 
-  senlerGroupId                   String   @unique
+  senlerGroupId                   Int      @unique
   senlerGroupVkId                 String?
   senlerAccessToken               String   @unique
   senlerSign                      String   @unique @db.Char(32)
