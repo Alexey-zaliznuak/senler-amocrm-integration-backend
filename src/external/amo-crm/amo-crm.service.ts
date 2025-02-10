@@ -311,10 +311,10 @@ export class AmoCrmService {
         },
       });
 
-      return response.data["_embedded"]["custom_fields"];
+      return response.data['_embedded']['customFields'];
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      throw new ServiceUnavailableException('Failed to create lead field');
+      throw error;
     }
   }
 
