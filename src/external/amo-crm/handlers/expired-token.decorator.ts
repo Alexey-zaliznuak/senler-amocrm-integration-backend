@@ -54,7 +54,7 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        if (error.status !== 401) {
+        if (error.status !== HttpStatus.UNAUTHORIZED) {
           throw error;
         }
 
