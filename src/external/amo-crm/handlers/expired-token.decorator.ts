@@ -17,10 +17,6 @@ export async function refreshAccessToken({
   tokens: AmoCrmTokens;
   amoCrmDomain: string;
 }): Promise<AmoCrmTokens> {
-  const logger = new LoggingService(AppConfig).createLogger({ defaultMeta: { context: 'Axios/AmoCrmTokenUpdate' } })
-
-  logger.info("TOKENS", {tokens})
-
   const response: AxiosResponse = await axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
     client_id: AppConfig.AMO_CRM_CLIENT_ID,
     client_secret: AppConfig.AMO_CRM_CLIENT_SECRET,
@@ -33,7 +29,7 @@ export async function refreshAccessToken({
     throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${response.data}`);
   }
 
-  prisma.senlerGroup.update({
+  await prisma.senlerGroup.update({
     where: {
       amoCrmAccessToken: tokens.amoCrmAccessToken,
       amoCrmRefreshToken: tokens.amoCrmRefreshToken,
