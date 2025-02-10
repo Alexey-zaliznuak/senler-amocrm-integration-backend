@@ -65,14 +65,14 @@ export class IntegrationController {
 
     req.logger.info("TOKENS-0", {
       amoCrmAccessToken: group.amoCrmAccessToken,
-      amoCrmRefreshToken: group.senlerAccessToken
+      amoCrmRefreshToken: group.amoCrmRefreshToken
     })
 
     await refreshAccessToken({
       amoCrmDomain: group.amoCrmDomainName,
       tokens: {
         amoCrmAccessToken: group.amoCrmAccessToken,
-        amoCrmRefreshToken: group.senlerAccessToken
+        amoCrmRefreshToken: group.amoCrmRefreshToken
       },
     })
   }
