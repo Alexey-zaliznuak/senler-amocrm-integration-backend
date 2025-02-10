@@ -7,6 +7,8 @@ import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
+import { prisma } from 'src/infrastructure/database';
+import { refreshAccessToken } from 'src/external/amo-crm/handlers/expired-token.decorator';
 
 class TestDto {
   @ApiProperty({ description: 'lead id' })
@@ -44,18 +46,32 @@ export class IntegrationController {
     return await this.integrationService.getAmoCrmFields(req, query);
   }
 
-  @Post('/drop')
+  // TESTS
+  @Post('/test/checkApiAvailable')
   @HttpCode(201)
-  @ApiBody({ type: TestDto })
-  async drop(): Promise<any> {
-    throw new UnauthorizedException('test');
+  async test(@Request() req: CustomRequest, @Body() body: any): Promise<any> {
+    const group = await prisma.senlerGroup.findUniqueOrThrow({where: {senlerGroupId: "953340"}})
+    return await this.amoCrmService.getLeadById({
+      leadId: "32055027",
+      tokens: {
+        amoCrmAccessToken: group.amoCrmAccessToken,
+        amoCrmRefreshToken: group.senlerAccessToken
+      },
+      amoCrmDomainName: group.amoCrmDomainName,
+    });
   }
 
-  @Post('/test')
+  @Post('/test/refreshTokens')
   @HttpCode(201)
-  @ApiBody({ type: TestDto })
-  async test(@Request() req: CustomRequest, @Body() body: any): Promise<any> {
-    req.logger.error('BODY', body);
-    return await this.amoCrmService.getLeadById(body);
+  async test_refresh_tokens(@Request() req: CustomRequest, @Body() body: any): Promise<any> {
+    const group = await prisma.senlerGroup.findUniqueOrThrow({where: {senlerGroupId: "953340"}})
+
+    await refreshAccessToken({
+      amoCrmDomain: group.amoCrmDomainName,
+      tokens: {
+        amoCrmAccessToken: group.amoCrmAccessToken,
+        amoCrmRefreshToken: group.senlerAccessToken
+      },
+    })
   }
 }

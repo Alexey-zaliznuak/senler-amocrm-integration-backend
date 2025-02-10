@@ -10,20 +10,16 @@ const axiosService = new AxiosService(
   new LoggingService(AppConfig).createLogger({ defaultMeta: { context: 'Axios/AmoCrmTokenUpdate' } })
 );
 
-async function refreshAccessToken({
+export async function refreshAccessToken({
   amoCrmDomain,
-  clientId,
-  clientSecret,
   tokens,
 }: {
   tokens: AmoCrmTokens;
   amoCrmDomain: string;
-  clientId: string;
-  clientSecret: string;
 }): Promise<AmoCrmTokens> {
   const response: AxiosResponse = await axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
-    client_id: clientId,
-    client_secret: clientSecret,
+    client_id: AppConfig.AMO_CRM_CLIENT_ID,
+    client_secret: AppConfig.AMO_CRM_CLIENT_SECRET,
     grant_type: 'refresh_token',
     refresh_token: tokens.amoCrmRefreshToken,
     redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
@@ -67,14 +63,10 @@ export function HandleAccessTokenExpiration() {
         const tokens: AmoCrmTokens = originalMethodProperty.tokens;
 
         const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
-        const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
-        const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
 
         const newTokens: AmoCrmTokens = await refreshAccessToken({
           tokens,
           amoCrmDomain,
-          clientId,
-          clientSecret,
         });
 
         args[0].tokens = newTokens;
