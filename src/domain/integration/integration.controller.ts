@@ -9,9 +9,12 @@ import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { prisma } from 'src/infrastructure/database';
 import { refreshAccessToken } from 'src/external/amo-crm/handlers/expired-token.decorator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 class TestSetToken {
   @ApiProperty({ description: 'auth code' })
+  @IsNotEmpty()
+  @IsString()
   code: string;
 }
 
