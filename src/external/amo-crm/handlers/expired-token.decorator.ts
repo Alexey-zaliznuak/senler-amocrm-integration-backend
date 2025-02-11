@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { HttpStatus, ServiceUnavailableException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { AxiosService } from 'src/infrastructure/axios/instance';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
@@ -10,30 +10,26 @@ const axiosService = new AxiosService(
   new LoggingService(AppConfig).createLogger({ defaultMeta: { context: 'Axios/AmoCrmTokenUpdate' } })
 );
 
-async function refreshAccessToken({
+export async function refreshAccessToken({
   amoCrmDomain,
-  clientId,
-  clientSecret,
   tokens,
 }: {
   tokens: AmoCrmTokens;
   amoCrmDomain: string;
-  clientId: string;
-  clientSecret: string;
 }): Promise<AmoCrmTokens> {
   const response: AxiosResponse = await axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
-    client_id: clientId,
-    client_secret: clientSecret,
+    client_id: AppConfig.AMO_CRM_CLIENT_ID,
+    client_secret: AppConfig.AMO_CRM_CLIENT_SECRET,
     grant_type: 'refresh_token',
     refresh_token: tokens.amoCrmRefreshToken,
     redirect_uri: process.env.AMO_CRM_REDIRECT_URI,
   });
 
-  if (response.status !== 200) {
+  if (response.status !== HttpStatus.OK) {
     throw new ServiceUnavailableException(`Не удалось обновить токен ${response.status} ${response.data}`);
   }
 
-  prisma.senlerGroup.update({
+  await prisma.senlerGroup.update({
     where: {
       amoCrmAccessToken: tokens.amoCrmAccessToken,
       amoCrmRefreshToken: tokens.amoCrmRefreshToken,
@@ -58,7 +54,7 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        if (error.status !== 401) {
+        if (error.status !== HttpStatus.UNAUTHORIZED) {
           throw error;
         }
 
@@ -67,14 +63,10 @@ export function HandleAccessTokenExpiration() {
         const tokens: AmoCrmTokens = originalMethodProperty.tokens;
 
         const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
-        const clientId: string = AppConfig.AMO_CRM_CLIENT_ID;
-        const clientSecret: string = AppConfig.AMO_CRM_CLIENT_SECRET;
 
         const newTokens: AmoCrmTokens = await refreshAccessToken({
           tokens,
           amoCrmDomain,
-          clientId,
-          clientSecret,
         });
 
         args[0].tokens = newTokens;

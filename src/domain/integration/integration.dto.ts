@@ -10,16 +10,12 @@ export enum BotStepType {
 }
 
 export class TransferPairDto {
-  @ApiProperty({
-    description: 'Identifier of variable from export service.',
-  })
+  @ApiProperty({ description: 'Identifier of variable from export service.' })
   @IsNotEmpty()
   @IsStringOrNumber()
   from: string | number;
 
-  @ApiProperty({
-    description: 'Identifier of variable from import service.',
-  })
+  @ApiProperty({ description: 'Identifier of variable from import service.' })
   @IsNotEmpty()
   @IsStringOrNumber()
   to: string | number;
@@ -42,7 +38,7 @@ export class PublicBotStepSettingsDto {
 }
 
 export class LeadDto {
-  @ApiProperty({ description: 'Lead id.' })
+  @ApiProperty({ description: 'Senler lead id.' })
   @IsNotEmpty()
   @IsString()
   id: string;
@@ -71,15 +67,15 @@ export class LeadDto {
 export class BotStepWebhookDto {
   @ApiProperty({ description: 'Senler group id.' })
   @IsNotEmpty()
-  @IsString()
-  senlerGroupId: string;
+  @IsNumber()
+  senlerGroupId: number;
 
   @ApiProperty({ description: 'Senler VK group id.' })
   @IsNotEmpty()
   @IsString()
   senlerVkGroupId: string;
 
-  @ApiProperty({ description: 'Lead.' })
+  @ApiProperty({ description: 'Senler lead.' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LeadDto)

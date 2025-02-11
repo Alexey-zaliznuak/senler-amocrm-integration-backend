@@ -6,8 +6,8 @@ CREATE TABLE "SenlerGroup" (
     "amoCrmDomainName" TEXT NOT NULL,
     "amoCrmAccessToken" TEXT NOT NULL,
     "amoCrmRefreshToken" TEXT NOT NULL,
-    "senlerGroupId" TEXT NOT NULL,
-    "senlerGroupVkId" CHAR(32) NOT NULL,
+    "senlerGroupId" INTEGER NOT NULL,
+    "senlerGroupVkId" TEXT,
     "senlerAccessToken" TEXT NOT NULL,
     "senlerSign" CHAR(32) NOT NULL,
 
@@ -48,9 +48,6 @@ CREATE UNIQUE INDEX "SenlerGroup_amoCrmRefreshToken_key" ON "SenlerGroup"("amoCr
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SenlerGroup_senlerGroupId_key" ON "SenlerGroup"("senlerGroupId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "SenlerGroup_senlerGroupVkId_key" ON "SenlerGroup"("senlerGroupVkId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SenlerGroup_senlerAccessToken_key" ON "SenlerGroup"("senlerAccessToken");
