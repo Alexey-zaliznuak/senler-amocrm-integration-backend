@@ -15,8 +15,8 @@ export class IntegrationUtils {
       const fromValue = syncableVariables[key].from;
       const toValue = syncableVariables[key].to;
 
-      const field_id = this.replaceVariables(fromValue, senlerLeadVars);
-      const value = this.replaceVariables(toValue, senlerLeadVars);
+      const field_id = this.replaceVariables(toValue, senlerLeadVars);
+      const value = this.replaceVariables(fromValue, senlerLeadVars);
 
       customFieldsValues.push({
         field_id: field_id,
