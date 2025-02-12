@@ -4,6 +4,7 @@ import { LoggingModule } from '../logging/logging.module';
 import { AxiosService } from './instance/axios.instance';
 import { LOGGER_INJECTABLE_NAME, AXIOS } from './instance/axios.instance.config';
 import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
+import { LoggingService } from '../logging/logging.service';
 
 @Global()
 @Module({})
@@ -26,16 +27,18 @@ export class AxiosModule {
   }
 
   static forFeature(context?: string, options?: CreateCustomAxiosInstanceOptions): DynamicModule {
+    const loggingContext = context ? context + "/" + AXIOS : AXIOS
+
     return {
       module: AxiosModule,
-      imports: [LoggingModule.forFeature(context ? context + "/" + AXIOS : AXIOS)],
+      imports: [LoggingModule.forFeature(loggingContext)],
       providers: [
         {
           provide: context,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [LOGGER_INJECTABLE_NAME],
+          inject: [LoggingService.buildInjectableNameByContext(loggingContext)],
         },
       ],
       exports: [context],
