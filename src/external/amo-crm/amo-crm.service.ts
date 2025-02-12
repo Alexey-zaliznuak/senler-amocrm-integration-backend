@@ -16,6 +16,7 @@ import {
   UpdateLeadResponse,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
+import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 
 export type AmoCrmTokens = {
   amoCrmAccessToken: string;
@@ -25,7 +26,7 @@ export type AmoCrmTokens = {
 @Injectable()
 export class AmoCrmService {
   constructor(
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly axios: AxiosService,
+    @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: AxiosService,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
@@ -324,12 +325,12 @@ export class AmoCrmService {
     amoCrmLeadId,
     name,
     tokens,
-  }: {
+  }: ({
     amoCrmDomainName: string;
     amoCrmLeadId: number;
     name: string;
     tokens: AmoCrmTokens;
-  }) {
+  })) {
     try {
       const lead = await this.getLeadById({
         amoCrmDomainName,

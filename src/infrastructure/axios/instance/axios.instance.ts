@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, In
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import { generateRequestId } from 'src/utils';
 import { Logger } from 'winston';
-import { BASE_RETRY_CONFIG, LOGGER_INJECTABLE_NAME } from './axios.instance.config';
+import { AXIOS, BASE_RETRY_CONFIG, LOGGER_INJECTABLE_NAME } from './axios.instance.config';
 import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
 
 @Injectable()
@@ -62,6 +62,8 @@ export class AxiosService {
       this.deleteRequestLogger(customConfig.requestId);
     }
   }
+
+  public static buildInjectableNameByContext = (context: string) => AXIOS + '__' + context;
 
   private createAxiosClient(): AxiosInstance {
     const instance = axios.create(this.defaults.axiosConfig);
