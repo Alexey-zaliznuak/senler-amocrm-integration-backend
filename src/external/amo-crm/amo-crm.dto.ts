@@ -140,7 +140,7 @@ export type editLeadsByIdRequest = {
 };
 
 export type editLeadsByIdCustomFieldsValueRequest = {
-  field_id: string;
+  field_id: number;
   values: {
     value: any;
   }[];

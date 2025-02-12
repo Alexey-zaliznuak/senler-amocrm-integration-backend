@@ -3,7 +3,7 @@ import { editLeadsByIdCustomFieldsValueRequest } from 'src/external/amo-crm/amo-
 export class IntegrationUtils {
   // TODO: docstring, assigner: maxi-q
   public replaceVariables(str, vars) {
-    return str.replace(/{%(\w+)%}/g, (match, p1) => {
+    return str.replace(/(\w+)/g, (match, p1) => {
       return vars[p1] !== undefined ? vars[p1] : match;
     });
   }
@@ -15,11 +15,11 @@ export class IntegrationUtils {
       const fromValue = syncableVariables[key].from;
       const toValue = syncableVariables[key].to;
 
-      const field_id = this.replaceVariables(fromValue, senlerLeadVars);
-      const value = this.replaceVariables(toValue, senlerLeadVars);
+      const field_id = this.replaceVariables(toValue, senlerLeadVars);
+      const value = this.replaceVariables(fromValue, senlerLeadVars);
 
       customFieldsValues.push({
-        field_id: field_id,
+        field_id: +field_id,
         values: [{ value: value.toString() }],
       });
     }
