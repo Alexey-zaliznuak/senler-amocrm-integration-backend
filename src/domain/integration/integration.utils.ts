@@ -2,7 +2,7 @@ import { editLeadsByIdCustomFieldsValueRequest } from 'src/external/amo-crm/amo-
 
 export class IntegrationUtils {
   // TODO: docstring, assigner: maxi-q
-  public replaceVariables(str, vars) {
+  public replaceVariables(str: string, vars: { [x: string]: any; }) {
     return str.replace(/(\w+)/g, (match, p1) => {
       return vars[p1] !== undefined ? vars[p1] : match;
     });
