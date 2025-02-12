@@ -26,21 +26,19 @@ export class AxiosModule {
   }
 
   static forFeature(context?: string, options?: CreateCustomAxiosInstanceOptions): DynamicModule {
-    context = context ? context + "/" + AXIOS : AXIOS
-
     return {
       module: AxiosModule,
-      imports: [LoggingModule.forFeature(context)],
+      imports: [LoggingModule.forFeature(context ? context + "/" + AXIOS : AXIOS)],
       providers: [
         {
-          provide: AxiosService.buildInjectableNameByContext(context),
+          provide: context,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
           inject: [LOGGER_INJECTABLE_NAME],
         },
       ],
-      exports: [AXIOS],
+      exports: [context],
     };
   }
 }
