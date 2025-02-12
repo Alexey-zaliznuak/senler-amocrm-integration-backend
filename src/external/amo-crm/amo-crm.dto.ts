@@ -136,10 +136,10 @@ export type editLeadsByIdRequest = {
   status_id?: string;
   pipeline_id?: string;
   tokens: AmoCrmTokens;
-  customFieldsValues?: editLeadsByIdRequestCustomFieldsValue[];
+  customFieldsValues?: editLeadsByIdCustomFieldsValueRequest[];
 };
 
-export type editLeadsByIdRequestCustomFieldsValue = {
+export type editLeadsByIdCustomFieldsValueRequest = {
   field_id: string;
   values: {
     value: any;

@@ -36,60 +36,39 @@ export class IntegrationService {
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      await this.sendVarsToAmo({
-        senlerLeadId: body.lead.id,
-        amoCrmDomainName: senlerGroup.amoCrmDomainName,
-        tokens,
-        syncableVariables: body.publicBotStepSettings.syncableVariables,
-        senlerLeadVars: body.lead.personalVars,
-      });
-      return {};
+      return await this.sendVarsToAmoCrm(body, tokens, lead);
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      await this.sendVarsToSenler(body, tokens, lead);
+      return await this.sendVarsToSenler(body, tokens, lead);
     }
   }
 
-  async sendVarsToAmo({
-    senlerLeadId,
-    amoCrmDomainName,
-    tokens,
-    syncableVariables,
-    senlerLeadVars,
-  }: {
-    tokens: AmoCrmTokens;
-    senlerLeadId: string;
-    amoCrmDomainName: string;
-    syncableVariables: any;
-    senlerLeadVars: any;
-  }) {
-    const customFieldsValues = this.utils.senlerVarsToAmoFields(syncableVariables, senlerLeadVars);
-    const amoCrmLeadId = (await prisma.lead.findUniqueOrThrow({ where: { senlerLeadId } })).amoCrmLeadId;
+  async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
+    const customFieldsValues = this.utils.convertSenlerVarsToAmoFields(
+      body.publicBotStepSettings.syncableVariables,
+      body.lead.personalVars
+    );
 
     await this.amoCrmService.editLeadsById({
-      amoCrmDomainName,
-      amoCrmLeadId,
+      amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
+      amoCrmLeadId: lead.amoCrmLeadId,
       tokens,
       customFieldsValues,
     });
   }
 
   async sendVarsToSenler(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
-    const amoCrmLeadId = (await prisma.lead.findUniqueOrThrow({ where: { senlerLeadId: body.lead.id } })).amoCrmLeadId;
-    const customFieldsValues = this.utils.senlerVarsToAmoFields(
-      body.publicBotStepSettings.syncableVariables,
-      body.lead.personalVars
-    );
+    const amoCrmLead = await this.amoCrmService.getLeadById({
+      leadId: lead.amoCrmLeadId,
+      amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
+      tokens: {
+        amoCrmAccessToken: lead.senlerGroup.amoCrmAccessToken,
+        amoCrmRefreshToken: lead.senlerGroup.amoCrmRefreshToken,
+      },
+    });
 
     const logger = new LoggingService(AppConfig).createLogger();
-    logger.debug('customFieldsValues ', customFieldsValues);
-
-    await this.amoCrmService.editLeadsById({
-      amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
-      amoCrmLeadId,
-      tokens,
-      customFieldsValues,
-    });
+    // logger.debug('customFieldsValues ', customFieldsValues);
   }
 
   async createLeadIfNotExists({

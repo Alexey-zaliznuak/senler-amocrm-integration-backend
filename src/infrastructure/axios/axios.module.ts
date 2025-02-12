@@ -1,9 +1,9 @@
-import { DynamicModule, Module, Global } from '@nestjs/common';
-import { AxiosService } from './instance/axios.instance';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import { Logger } from 'winston';
-import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
 import { LoggingModule } from '../logging/logging.module';
-import { AXIOS_INSTANCE, AXIOS_INSTANCE_LOGGER } from './instance/axios.instance.config';
+import { AxiosService } from './instance/axios.instance';
+import { LOGGER_INJECTABLE_NAME, LOGGER_NAME } from './instance/axios.instance.config';
+import { CreateCustomAxiosInstanceOptions } from './instance/axios.instance.dto';
 
 @Global()
 @Module({})
@@ -11,34 +11,34 @@ export class AxiosModule {
   static forRoot(options?: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
-      imports: [LoggingModule.forFeature(AXIOS_INSTANCE)],
+      imports: [LoggingModule.forFeature(LOGGER_NAME)],
       providers: [
         {
-          provide: AXIOS_INSTANCE,
+          provide: LOGGER_NAME,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [AXIOS_INSTANCE_LOGGER],
+          inject: [LOGGER_INJECTABLE_NAME],
         },
       ],
-      exports: [AXIOS_INSTANCE],
+      exports: [LOGGER_NAME],
     };
   }
 
   static forFeature(options?: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
-      imports: [LoggingModule.forFeature(AXIOS_INSTANCE)],
+      imports: [LoggingModule.forFeature(LOGGER_NAME)],
       providers: [
         {
-          provide: AXIOS_INSTANCE,
+          provide: LOGGER_NAME,
           useFactory: (logger: Logger) => {
             return new AxiosService(logger, options);
           },
-          inject: [AXIOS_INSTANCE_LOGGER],
+          inject: [LOGGER_INJECTABLE_NAME],
         },
       ],
-      exports: [AXIOS_INSTANCE],
+      exports: [LOGGER_NAME],
     };
   }
 }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AmoCrmService } from './amo-crm.service';
 import { LoggingModule } from 'src/infrastructure/logging/logging.module';
-import { AMO_CRM } from './amo-crm.config';
+import { LOGGER_INJECTABLE_NAME } from './amo-crm.config';
+import { AmoCrmService } from './amo-crm.service';
 
 @Module({
-  imports: [LoggingModule.forFeature(AMO_CRM)],
+  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
   providers: [AmoCrmService],
   exports: [AmoCrmService],
 })

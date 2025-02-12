@@ -1,10 +1,9 @@
-import { Inject, Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
-import { AXIOS_INSTANCE } from 'src/infrastructure/axios/instance/axios.instance.config';
+import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { Logger } from 'winston';
-import { AMO_CRM_LOGGER } from './amo-crm.config';
 import {
   AcceptUnsortedResponse,
   AddUnsortedResponse,
@@ -26,13 +25,13 @@ export type AmoCrmTokens = {
 @Injectable()
 export class AmoCrmService {
   constructor(
-    @Inject(AXIOS_INSTANCE) private readonly axios: AxiosService,
-    @Inject(AMO_CRM_LOGGER) private readonly logger: Logger,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly axios: AxiosService,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
 
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
-    this.logger.warn("Code: ", { code })
+    this.logger.warn('Code: ', { code });
     const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomainName}/oauth2/access_token`, {
       client_id: this.config.AMO_CRM_CLIENT_ID,
       client_secret: this.config.AMO_CRM_CLIENT_SECRET,

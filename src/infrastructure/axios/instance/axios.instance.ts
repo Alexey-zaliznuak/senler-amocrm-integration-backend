@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
-import { Logger } from 'winston';
-import { AXIOS_INSTANCE_LOGGER, BASE_RETRY_CONFIG } from './axios.instance.config';
-import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
 import { generateRequestId } from 'src/utils';
+import { Logger } from 'winston';
+import { BASE_RETRY_CONFIG, LOGGER_INJECTABLE_NAME } from './axios.instance.config';
+import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
 
 @Injectable()
 export class AxiosService {
@@ -14,7 +14,7 @@ export class AxiosService {
   private readonly requestLoggers = new Map<string, RequestLoggerData>();
 
   constructor(
-    @Inject(AXIOS_INSTANCE_LOGGER) private readonly logger: Logger,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     options: CreateCustomAxiosInstanceOptions = {}
   ) {
     this.defaults = {
