@@ -55,12 +55,12 @@ export class IntegrationService {
 
   async sendVarsToSenler(
     body: BotStepWebhookDto,
-    tokens: AmoCrmTokens,
-    lead: Lead & { senlerGroup: SenlerGroup },
-    amoCrmLead: AmoCrmLead
+    _tokens: AmoCrmTokens,
+    _lead: Lead & { senlerGroup: SenlerGroup },
+    _amoCrmLead: AmoCrmLead
   ) {
-    const logger = new LoggingService(AppConfig).createLogger();
-    // logger.debug('customFieldsValues ', customFieldsValues);
+    const VarsValues = this.utils.convertAmoFieldsToSenlerVars(body.publicBotStepSettings.syncableVariables, []);
+    return VarsValues;
   }
 
   async getOrCreateLeadIfNotExists({
@@ -96,7 +96,7 @@ export class IntegrationService {
           data: { amoCrmLeadId: actualAmoCrmLead.id },
         });
       }
-      return { lead, amoCrmLead: actualAmoCrmLead,};
+      return { lead, amoCrmLead: actualAmoCrmLead };
     }
 
     const newAmoCrmLead = await this.amoCrmService.addLead({

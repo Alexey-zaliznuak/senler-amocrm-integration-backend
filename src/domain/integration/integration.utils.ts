@@ -1,4 +1,4 @@
-import { editLeadsByIdCustomFieldsValueRequest } from 'src/external/amo-crm/amo-crm.dto';
+import { editLeadsByIdCustomFieldsValueRequest, editLeadsByIdVarsValueRequest } from 'src/external/amo-crm/amo-crm.dto';
 
 export class IntegrationUtils {
   // TODO: docstring, assigner: maxi-q
@@ -21,6 +21,25 @@ export class IntegrationUtils {
       customFieldsValues.push({
         field_id: +field_id,
         values: [{ value: value.toString() }],
+      });
+    }
+
+    return customFieldsValues;
+  }
+
+  public convertAmoFieldsToSenlerVars(syncableVariables, _amoLeadCustomFieldValues) {
+    const customFieldsValues: editLeadsByIdVarsValueRequest = { vars: [], glob_vars: [] };
+
+    for (const key in syncableVariables) {
+      const fromValue = syncableVariables[key].from;
+      const toValue = syncableVariables[key].to;
+
+      const field_name = toValue;
+      const value = fromValue; // по id из amoLeadCustomFieldValues подставить значение
+
+      customFieldsValues.vars.push({
+        n: field_name,
+        v: value,
       });
     }
 
