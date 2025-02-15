@@ -1,19 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Lead, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { prisma } from 'src/infrastructure/database';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
+import { LOGGER_INJECTABLE_NAME } from './integration.config';
 
 @Injectable()
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
-  constructor(private readonly amoCrmService: AmoCrmService) {}
+  constructor(
+    private readonly amoCrmService: AmoCrmService,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
+  ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
     const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
@@ -35,7 +37,7 @@ export class IntegrationService {
       return await this.sendVarsToAmoCrm(body, tokens, lead);
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      return await this.sendVarsToSenler(body, tokens, lead, amoCrmLead);
+      return await this.sendVarsToSenler(body, amoCrmLead);
     }
   }
 
@@ -53,13 +55,16 @@ export class IntegrationService {
     });
   }
 
-  async sendVarsToSenler(
-    body: BotStepWebhookDto,
-    _tokens: AmoCrmTokens,
-    _lead: Lead & { senlerGroup: SenlerGroup },
-    _amoCrmLead: AmoCrmLead
-  ) {
-    const VarsValues = this.utils.convertAmoFieldsToSenlerVars(body.publicBotStepSettings.syncableVariables, []);
+  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead) {
+    const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values;
+
+    this.logger.debug('amoCrmLeadCustomFieldsValues', amoCrmLeadCustomFieldsValues);
+
+    const VarsValues = this.utils.convertAmoFieldsToSenlerVars(
+      body.publicBotStepSettings.syncableVariables,
+      amoCrmLeadCustomFieldsValues
+    );
+
     return VarsValues;
   }
 
