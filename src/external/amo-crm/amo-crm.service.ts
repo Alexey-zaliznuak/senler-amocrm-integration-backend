@@ -325,12 +325,12 @@ export class AmoCrmService {
     amoCrmLeadId,
     name,
     tokens,
-  }: ({
+  }: {
     amoCrmDomainName: string;
     amoCrmLeadId: number;
     name: string;
     tokens: AmoCrmTokens;
-  })) {
+  }) {
     try {
       const lead = await this.getLeadById({
         amoCrmDomainName,

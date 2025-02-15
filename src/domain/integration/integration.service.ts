@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Lead, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
@@ -13,10 +13,7 @@ import { LOGGER_INJECTABLE_NAME } from './integration.config';
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
-  constructor(
-    private readonly amoCrmService: AmoCrmService,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-  ) {}
+  constructor(private readonly amoCrmService: AmoCrmService) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
     const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
@@ -38,7 +35,7 @@ export class IntegrationService {
       return await this.sendVarsToAmoCrm(body, tokens, lead);
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      return await this.sendVarsToSenler(body, tokens, lead, amoCrmLead);
+      return await this.sendVarsToSenler(body, amoCrmLead);
     }
   }
 
@@ -62,7 +59,7 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup },
     amoCrmLead: AmoCrmLead
   ) {
-    // const logger = new LoggingService(AppConfig).createLogger();
+    const logger = new LoggingService(AppConfig).createLogger();
     // logger.debug('customFieldsValues ', customFieldsValues);
   }
 

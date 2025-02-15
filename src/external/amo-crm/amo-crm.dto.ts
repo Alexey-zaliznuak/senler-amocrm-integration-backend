@@ -145,3 +145,8 @@ export type editLeadsByIdCustomFieldsValueRequest = {
     value: any;
   }[];
 };
+
+export type editLeadsByIdVarsValueRequest = {
+  vars?: { n: string; v: string }[];
+  glob_vars?: { n: string; v: string }[];
+};
