@@ -31,6 +31,7 @@ model SenlerIntegrationStepTemplate {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  name          String
   settings      Json
 
   senlerGroup   SenlerGroup @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)

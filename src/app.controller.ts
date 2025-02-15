@@ -10,4 +10,3 @@ export class AppController {
     return 'pong';
   }
 }
-2

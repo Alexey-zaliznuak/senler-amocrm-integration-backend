@@ -28,7 +28,7 @@ export class AxiosModule {
   static forFeature(context?: string, options?: CreateCustomAxiosInstanceOptions): DynamicModule {
     return {
       module: AxiosModule,
-      imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
+      imports: [LoggingModule.forFeature(AXIOS)],
       providers: [
         {
           provide: context,

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { IntegrationService } from './integration.service';
-import { IntegrationController } from './integration.controller';
 import { AmoCrmModule } from 'src/external/amo-crm';
 import { SenlerModule } from 'src/external/senler/senler.module';
+import { LoggingModule } from 'src/infrastructure/logging/logging.module';
+import { INTEGRATION } from './integration.config';
+import { IntegrationController } from './integration.controller';
+import { IntegrationService } from './integration.service';
 
 @Module({
+  imports: [LoggingModule.forFeature(INTEGRATION), AmoCrmModule, SenlerModule],
   controllers: [IntegrationController],
   providers: [IntegrationService],
-  imports: [AmoCrmModule, SenlerModule],
 })
 export class IntegrationModule {}
