@@ -75,6 +75,14 @@ export type GetLeadRequest = {
   amoCrmDomainName: string;
 };
 
+export interface AmoCustomField {
+  field_id: number;
+  field_name: string;
+  field_code: string | null;
+  field_type: string;
+  values: { value: string }[];
+}
+
 export type GetLeadResponse = {
   id: number;
   name: string;
@@ -92,7 +100,7 @@ export type GetLeadResponse = {
   updated_at: number;
   closest_task_at: number;
   is_deleted: boolean;
-  custom_fields_values: Array<any> | null;
+  custom_fields_values: Array<AmoCustomField> | null;
   score: number | null;
   account_id: number;
   labor_cost: number;
