@@ -6,7 +6,6 @@ import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
-import { LOGGER_INJECTABLE_NAME } from './integration.config';
 
 @Injectable()
 export class IntegrationService {
@@ -14,7 +13,7 @@ export class IntegrationService {
 
   constructor(
     private readonly amoCrmService: AmoCrmService,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
+    private readonly logger: Logger
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
