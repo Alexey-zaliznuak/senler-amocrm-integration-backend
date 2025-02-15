@@ -28,7 +28,6 @@ export class LoggingModule {
 
   static forFeature(context: string, options?: winston.LoggerOptions): DynamicModule {
     const featureLoggerProvider = LoggingService.buildInjectableNameByContext(context);
-    console.error(featureLoggerProvider)
     return {
       module: LoggingModule,
       providers: [
