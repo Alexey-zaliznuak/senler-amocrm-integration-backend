@@ -40,7 +40,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
     // External
     AmoCrmModule,
     SenlerModule,
-    DatabaseModule,
+    // DatabaseModule,
   ],
 
   controllers: [AppController],
