@@ -142,6 +142,20 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             }
             return result;
           },
+          upsertWithCacheRevalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
+            _this: T,
+            args: Prisma.Args<T, 'upsert'>
+          ): Promise<R> => {
+            const context = Prisma.getExtensionContext(_this) as any;
+            const model = context.$name;
+
+            const result = await context.upsert(args);
+            if (result?.id) {
+              await this.invalidateCache(model, result.id);
+              await this.saveResultInCache(model, this.buildObjectCacheKey(model, args), result)
+            }
+            return result;
+          },
           deleteWithCacheInvalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'delete'>, 'delete'>>(
             _this: T,
             args: Prisma.Args<T, 'delete'>
