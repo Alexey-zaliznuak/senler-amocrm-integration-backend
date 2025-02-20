@@ -15,7 +15,7 @@ export class IntegrationService {
 
   constructor(
     private readonly amoCrmService: AmoCrmService,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
@@ -38,7 +38,7 @@ export class IntegrationService {
       return await this.sendVarsToAmoCrm(body, tokens, lead);
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      return await this.sendVarsToSenler(body, tokens, lead, amoCrmLead);
+      return await this.sendVarsToSenler(body, amoCrmLead);
     }
   }
 
@@ -56,14 +56,17 @@ export class IntegrationService {
     });
   }
 
-  async sendVarsToSenler(
-    body: BotStepWebhookDto,
-    tokens: AmoCrmTokens,
-    lead: Lead & { senlerGroup: SenlerGroup },
-    amoCrmLead: AmoCrmLead
-  ) {
-    // const logger = new LoggingService(AppConfig).createLogger();
-    // logger.debug('customFieldsValues ', customFieldsValues);
+  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead) {
+    const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values;
+
+    this.logger.debug('amoCrmLeadCustomFieldsValues', amoCrmLeadCustomFieldsValues);
+
+    const VarsValues = this.utils.convertAmoFieldsToSenlerVars(
+      body.publicBotStepSettings.syncableVariables,
+      amoCrmLeadCustomFieldsValues
+    );
+
+    return VarsValues;
   }
 
   async getOrCreateLeadIfNotExists({
