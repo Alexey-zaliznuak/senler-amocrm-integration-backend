@@ -21,6 +21,14 @@ export const AppConfig = {
 
   DATABASE_URL: process.env.DEV_SERVER_URL,
 
+  CACHE_DATABASE_URL: process.env.CACHE_DATABASE_URL,
+  CACHE_DEFAULT_TTL: parseInt(process.env.CACHE_DEFAULT_TTL),
+  CACHE_SPECIFIC_TTL: {
+    SenlerGroup: parseInt(process.env.SENLER_GROUP_CACHE_TTL),
+    Lead: parseInt(process.env.LEAD_CACHE_TTL),
+  },
+  CACHE_NULL_RESULT_TTL: parseInt(process.env.CACHE_NULL_RESULT_TTL),
+
   AMO_CRM_CLIENT_ID: process.env.AMO_CRM_CLIENT_ID,
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
   AMO_CRM_REDIRECT_URI: process.env.AMO_CRM_REDIRECT_URI,

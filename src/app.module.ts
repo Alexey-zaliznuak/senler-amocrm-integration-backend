@@ -18,6 +18,7 @@ import { CustomConfigModule } from './infrastructure/config/config.module';
 import { AppConfig } from './infrastructure/config/config.app-config';
 import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
 import { SenlerModule } from './external/senler/senler.module';
+import { DatabaseModule } from './infrastructure/database/database.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SenlerModule } from './external/senler/senler.module';
     // External
     AmoCrmModule,
     SenlerModule,
+    DatabaseModule,
   ],
 
   controllers: [AppController],
