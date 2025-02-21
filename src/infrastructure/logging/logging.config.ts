@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
-import { AppConfigType } from '../config/config.app-config';
+import { AppConfig, AppConfigType } from '../config/config.app-config';
 
 import LokiTransport from 'winston-loki';
 
@@ -23,11 +23,15 @@ export const baseLogFormat = winston.format.combine(
 
 export const prettyLogPrintFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
   const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
+  const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
 
-  let formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
-  formattedMeta = formattedMeta.length > 3000 ? formattedMeta.substring(0, 3000) + '...' : formattedMeta
+  let logMessage = `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
+  logMessage =
+    logMessage.length > AppConfig.MAX_CONSOLE_LOG_MESSAGE
+      ? logMessage.substring(0, AppConfig.MAX_CONSOLE_LOG_MESSAGE) + '...'
+      : logMessage;
 
-  return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
+  return logMessage;
 });
 
 export const prettyLogFormat = winston.format.combine(

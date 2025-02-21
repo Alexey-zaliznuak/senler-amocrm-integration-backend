@@ -17,7 +17,7 @@ export const AppConfig = {
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
-  PORT: parseInt(process.env.PORT, 10) || 3000,
+  PORT: parseInt(process.env.PORT) || 3000,
 
   DATABASE_URL: process.env.DEV_SERVER_URL,
 
@@ -28,6 +28,8 @@ export const AppConfig = {
     Lead: parseInt(process.env.LEAD_CACHE_TTL),
   },
   CACHE_NULL_RESULT_TTL: parseInt(process.env.CACHE_NULL_RESULT_TTL),
+
+  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 5000,
 
   AMO_CRM_CLIENT_ID: process.env.AMO_CRM_CLIENT_ID,
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
