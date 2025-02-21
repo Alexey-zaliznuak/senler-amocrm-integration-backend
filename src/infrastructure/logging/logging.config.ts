@@ -23,7 +23,9 @@ export const baseLogFormat = winston.format.combine(
 
 export const prettyLogPrintFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
   const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
-  const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
+
+  let formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
+  formattedMeta = formattedMeta.length > 3000 ? formattedMeta.substring(0, 3000) + '...' : formattedMeta
 
   return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
 });
