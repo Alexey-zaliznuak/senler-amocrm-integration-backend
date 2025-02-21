@@ -32,7 +32,6 @@ export class AmoCrmService {
   ) {}
 
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
-    this.logger.warn('Code: ', { code });
     const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomainName}/oauth2/access_token`, {
       client_id: this.config.AMO_CRM_CLIENT_ID,
       client_secret: this.config.AMO_CRM_CLIENT_SECRET,
