@@ -33,8 +33,6 @@ export const AppConfig = {
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
   AMO_CRM_REDIRECT_URI: process.env.AMO_CRM_REDIRECT_URI,
 
-  OPENAPI_SERVER_URLS: process.env.OPENAPI_SERVER_URLS.split(','),
-
   LOKI_HOST: process.env.LOKI_HOST,
   LOKI_USERNAME: process.env.LOKI_USERNAME,
   LOKI_AUTH_TOKEN: process.env.LOKI_AUTH_TOKEN,

@@ -3,8 +3,8 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { createClient, RedisClientType } from 'redis';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
-import { LOGGER_INJECTABLE_NAME } from '../database.config';
 import { Logger } from 'winston';
+import { LOGGER_INJECTABLE_NAME } from '../database.config';
 
 const PRISMA_OBJECTS_CACHE_PREFIX = 'cache:prisma:objectsByParams:';
 const PRISMA_OBJECTS_PARAMS_VARIANTS_BY_ID_PREFIX = 'cache:prisma:objectParamsById:'; // For remove cache for object from any args
@@ -15,7 +15,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
   constructor(
     @Inject(CONFIG) private readonly appConfig: AppConfigType,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {
     this.client = createClient({ url: appConfig.CACHE_DATABASE_URL });
     this.client
@@ -152,7 +152,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             const result = await context.upsert(args);
             if (result?.id) {
               await this.invalidateCache(model, result.id);
-              await this.saveResultInCache(model, this.buildObjectCacheKey(model, args), result)
+              await this.saveResultInCache(model, this.buildObjectCacheKey(model, args), result);
             }
             return result;
           },

@@ -2,7 +2,7 @@ import { HttpStatus, ServiceUnavailableException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { AxiosService } from 'src/infrastructure/axios/instance';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
-import { prisma } from 'src/infrastructure/database';
+import { SimplePrismaClient as prisma } from 'src/infrastructure/database/database.module';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { AmoCrmTokens } from '../amo-crm.service';
 

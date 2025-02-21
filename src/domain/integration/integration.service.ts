@@ -1,25 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Lead, SenlerGroup } from '@prisma/client';
+import { Lead, PrismaClient, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
-import { prisma } from 'src/infrastructure/database';
+// import { prisma } from 'src/infrastructure/database';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
+import { PRISMA } from 'src/infrastructure/database/database.config';
+import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.module';
 
 @Injectable()
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   constructor(
+    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     private readonly amoCrmService: AmoCrmService,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
@@ -85,7 +88,7 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup };
     amoCrmLead: AmoCrmLead;
   }> {
-    let lead = await prisma.lead.findUnique({ where: { senlerLeadId }, include: { senlerGroup: true } });
+    let lead = await this.prisma.lead.findUnique({ where: { senlerLeadId }, include: { senlerGroup: true } });
 
     if (lead) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
@@ -96,7 +99,7 @@ export class IntegrationService {
       });
 
       if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
-        lead = await prisma.lead.update({
+        lead = await this.prisma.lead.update({
           where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
           include: { senlerGroup: true },
           data: { amoCrmLeadId: actualAmoCrmLead.id },
@@ -111,7 +114,7 @@ export class IntegrationService {
       tokens,
     });
 
-    const newLead = await prisma.lead.create({
+    const newLead = await this.prisma.lead.create({
       include: { senlerGroup: true },
       data: {
         amoCrmLeadId: newAmoCrmLead.id,
@@ -131,7 +134,7 @@ export class IntegrationService {
   }
 
   async getAmoCrmFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
-    const senlerGroup = await prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,

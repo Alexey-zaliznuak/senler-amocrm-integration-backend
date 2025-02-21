@@ -6,8 +6,6 @@ export const appConfigValidationSchema = Joi.object({
   NODE_ENV: Joi.string().valid(NodeEnv.local, NodeEnv.development, NodeEnv.production).required(),
   PORT: Joi.number().default(AppConfig.PORT),
 
-  OPENAPI_SERVER_URLS: Joi.string().required(),
-
   INSTANCE_NAME: Joi.string().default('senler-amocrm-integration-backend'),
   INSTANCE_ID: Joi.string().default(AppConfig.INSTANCE_ID),
 

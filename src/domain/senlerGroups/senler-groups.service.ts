@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
@@ -8,13 +9,17 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { prisma } from 'src/infrastructure/database';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField } from './dto/get-senler-group.dto';
+import { PRISMA } from 'src/infrastructure/database/database.config';
+import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.module';
 
 @Injectable()
 export class SenlerGroupsService {
-  constructor(private readonly amoCrmService: AmoCrmService) {}
+  constructor(
+    private readonly amoCrmService: AmoCrmService,
+    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
+  ) {}
 
   async create(data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     await this.validateCreateSenlerGroupData(data);
@@ -22,7 +27,7 @@ export class SenlerGroupsService {
     try {
       const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomainName, data.amoCrmAuthorizationCode);
 
-      return await prisma.senlerGroup.create({
+      return await this.prisma.senlerGroup.create({
         select: {
           id: true,
           senlerGroupId: true,
@@ -54,7 +59,7 @@ export class SenlerGroupsService {
     identifier: string,
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse | never> {
-    const SenlerGroup = await prisma.senlerGroup.findUnique({
+    const SenlerGroup = await this.prisma.senlerGroup.findUnique({
       where: { [field]: identifier } as any,
     });
 
@@ -94,7 +99,7 @@ export class SenlerGroupsService {
       'senlerSign',
     ];
 
-    if (await prisma.senlerGroup.exists({ OR: constraints_names.map(key => ({ [key]: constraints[key] })) })) {
+    if (await this.prisma.senlerGroup.exists({ OR: constraints_names.map(key => ({ [key]: constraints[key] })) })) {
       throw new ConflictException('SenlerGroup with same properties already exists.');
     }
   }

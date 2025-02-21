@@ -17,10 +17,6 @@ export class AppService {
       })
       .addSecurityRequirements('header-integration-secret');
 
-    appConfig.OPENAPI_SERVER_URLS.forEach(url => {
-      config.addServer(url);
-    });
-
     const documentFactory = () => SwaggerModule.createDocument(app, config.build());
 
     SwaggerModule.setup('api/docs', app, documentFactory);

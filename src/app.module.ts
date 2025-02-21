@@ -36,11 +36,11 @@ import { DatabaseModule } from './infrastructure/database/database.module';
     // Infrastructure
     LoggingModule.forRoot(),
     AxiosModule.forRoot(),
+    DatabaseModule.forRoot(),
 
     // External
     AmoCrmModule,
     SenlerModule,
-    // DatabaseModule,
   ],
 
   controllers: [AppController],

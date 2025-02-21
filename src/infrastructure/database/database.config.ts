@@ -1,4 +1,4 @@
-import { LoggingService } from "../logging/logging.service"
+import { LoggingService } from '../logging/logging.service';
 
-export const DATABASE = 'Database'
-export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(DATABASE)
+export const PRISMA = 'Prisma';
+export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(PRISMA);
