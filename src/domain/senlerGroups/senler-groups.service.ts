@@ -9,16 +9,16 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { PRISMA } from 'src/infrastructure/database/database.config';
+import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField } from './dto/get-senler-group.dto';
-import { PRISMA } from 'src/infrastructure/database/database.config';
-import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.module';
 
 @Injectable()
 export class SenlerGroupsService {
   constructor(
     private readonly amoCrmService: AmoCrmService,
-    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
+    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType
   ) {}
 
   async create(data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {

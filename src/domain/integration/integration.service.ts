@@ -1,15 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Lead, PrismaClient, SenlerGroup } from '@prisma/client';
+import { Lead, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
-// import { prisma } from 'src/infrastructure/database';
+import { PRISMA } from 'src/infrastructure/database/database.config';
+import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.service';
 import { CustomRequest } from 'src/infrastructure/requests';
-import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
-import { IntegrationUtils } from './integration.utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { PRISMA } from 'src/infrastructure/database/database.config';
-import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.module';
+import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
+import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
 export class IntegrationService {
@@ -18,7 +17,7 @@ export class IntegrationService {
   constructor(
     @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    private readonly amoCrmService: AmoCrmService,
+    private readonly amoCrmService: AmoCrmService
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {

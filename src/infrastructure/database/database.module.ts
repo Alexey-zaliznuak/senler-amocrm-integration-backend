@@ -1,19 +1,14 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import { Logger } from 'winston';
-import { AppConfigType } from '../config/config.app-config';
-import { CONFIG } from '../config/config.module';
 import { LoggingModule } from '../logging/logging.module';
-import { LOGGER_INJECTABLE_NAME, PRISMA } from './database.config';
-import { existsExtension, PrismaCacheExtensionService } from './extensions';
-
-
-export type ExtendedPrismaClientType = ReturnType<typeof DatabaseModule.buildExtendedPrismaClient>
-export const SimplePrismaClient = new PrismaClient().$extends(existsExtension);
+import { PRISMA } from './database.config';
+import { PrismaCacheExtensionService } from './extensions';
+import { DatabaseService } from './database.service';
 
 
 @Global()
-@Module({})
+@Module({
+  providers: [PrismaCacheExtensionService, DatabaseService],
+})
 export class DatabaseModule {
   static forRoot(): DynamicModule {
     return {
@@ -22,17 +17,13 @@ export class DatabaseModule {
       providers: [
         {
           provide: PRISMA,
-          useFactory: (appConfig: AppConfigType, logger: Logger) => {
-            return this.buildExtendedPrismaClient(appConfig, logger);
+          useFactory: (databaseService: DatabaseService) => {
+            return databaseService.createExtendedClient();
           },
-          inject: [CONFIG, LOGGER_INJECTABLE_NAME],
+          inject: [DatabaseService],
         },
       ],
-      exports: [PRISMA],
+      exports: [PRISMA, DatabaseService],
     };
-  }
-
-  public static buildExtendedPrismaClient(appConfig: AppConfigType, logger: Logger) {
-    return new PrismaCacheExtensionService(appConfig, logger).applyExtension(new PrismaClient()).$extends(existsExtension);
   }
 }

@@ -17,6 +17,7 @@ import {
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
+import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 
 export type AmoCrmTokens = {
   amoCrmAccessToken: string;
@@ -28,7 +29,8 @@ export class AmoCrmService {
   constructor(
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: AxiosService,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly config: AppConfigType
+    @Inject(CONFIG) private readonly config: AppConfigType,
+    private readonly refreshTokensService: RefreshTokensService,
   ) {}
 
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {

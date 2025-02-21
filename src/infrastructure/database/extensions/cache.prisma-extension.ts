@@ -24,7 +24,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.client.connect();
+    const c = await this.client.connect();
     this.logger.debug('Cache database connected.');
   }
 
