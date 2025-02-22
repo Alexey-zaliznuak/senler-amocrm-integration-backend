@@ -41,8 +41,8 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
   private setupEventHandlers() {
     this.client
-      .on('connect', error => this.logger.error('Cache database connected.'))
-      .on('ready', error => this.logger.error('Cache database ready.'))
+      .on('connect', () => this.logger.error('Cache database connected.'))
+      .on('ready', () => this.logger.error('Cache database ready.'))
       .on('error', error => this.logger.error('Cache error: ', { error }))
       .on('reconnecting', () => this.logger.error('Reconnect to cache database.'))
       .on('end', () => this.logger.error('Cache database connection closed.'));
@@ -53,6 +53,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
   }
 
   public applyExtension(prisma: PrismaClient) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const serviceThis = this;
 
     const extension = Prisma.defineExtension({

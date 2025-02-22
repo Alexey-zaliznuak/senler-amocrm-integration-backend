@@ -21,7 +21,9 @@ export class IntegrationService {
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerGroupId: body.senlerGroupId } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
+      where: { senlerGroupId: body.senlerGroupId },
+    });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,

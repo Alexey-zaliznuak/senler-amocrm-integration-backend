@@ -4,7 +4,6 @@ import { PRISMA } from './database.config';
 import { PrismaCacheExtensionService } from './extensions';
 import { DatabaseService } from './database.service';
 
-
 @Global()
 @Module({
   providers: [PrismaCacheExtensionService, DatabaseService],
@@ -19,8 +18,8 @@ export class DatabaseModule {
           provide: PRISMA,
           useFactory: async (databaseService: DatabaseService) => {
             const client = databaseService.createExtendedClient();
-            await client.$connect()
-            return client
+            await client.$connect();
+            return client;
           },
           inject: [DatabaseService],
         },

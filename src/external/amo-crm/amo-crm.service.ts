@@ -30,7 +30,7 @@ export class AmoCrmService {
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: AxiosService,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly refreshTokensService: RefreshTokensService,
+    private readonly refreshTokensService: RefreshTokensService
   ) {}
 
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {

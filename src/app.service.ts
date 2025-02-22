@@ -1,10 +1,9 @@
 import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppConfigType } from './infrastructure/config/config.app-config';
 
 @Injectable()
 export class AppService {
-  public static setupSwaggerDocument(app: INestApplication, appConfig: AppConfigType) {
+  public static setupSwaggerDocument(app: INestApplication) {
     const config = new DocumentBuilder()
       .setTitle('Title')
       .setDescription('Description')

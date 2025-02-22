@@ -3,7 +3,7 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 
 export const AXIOS = 'AxiosInstance';
-export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(AXIOS)
+export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(AXIOS);
 
 export const BASE_RETRY_CONFIG: IAxiosRetryConfig = {
   retries: 2,

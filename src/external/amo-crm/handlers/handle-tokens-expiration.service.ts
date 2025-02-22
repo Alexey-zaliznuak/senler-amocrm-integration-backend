@@ -13,31 +13,20 @@ export class RefreshTokensService {
   constructor(
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axiosService: AxiosService,
     @Inject(CONFIG) private readonly config: AppConfigType,
-    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
+    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType
   ) {}
 
-  async refresh({
-    amoCrmDomain,
-    tokens,
-  }: {
-    tokens: AmoCrmTokens;
-    amoCrmDomain: string;
-  }): Promise<AmoCrmTokens> {
-    const response: AxiosResponse = await this.axiosService.post(
-      `https://${amoCrmDomain}/oauth2/access_token`,
-      {
-        client_id: this.config.AMO_CRM_CLIENT_ID,
-        client_secret: this.config.AMO_CRM_CLIENT_SECRET,
-        grant_type: 'refresh_token',
-        refresh_token: tokens.amoCrmRefreshToken,
-        redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
-      }
-    );
+  async refresh({ amoCrmDomain, tokens }: { tokens: AmoCrmTokens; amoCrmDomain: string }): Promise<AmoCrmTokens> {
+    const response: AxiosResponse = await this.axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
+      client_id: this.config.AMO_CRM_CLIENT_ID,
+      client_secret: this.config.AMO_CRM_CLIENT_SECRET,
+      grant_type: 'refresh_token',
+      refresh_token: tokens.amoCrmRefreshToken,
+      redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
+    });
 
     if (response.status !== HttpStatus.OK) {
-      throw new ServiceUnavailableException(
-        `Can not refresh token ${response.status} ${response.data}`
-      );
+      throw new ServiceUnavailableException(`Can not refresh token ${response.status} ${response.data}`);
     }
 
     await this.prisma.senlerGroup.updateWithCacheInvalidate({

@@ -10,7 +10,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  AppService.setupSwaggerDocument(app, config);
+  AppService.setupSwaggerDocument(app);
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
 
