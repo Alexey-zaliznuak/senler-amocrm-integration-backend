@@ -29,152 +29,160 @@ export class PrismaCacheExtensionService implements OnModuleInit {
   }
 
   public applyExtension(prisma: PrismaClient) {
+    const serviceThis = this;
+
     const extension = Prisma.defineExtension({
       name: 'cacheExtension',
       model: {
         $allModels: {
-          findFirstWithCache: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
-            _this: T,
+          findFirstWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
+            this: T,
             args: Prisma.Args<T, 'findFirst'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
-            const cacheKey = this.buildObjectCacheKey(model, args);
-            const cachedResult = await this.getCachedDataOrNull<R>(cacheKey);
+            const cacheKey = serviceThis.buildObjectCacheKey(model, args);
+            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
-            const result = await context.findFirst(args);
+            const result = await context(args);
 
             if (result) {
-              await this.saveResultInCache(model, cacheKey, result);
+              await serviceThis.saveResultInCache(model, cacheKey, result);
             }
 
             return result;
           },
-          findFirstOrThrowWithCache: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
-            _this: T,
+
+          findFirstOrThrowWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
+            this: T,
             args: Prisma.Args<T, 'findFirst'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
-            const cacheKey = this.buildObjectCacheKey(model, args);
-            const cachedResult = await this.getCachedDataOrNull<R>(cacheKey);
+            const cacheKey = serviceThis.buildObjectCacheKey(model, args);
+            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
             const result = await context.findFirstOrThrow(args);
 
             if (result) {
-              await this.saveResultInCache(model, cacheKey, result);
+              await serviceThis.saveResultInCache(model, cacheKey, result);
             }
 
             return result;
           },
-          findUniqueWithCache: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'findUnique'>, 'findUnique'>>(
-            _this: T,
+
+          findUniqueWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findUnique'>, 'findUnique'>>(
+            this: T,
             args: Prisma.Args<T, 'findUnique'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
-            const cacheKey = this.buildObjectCacheKey(model, args);
-            const cachedResult = await this.getCachedDataOrNull<R>(cacheKey);
+            const cacheKey = serviceThis.buildObjectCacheKey(model, args);
+            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
             const result = await context.findUnique(args);
 
             if (result) {
-              await this.saveResultInCache(model, cacheKey, result);
+              await serviceThis.saveResultInCache(model, cacheKey, result);
             }
 
             return result;
           },
-          findUniqueOrThrowWithCache: async <
+
+          findUniqueOrThrowWithCache: async function <
             T,
             R extends Prisma.Result<T, Prisma.Args<T, 'findUniqueOrThrow'>, 'findUniqueOrThrow'>,
-          >(
-            _this: T,
-            args: Prisma.Args<T, 'findUniqueOrThrow'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          >(this: T, args: Prisma.Args<T, 'findUniqueOrThrow'>): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
-            const cacheKey = this.buildObjectCacheKey(model, args);
-            const cachedResult = await this.getCachedDataOrNull<R>(cacheKey);
+            const cacheKey = serviceThis.buildObjectCacheKey(model, args);
+            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
             const result = await context.findUniqueOrThrow(args);
 
-            await this.saveResultInCache(model, cacheKey, result);
+            await serviceThis.saveResultInCache(model, cacheKey, result);
 
             return result;
           },
-          updateWithCacheInvalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'update'>, 'update'>>(
-            _this: T,
+
+          updateWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'update'>, 'update'>>(
+            this: T,
             args: Prisma.Args<T, 'update'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
+            const model = context.$name;
 
             const result = await context.update(args);
 
             if (result?.id) {
-              this.invalidateCache(context.$name, result.id);
+              await serviceThis.invalidateCache(model, result.id);
             }
 
             return result;
           },
-          upsertWithCacheInvalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
-            _this: T,
+
+          upsertWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
+            this: T,
             args: Prisma.Args<T, 'upsert'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const result = await context.upsert(args);
 
             if (result?.id) {
-              await this.invalidateCache(model, result.id);
+              await serviceThis.invalidateCache(model, result.id);
             }
             return result;
           },
-          upsertWithCacheRevalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
-            _this: T,
+
+          upsertWithCacheRevalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
+            this: T,
             args: Prisma.Args<T, 'upsert'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const result = await context.upsert(args);
             if (result?.id) {
-              await this.invalidateCache(model, result.id);
-              await this.saveResultInCache(model, this.buildObjectCacheKey(model, args), result);
+              await serviceThis.invalidateCache(model, result.id);
+              await serviceThis.saveResultInCache(model, serviceThis.buildObjectCacheKey(model, args), result);
             }
             return result;
           },
-          deleteWithCacheInvalidate: async <T, R extends Prisma.Result<T, Prisma.Args<T, 'delete'>, 'delete'>>(
-            _this: T,
+
+          deleteWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'delete'>, 'delete'>>(
+            this: T,
             args: Prisma.Args<T, 'delete'>
-          ): Promise<R> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+          ): Promise<R> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const result = await context.delete(args);
 
             if (result?.id) {
-              await this.invalidateCache(model, result.id);
+              await serviceThis.invalidateCache(model, result.id);
             }
             return result;
           },
-          invalidateCache: async <T>(_this: T, objectIds: string | string[]): Promise<void> => {
-            const context = Prisma.getExtensionContext(_this) as any;
+
+          invalidateCache: async function <T>(this: T, objectIds: string | string[]): Promise<void> {
+            const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
-            this.invalidateCache(model, objectIds);
+            await serviceThis.invalidateCache(model, objectIds);
           },
         },
       },
