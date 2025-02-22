@@ -41,11 +41,11 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
   private setupEventHandlers() {
     this.client
-      .on('connect', () => this.logger.error('Cache database connected.'))
-      .on('ready', () => this.logger.error('Cache database ready.'))
-      .on('error', error => this.logger.error('Cache error: ', { error }))
-      .on('reconnecting', () => this.logger.error('Reconnect to cache database.'))
-      .on('end', () => this.logger.error('Cache database connection closed.'));
+      .on('connect', () => this.logger.debug('Cache database connected.'))
+      .on('ready', () => this.logger.debug('Cache database ready.'))
+      .on('error', error => this.logger.debug('Cache error: ', { error }))
+      .on('reconnecting', () => this.logger.debug('Reconnect to cache database.'))
+      .on('end', () => this.logger.debug('Cache database connection closed.'));
   }
 
   async onModuleInit() {
@@ -309,7 +309,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
         await this.client.connect();
       }
     } catch (error) {
-      this.logger.error(`Connection error: ${error.message}`);
+      this.logger.error(`Cache connection error: ${error.message}`);
       throw error;
     }
   }
