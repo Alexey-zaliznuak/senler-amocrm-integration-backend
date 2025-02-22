@@ -35,15 +35,19 @@ export class PrismaCacheExtensionService implements OnModuleInit {
       name: 'cacheExtension',
       model: {
         $allModels: {
-          findFirstWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
+          findFirstWithCache: async function <
+            T,
+            Args extends Prisma.Args<T, 'findFirst'>,
+            Result = Prisma.Result<T, Args, 'findFirst'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'findFirst'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
-            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
+            const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
@@ -56,15 +60,19 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             return result;
           },
 
-          findFirstOrThrowWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findFirst'>, 'findFirst'>>(
+          findFirstOrThrowWithCache: async function <
+            T,
+            Args extends Prisma.Args<T, 'findFirstOrThrow'>,
+            Result = Prisma.Result<T, Args, 'findFirstOrThrow'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'findFirst'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
-            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
+            const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
@@ -77,15 +85,19 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             return result;
           },
 
-          findUniqueWithCache: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'findUnique'>, 'findUnique'>>(
+          findUniqueWithCache: async function <
+            T,
+            Args extends Prisma.Args<T, 'findUnique'>,
+            Result = Prisma.Result<T, Args, 'findUnique'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'findUnique'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
-            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
+            const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
@@ -100,8 +112,12 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
           findUniqueOrThrowWithCache: async function <
             T,
-            R extends Prisma.Result<T, Prisma.Args<T, 'findUniqueOrThrow'>, 'findUniqueOrThrow'>,
-          >(this: T, args: Prisma.Args<T, 'findUniqueOrThrow'>): Promise<R> {
+            Args extends Prisma.Args<T, 'findUniqueOrThrow'>,
+            Result = Prisma.Result<T, Args, 'findUniqueOrThrow'>
+          >(
+            this: T,
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -117,10 +133,14 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             return result;
           },
 
-          updateWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'update'>, 'update'>>(
+          updateWithCacheInvalidate: async function <
+            T,
+            Args extends Prisma.Args<T, 'update'>,
+            Result = Prisma.Result<T, Args, 'update'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'update'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -133,10 +153,14 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             return result;
           },
 
-          upsertWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
+          upsertWithCacheInvalidate: async function <
+            T,
+            Args extends Prisma.Args<T, 'upsert'>,
+            Result = Prisma.Result<T, Args, 'upsert'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'upsert'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -148,25 +172,14 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             return result;
           },
 
-          upsertWithCacheRevalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'upsert'>, 'upsert'>>(
+          deleteWithCacheInvalidate: async function <
+            T,
+            Args extends Prisma.Args<T, 'delete'>,
+            Result = Prisma.Result<T, Args, 'delete'>
+          >(
             this: T,
-            args: Prisma.Args<T, 'upsert'>
-          ): Promise<R> {
-            const context = Prisma.getExtensionContext(this) as any;
-            const model = context.$name;
-
-            const result = await context.upsert(args);
-            if (result?.id) {
-              await serviceThis.invalidateCache(model, result.id);
-              await serviceThis.saveResultInCache(model, serviceThis.buildObjectCacheKey(model, args), result);
-            }
-            return result;
-          },
-
-          deleteWithCacheInvalidate: async function <T, R extends Prisma.Result<T, Prisma.Args<T, 'delete'>, 'delete'>>(
-            this: T,
-            args: Prisma.Args<T, 'delete'>
-          ): Promise<R> {
+            args: Args
+          ): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
