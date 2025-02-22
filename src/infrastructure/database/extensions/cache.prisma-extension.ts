@@ -122,7 +122,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
-            const cachedResult = await serviceThis.getCachedDataOrNull<R>(cacheKey);
+            const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
             if (cachedResult) return cachedResult;
 
