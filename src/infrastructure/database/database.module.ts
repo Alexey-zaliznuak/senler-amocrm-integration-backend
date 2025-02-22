@@ -17,8 +17,10 @@ export class DatabaseModule {
       providers: [
         {
           provide: PRISMA,
-          useFactory: (databaseService: DatabaseService) => {
-            return databaseService.createExtendedClient();
+          useFactory: async (databaseService: DatabaseService) => {
+            const client = databaseService.createExtendedClient();
+            await client.$connect()
+            return client
           },
           inject: [DatabaseService],
         },

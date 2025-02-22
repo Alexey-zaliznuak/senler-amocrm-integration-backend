@@ -59,7 +59,7 @@ export class SenlerGroupsService {
     identifier: string,
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse | never> {
-    const SenlerGroup = await this.prisma.senlerGroup.findUnique({
+    const SenlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { [field]: identifier } as any,
     });
 
@@ -99,7 +99,7 @@ export class SenlerGroupsService {
       'senlerSign',
     ];
 
-    if (await this.prisma.senlerGroup.exists({ OR: constraints_names.map(key => ({ [key]: constraints[key] })) })) {
+    if (await this.prisma.senlerGroup.existsWithCache({ OR: constraints_names.map(key => ({ [key]: constraints[key] })) })) {
       throw new ConflictException('SenlerGroup with same properties already exists.');
     }
   }

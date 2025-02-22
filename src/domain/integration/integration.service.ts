@@ -21,7 +21,7 @@ export class IntegrationService {
   ) {}
 
   async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrow({ where: { senlerGroupId: body.senlerGroupId } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerGroupId: body.senlerGroupId } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
@@ -87,7 +87,7 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup };
     amoCrmLead: AmoCrmLead;
   }> {
-    let lead = await this.prisma.lead.findUnique({ where: { senlerLeadId }, include: { senlerGroup: true } });
+    let lead = await this.prisma.lead.findUniqueWithCache({ where: { senlerLeadId }, include: { senlerGroup: true } });
 
     if (lead) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
@@ -98,7 +98,7 @@ export class IntegrationService {
       });
 
       if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
-        lead = await this.prisma.lead.update({
+        lead = await this.prisma.lead.updateWithCacheInvalidate({
           where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
           include: { senlerGroup: true },
           data: { amoCrmLeadId: actualAmoCrmLead.id },
@@ -133,7 +133,7 @@ export class IntegrationService {
   }
 
   async getAmoCrmFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrow({ where: { senlerSign: body.sign } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerSign: body.sign } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,

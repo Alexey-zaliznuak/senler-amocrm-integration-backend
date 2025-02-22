@@ -15,10 +15,11 @@ export class DatabaseService {
   constructor(
     @Inject(CONFIG) private readonly appConfig: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
+    private readonly prismaCacheExtensionService: PrismaCacheExtensionService,
   ) {}
 
   public createExtendedClient() {
-    return new PrismaCacheExtensionService(this.appConfig, this.logger)
+    return this.prismaCacheExtensionService
       .applyExtension(new PrismaClient())
       .$extends(existsExtension);
   }

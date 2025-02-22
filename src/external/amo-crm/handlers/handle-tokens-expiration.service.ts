@@ -40,7 +40,7 @@ export class RefreshTokensService {
       );
     }
 
-    await this.prisma.senlerGroup.update({
+    await this.prisma.senlerGroup.updateWithCacheInvalidate({
       where: {
         amoCrmAccessToken: tokens.amoCrmAccessToken,
         amoCrmRefreshToken: tokens.amoCrmRefreshToken,

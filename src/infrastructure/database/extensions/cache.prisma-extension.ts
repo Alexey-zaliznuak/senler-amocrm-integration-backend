@@ -6,26 +6,50 @@ import { CONFIG } from 'src/infrastructure/config/config.module';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from '../database.config';
 
-const PRISMA_OBJECTS_CACHE_PREFIX = 'cache:prisma:objectsByParams:';
+const PRISMA_OBJECTS_CACHE_PREFIX = 'cache:prisma:objectByParams:';
 const PRISMA_OBJECTS_PARAMS_VARIANTS_BY_ID_PREFIX = 'cache:prisma:objectParamsById:'; // For remove cache for object from any args
+const NULL_CACHE_VALUE = 'EMPTY'; // When null is exists key value
 
 @Injectable()
 export class PrismaCacheExtensionService implements OnModuleInit {
   public readonly client: RedisClientType;
 
+  private cacheErrors = 0;
+  private cacheMisses = 0;
+  private cacheHits = 0;
+  private cacheReconnections = -1; // -1 for first connect
+
   constructor(
     @Inject(CONFIG) private readonly appConfig: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {
-    this.client = createClient({ url: appConfig.CACHE_DATABASE_URL });
+    this.client = this.createRedisClient();
+    this.setupEventHandlers();
+  }
+
+  private createRedisClient(): RedisClientType {
+    return createClient({
+      url: this.appConfig.CACHE_DATABASE_URL,
+      socket: {
+        reconnectStrategy: attempts => {
+          this.logger.warn(`Cache database reconnection attempt ${attempts}`);
+          return Math.min(attempts * 100, 1000);
+        },
+      },
+    });
+  }
+
+  private setupEventHandlers() {
     this.client
-      .on('error', e => this.logger.error('Cache error:', e))
-      .on('connect', () => this.logger.debug('Connecting to KeyDb...'));
+      .on('connect', error => this.logger.error('Cache database connected.'))
+      .on('ready', error => this.logger.error('Cache database ready.'))
+      .on('error', error => this.logger.error('Cache error: ', { error }))
+      .on('reconnecting', () => this.logger.error('Reconnect to cache database.'))
+      .on('end', () => this.logger.error('Cache database connection closed.'));
   }
 
   async onModuleInit() {
-    const c = await this.client.connect();
-    this.logger.debug('Cache database connected.');
+    await this.connectClientIfNeed();
   }
 
   public applyExtension(prisma: PrismaClient) {
@@ -38,24 +62,20 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           findFirstWithCache: async function <
             T,
             Args extends Prisma.Args<T, 'findFirst'>,
-            Result = Prisma.Result<T, Args, 'findFirst'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'findFirst'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
             const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
+            if (cachedResult == NULL_CACHE_VALUE) return null;
             if (cachedResult) return cachedResult;
 
             const result = await context(args);
 
-            if (result) {
-              await serviceThis.saveResultInCache(model, cacheKey, result);
-            }
+            await serviceThis.saveResultInCache(model, cacheKey, result);
 
             return result;
           },
@@ -63,24 +83,20 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           findFirstOrThrowWithCache: async function <
             T,
             Args extends Prisma.Args<T, 'findFirstOrThrow'>,
-            Result = Prisma.Result<T, Args, 'findFirstOrThrow'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'findFirstOrThrow'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
             const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
+            if (cachedResult == NULL_CACHE_VALUE) return null;
             if (cachedResult) return cachedResult;
 
             const result = await context.findFirstOrThrow(args);
 
-            if (result) {
-              await serviceThis.saveResultInCache(model, cacheKey, result);
-            }
+            await serviceThis.saveResultInCache(model, cacheKey, result);
 
             return result;
           },
@@ -88,24 +104,20 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           findUniqueWithCache: async function <
             T,
             Args extends Prisma.Args<T, 'findUnique'>,
-            Result = Prisma.Result<T, Args, 'findUnique'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'findUnique'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
             const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
+            if (cachedResult == NULL_CACHE_VALUE) return null;
             if (cachedResult) return cachedResult;
 
             const result = await context.findUnique(args);
 
-            if (result) {
-              await serviceThis.saveResultInCache(model, cacheKey, result);
-            }
+            await serviceThis.saveResultInCache(model, cacheKey, result);
 
             return result;
           },
@@ -113,17 +125,15 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           findUniqueOrThrowWithCache: async function <
             T,
             Args extends Prisma.Args<T, 'findUniqueOrThrow'>,
-            Result = Prisma.Result<T, Args, 'findUniqueOrThrow'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'findUniqueOrThrow'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
             const cacheKey = serviceThis.buildObjectCacheKey(model, args);
             const cachedResult = await serviceThis.getCachedDataOrNull<Result>(cacheKey);
 
+            if (cachedResult == NULL_CACHE_VALUE) return null;
             if (cachedResult) return cachedResult;
 
             const result = await context.findUniqueOrThrow(args);
@@ -136,11 +146,8 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           updateWithCacheInvalidate: async function <
             T,
             Args extends Prisma.Args<T, 'update'>,
-            Result = Prisma.Result<T, Args, 'update'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'update'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -156,11 +163,8 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           upsertWithCacheInvalidate: async function <
             T,
             Args extends Prisma.Args<T, 'upsert'>,
-            Result = Prisma.Result<T, Args, 'upsert'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'upsert'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -175,11 +179,8 @@ export class PrismaCacheExtensionService implements OnModuleInit {
           deleteWithCacheInvalidate: async function <
             T,
             Args extends Prisma.Args<T, 'delete'>,
-            Result = Prisma.Result<T, Args, 'delete'>
-          >(
-            this: T,
-            args: Args
-          ): Promise<Result> {
+            Result = Prisma.Result<T, Args, 'delete'>,
+          >(this: T, args: Args): Promise<Result> {
             const context = Prisma.getExtensionContext(this) as any;
             const model = context.$name;
 
@@ -189,6 +190,23 @@ export class PrismaCacheExtensionService implements OnModuleInit {
               await serviceThis.invalidateCache(model, result.id);
             }
             return result;
+          },
+
+          existsWithCache: async function <T, Args extends Prisma.Args<T, 'findFirst'>['where']>(
+            this: T,
+            args: Args
+          ): Promise<boolean> {
+            const context = Prisma.getExtensionContext(this) as any;
+            const model = context.$name;
+
+            const cacheKey = serviceThis.buildObjectCacheKey(model, args);
+            const cachedResult = await serviceThis.getCachedDataOrNull(cacheKey);
+
+            if (cachedResult) return true;
+
+            const result = await context.findFirstWithCache(args);
+
+            return !!result;
           },
 
           invalidateCache: async function <T>(this: T, objectIds: string | string[]): Promise<void> {
@@ -230,12 +248,41 @@ export class PrismaCacheExtensionService implements OnModuleInit {
     }
   }
 
+  private async getCachedDataOrNull<T = any>(cacheKey: string): Promise<T | null> {
+    await this.connectClientIfNeed();
+
+    try {
+      const cachedData = await this.client.get(cacheKey);
+      if (cachedData) {
+        this.cacheHits += 1;
+        this.logger.debug(
+          `Cache statistics: hist = ${this.cacheHits}, misses = ${this.cacheMisses}, errors = ${this.cacheErrors}, reconnections = ${this.cacheReconnections}, hits/total = ${((this.cacheHits / (this.cacheHits + this.cacheMisses + this.cacheErrors)) * 100).toFixed(1)}%`
+        );
+        return JSON.parse(cachedData);
+      }
+
+      this.cacheMisses += 1;
+
+      this.logger.debug(
+        `Cache statistics: hist = ${this.cacheHits}, misses = ${this.cacheMisses}, errors = ${this.cacheErrors}, reconnections = ${this.cacheReconnections}, hits/total = ${((this.cacheHits / (this.cacheHits + this.cacheMisses + this.cacheErrors)) * 100).toFixed(1)}%`
+      );
+
+      return null;
+    } catch (error) {
+      this.cacheErrors += 1;
+      this.logger.error('Cache read error:', error);
+      return null;
+    }
+  }
+
   private async saveResultInCache(model: string, cacheKey: string, result: any) {
+    await this.connectClientIfNeed();
+
     try {
       const ttl = this.appConfig.CACHE_SPECIFIC_TTL[model] || this.appConfig.CACHE_DEFAULT_TTL;
 
       if (result === null) {
-        await this.client.setEx(cacheKey, this.appConfig.CACHE_NULL_RESULT_TTL, null);
+        await this.client.setEx(cacheKey, this.appConfig.CACHE_NULL_RESULT_TTL, JSON.stringify(NULL_CACHE_VALUE));
         return;
       }
 
@@ -250,16 +297,19 @@ export class PrismaCacheExtensionService implements OnModuleInit {
       await multi.exec();
     } catch (error) {
       this.logger.error('Save cache error:', { error });
+      throw error;
     }
   }
 
-  private async getCachedDataOrNull<T>(cacheKey: string): Promise<T | null> {
+  private async connectClientIfNeed() {
     try {
-      const cachedData = await this.client.get(cacheKey);
-      return cachedData ? JSON.parse(cachedData) : null;
+      if (!this.client.isOpen) {
+        this.cacheReconnections += 1;
+        await this.client.connect();
+      }
     } catch (error) {
-      this.logger.error('Cache read error:', error);
-      return null;
+      this.logger.error(`Connection error: ${error.message}`);
+      throw error;
     }
   }
 
