@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaCacheExtensionService } from 'src/infrastructure/database/extensions';
 import * as si from 'systeminformation';
 
+
 @Injectable()
 export class MetricsService {
   constructor(private readonly prisma: PrismaCacheExtensionService) {}
