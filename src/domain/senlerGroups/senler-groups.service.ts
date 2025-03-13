@@ -12,7 +12,7 @@ import { AmoCrmService } from 'src/external/amo-crm';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
-import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField } from './dto/get-senler-group.dto';
+import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField, SenlerGroupNumericFieldsForGetByUniqueFields } from './dto/get-senler-group.dto';
 
 @Injectable()
 export class SenlerGroupsService {
@@ -59,7 +59,8 @@ export class SenlerGroupsService {
     identifier: string | number,
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse | never> {
-    identifier = identifier as Prisma.SenlerGroupWhereUniqueInput[typeof field];
+    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? Number(identifier) : identifier
+
     const SenlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { [field]: identifier } as any,
     });
