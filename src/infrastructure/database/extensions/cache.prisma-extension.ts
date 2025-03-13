@@ -228,7 +228,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
             if (cachedResult) return true;
 
-            const result = await context.findFirstWithCache(args);
+            const result = await context.findFirstWithCache({where: args});
 
             return !!result;
           },
