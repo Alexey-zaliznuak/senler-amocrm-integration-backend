@@ -3,7 +3,7 @@ import { Lead, SenlerGroup } from '@prisma/client';
 import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
 import { PRISMA } from 'src/infrastructure/database/database.config';
-import { ExtendedPrismaClientType } from 'src/infrastructure/database/database.service';
+import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { CustomRequest } from 'src/infrastructure/requests';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
@@ -15,7 +15,7 @@ export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   constructor(
-    @Inject(PRISMA) private readonly prisma: ExtendedPrismaClientType,
+    @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     private readonly amoCrmService: AmoCrmService
   ) {}

@@ -27,7 +27,7 @@ export class AxiosService {
     this.setupInterceptors();
   }
 
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);
@@ -39,7 +39,7 @@ export class AxiosService {
     }
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);
@@ -51,7 +51,7 @@ export class AxiosService {
     }
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 
     this.setRequestLogger(url, customConfig);

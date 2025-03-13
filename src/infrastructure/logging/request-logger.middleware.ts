@@ -2,7 +2,7 @@ import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import { Response } from 'express';
 import { Logger } from 'winston';
 import { CustomRequest } from '../requests';
-import { LOGGER } from './logging.module';
+import { LOGGER } from './logging.config';
 
 /** Add req.logger - logger instance child instance with requestId */
 @Injectable()

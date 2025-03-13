@@ -24,7 +24,7 @@ export class DatabaseModule {
           inject: [DatabaseService],
         },
       ],
-      exports: [PRISMA, DatabaseService],
+      exports: [PRISMA, DatabaseService, PrismaCacheExtensionService],
     };
   }
 }

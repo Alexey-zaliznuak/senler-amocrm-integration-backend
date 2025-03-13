@@ -4,6 +4,8 @@ import { AppConfig, AppConfigType } from '../config/config.app-config';
 
 import LokiTransport from 'winston-loki';
 
+export const LOGGER = 'WinstonLogger';
+
 export const baseLogFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(({ level, message, timestamp, context, ...meta }) => {

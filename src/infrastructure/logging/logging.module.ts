@@ -1,8 +1,7 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggingService } from './logging.service';
 import * as winston from 'winston';
-
-export const LOGGER = 'WinstonLogger';
+import { LOGGER } from './logging.config';
 
 @Global()
 @Module({
