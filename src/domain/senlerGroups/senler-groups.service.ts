@@ -6,7 +6,7 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { SenlerGroup } from '@prisma/client';
+import { Prisma, SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { PRISMA } from 'src/infrastructure/database/database.config';
@@ -56,9 +56,10 @@ export class SenlerGroupsService {
   }
 
   async getByUniqueField(
-    identifier: string,
+    identifier: string | number,
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse | never> {
+    identifier = identifier as Prisma.SenlerGroupWhereUniqueInput[typeof field];
     const SenlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { [field]: identifier } as any,
     });

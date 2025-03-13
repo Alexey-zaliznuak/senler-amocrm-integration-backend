@@ -33,7 +33,7 @@ export class SenlerGroupsController {
   @Get(':identifier/')
   @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
   async getByUniqueField(
-    @Param('identifier') identifier: string,
+    @Param('identifier') identifier: string | number,
     @Query('field') field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse> {
     return await this.senlerGroupsService.getByUniqueField(identifier, field);
