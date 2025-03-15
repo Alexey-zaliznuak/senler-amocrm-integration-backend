@@ -1,25 +1,25 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { HttpExceptionFilter } from './infrastructure/exceptionFilters/http-exception.filter';
-import { LoggingModule } from './infrastructure/logging/logging.module';
-import { RequestIdMiddleware } from './infrastructure/middlewares';
-import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
-import { ProcessTimeInterceptor } from './infrastructure/interceptors';
-import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
+import { IntegrationModule } from './domain/integration/integration.module';
+import { MetricsModule } from './domain/metrics/metrics.module';
 import { SenlerGroupsModule } from './domain/senlerGroups/senler-groups.module';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
-import { AxiosModule } from './infrastructure/axios/axios.module';
-import { IntegrationModule } from './domain/integration/integration.module';
-import { ConfigModule } from '@nestjs/config';
-import { SenlerService } from './external/senler/senler.service';
-import { CustomConfigModule } from './infrastructure/config/config.module';
-import { AppConfig } from './infrastructure/config/config.app-config';
-import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
 import { SenlerModule } from './external/senler/senler.module';
+import { SenlerService } from './external/senler/senler.service';
+import { AxiosModule } from './infrastructure/axios/axios.module';
+import { AppConfig } from './infrastructure/config/config.app-config';
+import { CustomConfigModule } from './infrastructure/config/config.module';
+import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
 import { DatabaseModule } from './infrastructure/database/database.module';
-import { MetricsModule } from './domain/metrics/metrics.module';
+import { HttpExceptionFilter } from './infrastructure/exceptionFilters/http-exception.filter';
+import { ProcessTimeInterceptor } from './infrastructure/interceptors';
+import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
+import { LoggingModule } from './infrastructure/logging/logging.module';
+import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
+import { RequestIdMiddleware } from './infrastructure/middlewares';
 
 @Module({
   imports: [

@@ -50,7 +50,7 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
   new LokiTransport({
     host: config.LOKI_HOST,
     labels: {
-      service: config.INSTANCE_NAME,
+      service: config.MICROSERVICE_NAME,
       instance: config.INSTANCE_ID,
     },
     json: true,
