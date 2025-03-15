@@ -8,6 +8,6 @@ export class MetricsController {
 
   @Get()
   async getMetrics() {
-    return this.metricsService.getAllMetrics();
+    return this.metricsService.getMetrics();
   }
 }

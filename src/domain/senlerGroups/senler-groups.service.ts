@@ -5,14 +5,19 @@ import {
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
-import { Prisma, SenlerGroup } from '@prisma/client';
+import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
-import { GetSenlerGroupResponse, SenlerGroupFieldForGetByUniqueField, SenlerGroupNumericFieldsForGetByUniqueFields } from './dto/get-senler-group.dto';
+import {
+  GetSenlerGroupResponse,
+  SenlerGroupFieldForGetByUniqueField,
+  SenlerGroupNumericFieldsForGetByUniqueFields,
+} from './dto/get-senler-group.dto';
 
 @Injectable()
 export class SenlerGroupsService {
@@ -59,17 +64,16 @@ export class SenlerGroupsService {
     identifier: string | number,
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponse | never> {
-    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? Number(identifier) : identifier
+    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
+    if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
 
-    const SenlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { [field]: identifier } as any,
     });
 
-    if (!SenlerGroup) {
-      throw new NotFoundException('SenlerGroup not found');
-    }
+    if (!senlerGroup) throw new NotFoundException('SenlerGroup not found');
 
-    return SenlerGroup;
+    return senlerGroup;
   }
 
   async validateCreateSenlerGroupData(data: CreateSenlerGroupRequestDto) {

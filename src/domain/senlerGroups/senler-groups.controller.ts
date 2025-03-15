@@ -1,12 +1,12 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
-import { SenlerGroupsService } from './senler-groups.service';
 import {
   GetSenlerGroupResponse,
   SenlerGroupFieldForGetByUniqueField,
   SenlerGroupFieldForGetByUniqueFieldEnum,
 } from './dto/get-senler-group.dto';
+import { SenlerGroupsService } from './senler-groups.service';
 
 @Controller('senlerGroups')
 export class SenlerGroupsController {

@@ -1,12 +1,14 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggingModule } from '../logging/logging.module';
 import { PRISMA } from './database.config';
-import { PrismaCacheExtensionService } from './extensions';
 import { DatabaseService } from './database.service';
+import { PrismaCacheExtensionService } from './extensions';
+import { CustomPrismaClient } from './prisma.custom-client';
 
 @Global()
 @Module({
-  providers: [PrismaCacheExtensionService, DatabaseService],
+  imports: [LoggingModule.forFeature(PRISMA)],
+  providers: [PrismaCacheExtensionService, DatabaseService, CustomPrismaClient],
 })
 export class DatabaseModule {
   static forRoot(): DynamicModule {
@@ -17,8 +19,8 @@ export class DatabaseModule {
         {
           provide: PRISMA,
           useFactory: async (databaseService: DatabaseService) => {
-            const client = databaseService.createExtendedClient();
-            await client.$connect();
+            const client: CustomPrismaClient = databaseService.createExtendedClient() as any;
+            await client.connectWithRetry();
             return client;
           },
           inject: [DatabaseService],
