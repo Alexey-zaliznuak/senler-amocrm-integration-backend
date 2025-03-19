@@ -7,8 +7,8 @@ import { AppConfigType } from '../../config/config.app-config';
 import { CONFIG } from '../../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from '../database.config';
 
-const PRISMA_OBJECTS_CACHE_PREFIX = 'cache:prisma:objectByParams:';
-const PRISMA_OBJECTS_PARAMS_VARIANTS_BY_ID_PREFIX = 'cache:prisma:objectParamsById:'; // For remove cache for object from any args
+const PRISMA_OBJECTS_CACHE_PREFIX = 'PRISMA_CACHE:OBJECT_BY_PARAMS:';
+const PRISMA_OBJECTS_PARAMS_VARIANTS_BY_ID_PREFIX = 'PRISMA_CACHE:OBJECT_PARAMS_BY_ID:'; // For remove cache for object from any args
 const NO_CACHE_VALUE = 'EMPTY';
 
 const PrismaNotFoundException = new PrismaClientKnownRequestError('Not found', { code: 'P2025', clientVersion: '6.3.1' });

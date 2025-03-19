@@ -1,17 +1,17 @@
 import { HttpStatus, Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
-import { AxiosService } from 'src/infrastructure/axios/instance';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { AXIOS_INJECTABLE_NAME } from '../amo-crm.config';
 import { AmoCrmTokens } from '../amo-crm.service';
+import { CustomAxiosInstance } from 'src/infrastructure/axios/instance';
 
 @Injectable()
 export class RefreshTokensService {
   constructor(
-    @Inject(AXIOS_INJECTABLE_NAME) private readonly axiosService: AxiosService,
+    @Inject(AXIOS_INJECTABLE_NAME) private readonly axiosService: CustomAxiosInstance,
     @Inject(CONFIG) private readonly config: AppConfigType,
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType
   ) {}

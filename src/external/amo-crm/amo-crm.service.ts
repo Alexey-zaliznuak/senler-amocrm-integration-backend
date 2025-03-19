@@ -1,5 +1,5 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AxiosService } from 'src/infrastructure/axios/instance/axios.instance';
+import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.instance';
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
@@ -27,7 +27,7 @@ export type AmoCrmTokens = {
 @Injectable()
 export class AmoCrmService {
   constructor(
-    @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: AxiosService,
+    @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: CustomAxiosInstance,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType,
     private readonly refreshTokensService: RefreshTokensService

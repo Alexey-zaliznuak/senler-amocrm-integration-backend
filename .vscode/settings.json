@@ -2,5 +2,11 @@
   "cSpell.words": [
     "dbgenerated",
     "syncable"
-  ]
+  ],
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/node_modules": true
+  }
 }

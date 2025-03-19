@@ -7,7 +7,7 @@ import { AXIOS, BASE_RETRY_CONFIG, LOGGER_INJECTABLE_NAME } from './axios.instan
 import { CreateCustomAxiosInstanceOptions, CustomAxiosRequestConfig, RequestLoggerData } from './axios.instance.dto';
 
 @Injectable()
-export class AxiosService {
+export class CustomAxiosInstance {
   private readonly axios: AxiosInstance;
   private readonly defaults: CreateCustomAxiosInstanceOptions;
 

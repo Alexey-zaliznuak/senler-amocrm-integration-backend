@@ -1,6 +1,6 @@
-import { AxiosService } from 'src/infrastructure/axios/instance';
+import { AxiosService } from 'src/infrastructure/axios/axios.service';
 import { LoggingService } from 'src/infrastructure/logging/logging.service';
 
-export const AmoCrm = 'AmoCrm';
-export const AXIOS_INJECTABLE_NAME = AxiosService.buildInjectableNameByContext(AmoCrm);
-export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(AmoCrm);
+export const AMO_CRM = 'AmoCrm';
+export const AXIOS_INJECTABLE_NAME = AxiosService.buildInjectableNameByContext(AMO_CRM);
+export const LOGGER_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(AMO_CRM);

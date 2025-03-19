@@ -20,6 +20,8 @@ import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
+import { CacheService } from './infrastructure/cache/cache.service';
+import { CacheModule } from './infrastructure/cache/cache.module';
 
 @Module({
   imports: [
@@ -43,6 +45,7 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
     AmoCrmModule,
     SenlerModule,
     MetricsModule,
+    CacheModule,
   ],
 
   controllers: [AppController],
@@ -56,6 +59,7 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ProcessTimeInterceptor },
+    CacheService,
   ],
 })
 export class AppModule {

@@ -12,7 +12,7 @@ export const BASE_RETRY_CONFIG: IAxiosRetryConfig = {
     return 1000 * 2 ** retryCount * randomFactor;
   },
   retryCondition: (error: AxiosError<unknown, any>) => {
-    const networkError = axiosRetry.isNetworkOrIdempotentRequestError(error);
+    const networkError = axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code == "ECONNREFUSED";
 
     const statusCode5xx = error.response && error.response.status >= 500 && error.response.status < 600;
     const statusCode429 = error.response && error.response.status === 429;
