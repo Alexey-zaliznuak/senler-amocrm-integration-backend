@@ -117,19 +117,19 @@ export class MetricsService {
       this.getDatabaseMetrics(),
     ]);
 
-    // Обновление CPU метрик
+    // CPU metrics
     this.cpuUser.set(parseFloat(cpuMetrics.cpuLoad.user));
     this.cpuSystem.set(parseFloat(cpuMetrics.cpuLoad.system));
     this.cpuIdle.set(parseFloat(cpuMetrics.cpuLoad.idle));
     this.cpuTotal.set(parseFloat(cpuMetrics.cpuLoad.total));
 
-    // Обновление RAM метрик
+    // RAM metrics
     this.ramTotal.set(ramMetrics.totalMB);
     this.ramUsed.set(ramMetrics.usedMB);
     this.ramFree.set(ramMetrics.freeMB);
     this.ramActive.set(ramMetrics.activeMB);
 
-    // Обновление Database метрик
+    // Database metrics
     this.dbCacheHits.inc(dbMetrics.hits);
     this.dbCacheMisses.inc(dbMetrics.misses);
     this.dbCacheErrors.inc(dbMetrics.errors);

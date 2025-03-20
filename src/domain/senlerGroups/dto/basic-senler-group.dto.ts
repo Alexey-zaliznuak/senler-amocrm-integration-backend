@@ -14,7 +14,6 @@ export type BaseSenlerGroup = Pick<
   | 'senlerAccessToken'
   | 'senlerGroupId'
   | 'senlerGroupVkId'
-  | 'senlerSign'
 >;
 
 export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
@@ -47,9 +46,4 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   @IsOptional()
   @IsString()
   senlerGroupVkId: string | null;
-
-  @ApiProperty({ description: 'Senler sign' })
-  @IsString()
-  @IsNotEmpty()
-  senlerSign: string;
 }

@@ -20,7 +20,6 @@ model SenlerGroup {
   senlerGroupId                      Int         @unique
   senlerGroupVkId                    String?
   senlerAccessToken                  String      @unique
-  senlerSign                         String      @unique @db.Char(32)
 
   leads                              Lead[]
   senlerIntegrationStepsTemplates    SenlerIntegrationStepTemplate[]

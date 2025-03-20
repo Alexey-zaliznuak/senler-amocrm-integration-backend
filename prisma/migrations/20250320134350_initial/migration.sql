@@ -9,7 +9,6 @@ CREATE TABLE "SenlerGroup" (
     "senlerGroupId" INTEGER NOT NULL,
     "senlerGroupVkId" TEXT,
     "senlerAccessToken" TEXT NOT NULL,
-    "senlerSign" CHAR(32) NOT NULL,
 
     CONSTRAINT "SenlerGroup_pkey" PRIMARY KEY ("id")
 );
@@ -19,6 +18,7 @@ CREATE TABLE "SenlerIntegrationStepTemplate" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "name" TEXT NOT NULL,
     "settings" JSONB NOT NULL,
     "senlerGroupId" TEXT NOT NULL,
 
@@ -51,9 +51,6 @@ CREATE UNIQUE INDEX "SenlerGroup_senlerGroupId_key" ON "SenlerGroup"("senlerGrou
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SenlerGroup_senlerAccessToken_key" ON "SenlerGroup"("senlerAccessToken");
-
--- CreateIndex
-CREATE UNIQUE INDEX "SenlerGroup_senlerSign_key" ON "SenlerGroup"("senlerSign");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Lead_senlerLeadId_key" ON "Lead"("senlerLeadId");

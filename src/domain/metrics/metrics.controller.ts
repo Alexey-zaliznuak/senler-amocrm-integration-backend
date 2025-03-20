@@ -1,4 +1,3 @@
-// metrics.controller.ts
 import { Controller, Get } from '@nestjs/common';
 import { MetricsService } from './metrics.service';
 
@@ -7,7 +6,7 @@ export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
   @Get()
-  async getMetrics() {
+  async getMetrics(): Promise<string> {
     return this.metricsService.getMetrics();
   }
 }

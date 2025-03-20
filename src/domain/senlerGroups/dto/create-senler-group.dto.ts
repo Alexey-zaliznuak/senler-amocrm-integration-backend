@@ -14,9 +14,8 @@ export class CreateSenlerGroupRequestDto extends PickType(BaseSenlerGroupDto, [
   'senlerAccessToken',
   'senlerGroupId',
   'senlerGroupVkId',
-  'senlerSign',
 ] as const) {
-  @ApiProperty({ description: 'Auth code from AmoCRM' })
+  @ApiProperty({ description: 'Auth code from amoCRM' })
   @IsString()
   @IsNotEmpty()
   amoCrmAuthorizationCode: string;

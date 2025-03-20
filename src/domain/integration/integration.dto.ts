@@ -90,8 +90,8 @@ export class BotStepWebhookDto {
 }
 
 export class GetSenlerGroupFieldsDto {
-  @ApiProperty({ description: 'Sing of Senler group.' })
+  @ApiProperty({ description: 'Id of Senler group.' })
   @IsNotEmpty()
-  @IsString()
-  sign: string;
+  @IsNumber()
+  senlerGroupId: number;
 }

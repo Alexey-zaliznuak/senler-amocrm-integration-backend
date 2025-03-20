@@ -65,12 +65,12 @@ export class IntegrationService {
 
     this.logger.debug('amoCrmLeadCustomFieldsValues', amoCrmLeadCustomFieldsValues);
 
-    const VarsValues = this.utils.convertAmoFieldsToSenlerVars(
+    const varsValues = this.utils.convertAmoFieldsToSenlerVars(
       body.publicBotStepSettings.syncableVariables,
       amoCrmLeadCustomFieldsValues
     );
 
-    return VarsValues;
+    return varsValues;
   }
 
   async getOrCreateLeadIfNotExists({
@@ -134,8 +134,8 @@ export class IntegrationService {
     };
   }
 
-  async getAmoCrmFields(req: CustomRequest, body: GetSenlerGroupFieldsDto) {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerSign: body.sign } });
+  async getAmoCrmFields(body: GetSenlerGroupFieldsDto) {
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerGroupId: body.senlerGroupId } });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,

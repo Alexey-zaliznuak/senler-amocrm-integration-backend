@@ -1,6 +1,9 @@
 import { Gauge, GaugeConfiguration } from 'prom-client';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 
+/**
+ * Modify gauge name with prefix as microservice name.
+ */
 export class MicroserviceGauge<T extends string = string> extends Gauge {
   /**
    * @param configuration Configuration when creating a Gauge metric. Name and Help is mandatory

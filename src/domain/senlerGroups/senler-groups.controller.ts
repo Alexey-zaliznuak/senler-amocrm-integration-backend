@@ -24,7 +24,7 @@ export class SenlerGroupsController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid AmoCrm domain name.',
+    description: 'Invalid amoCRM domain name.',
   })
   async create(@Body() data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     return await this.senlerGroupsService.create(data);

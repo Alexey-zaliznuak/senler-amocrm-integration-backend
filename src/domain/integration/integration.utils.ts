@@ -55,7 +55,7 @@ export class IntegrationUtils {
       const toValue = syncableVariables[key].to;
 
       const field_name = toValue;
-      const value = this.replaceIdsWithValues(fromValue, amoLeadCustomFieldValues); // по id из amoLeadCustomFieldValues подставить значение
+      const value = this.replaceIdsWithValues(fromValue, amoLeadCustomFieldValues);
 
       customFieldsValues.vars.push({
         n: field_name,

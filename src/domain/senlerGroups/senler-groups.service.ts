@@ -44,7 +44,6 @@ export class SenlerGroupsService {
           senlerGroupVkId: data.senlerGroupVkId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
-          senlerSign: data.senlerSign,
         },
       });
     } catch (exception) {
@@ -53,7 +52,7 @@ export class SenlerGroupsService {
       }
 
       if (exception instanceof AxiosError && exception.code === 'ENOTFOUND') {
-        throw new BadRequestException('Invalid AmoCrm domain name');
+        throw new BadRequestException('Invalid amoCRM domain name');
       }
 
       throw exception;
@@ -91,22 +90,20 @@ export class SenlerGroupsService {
         | 'senlerAccessToken'
         | 'senlerGroupId'
         | 'senlerGroupVkId'
-        | 'senlerSign'
       >
     >
   ): Promise<void | never> {
-    const constraints_names = [
+    const constraintsNames = [
       'id',
       'amoCrmAccessToken',
       'amoCrmDomainName',
       'amoCrmRefreshToken',
       'senlerAccessToken',
       'senlerGroupId',
-      'senlerSign',
     ];
 
-    if (await this.prisma.senlerGroup.existsWithCache({ OR: constraints_names.map(key => ({ [key]: constraints[key] })) })) {
-      throw new ConflictException('SenlerGroup with same properties already exists.');
+    if (await this.prisma.senlerGroup.existsWithCache({ OR: constraintsNames.map(key => ({ [key]: constraints[key] })) })) {
+      throw new ConflictException('SenlerGroup with same properties already exists');
     }
   }
 }
