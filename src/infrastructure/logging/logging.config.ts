@@ -23,7 +23,7 @@ export const baseLogFormat = winston.format.combine(
   })
 );
 
-export const prettyLogPrintFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
+export const prettyLogStreamFormat = winston.format.printf(({ level, message, timestamp, context, ...meta }) => {
   const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
   const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
 
@@ -36,17 +36,18 @@ export const prettyLogPrintFormat = winston.format.printf(({ level, message, tim
   return logMessage;
 });
 
-export const prettyLogFormat = winston.format.combine(
+export const prettyLogStreamFormatWithColorsAndDatetime = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  prettyLogPrintFormat
+  prettyLogStreamFormat
 );
 
 export const baseTransports = (config: AppConfigType): Transport[] => [
   new winston.transports.Console({
-    level: 'debug',
-    format: prettyLogFormat,
+    level: config.STREAM_LOGGING_LEVEL,
+    format: prettyLogStreamFormatWithColorsAndDatetime,
   }),
+
   new LokiTransport({
     host: config.LOKI_HOST,
     labels: {

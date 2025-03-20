@@ -5,10 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 export class AppService {
   public static setupSwaggerDocument(app: INestApplication) {
     const config = new DocumentBuilder()
-      .setTitle('Title')
-      .setDescription('Description')
+      .setTitle('Senler-amoCRM integration')
       .setVersion('1.0')
-      .addTag('Tag')
       .addSecurity('header-integration-secret', {
         type: 'apiKey',
         in: 'header',

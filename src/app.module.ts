@@ -7,14 +7,12 @@ import { IntegrationModule } from './domain/integration/integration.module';
 import { MetricsModule } from './domain/metrics/metrics.module';
 import { SenlerGroupsModule } from './domain/senlerGroups/senler-groups.module';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
-import { SenlerModule } from './external/senler/senler.module';
-import { SenlerService } from './external/senler/senler.service';
 import { AxiosModule } from './infrastructure/axios/axios.module';
 import { AppConfig } from './infrastructure/config/config.app-config';
 import { CustomConfigModule } from './infrastructure/config/config.module';
 import { appConfigValidationSchema } from './infrastructure/config/config.validation-schema';
 import { DatabaseModule } from './infrastructure/database/database.module';
-import { HttpExceptionFilter } from './infrastructure/exceptionFilters/http-exception.filter';
+import { HttpExceptionFilter } from './infrastructure/exceptionFilters';
 import { ProcessTimeInterceptor } from './infrastructure/interceptors';
 import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor';
 import { LoggingModule } from './infrastructure/logging/logging.module';
@@ -41,7 +39,6 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 
     // External
     AmoCrmModule,
-    SenlerModule,
     MetricsModule,
   ],
 
@@ -49,8 +46,6 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 
   providers: [
     AppService,
-
-    SenlerService,
 
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
 

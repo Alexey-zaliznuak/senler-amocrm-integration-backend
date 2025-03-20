@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
+import { level } from 'winston';
 
 config();
 
@@ -9,15 +10,19 @@ export enum NodeEnv {
   production = 'production',
 }
 
+level;
+
 export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV || NodeEnv.local,
+  PORT: parseInt(process.env.PORT) || 3000,
 
   MICROSERVICE_NAME: process.env.MICROSERVICE_NAME || 'senler_amo_crm',
   INSTANCE_ID: process.env.INSTANCE_ID || uuidv4(),
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
-  PORT: parseInt(process.env.PORT) || 3000,
+  STREAM_LOGGING_LEVEL: process.env.STREAM_LOGGING_LEVEL || 'info',
+  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 5000,
 
   DATABASE_URL: process.env.DEV_SERVER_URL,
 
@@ -28,8 +33,6 @@ export const AppConfig = {
     Lead: parseInt(process.env.LEAD_CACHE_TTL),
   },
   CACHE_NULL_RESULT_TTL: parseInt(process.env.CACHE_NULL_RESULT_TTL),
-
-  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 5000,
 
   AMO_CRM_CLIENT_ID: process.env.AMO_CRM_CLIENT_ID,
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
