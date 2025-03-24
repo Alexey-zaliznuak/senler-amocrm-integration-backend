@@ -11,4 +11,4 @@ export enum SenlerGroupFieldForGetByUniqueFieldEnum {
   senlerGroupId = 'senlerGroupId',
 }
 
-export type GetSenlerGroupResponse = BaseSenlerGroup;
+export type GetSenlerGroupResponse = Pick<BaseSenlerGroup, 'id' | 'amoCrmDomainName' | 'senlerGroupId' | 'senlerGroupVkId'>;

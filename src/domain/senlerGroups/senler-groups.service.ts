@@ -62,12 +62,13 @@ export class SenlerGroupsService {
   async getByUniqueField(
     identifier: string | number,
     field: SenlerGroupFieldForGetByUniqueField
-  ): Promise<GetSenlerGroupResponse | never> {
+  ): Promise<GetSenlerGroupResponse> {
     identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
     if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
 
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { [field]: identifier } as any,
+      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, senlerGroupVkId: true },
     });
 
     if (!senlerGroup) throw new NotFoundException('SenlerGroup not found');
