@@ -14,7 +14,7 @@ import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
-  GetSenlerGroupResponse,
+  GetSenlerGroupResponseDto,
   SenlerGroupFieldForGetByUniqueField,
   SenlerGroupNumericFieldsForGetByUniqueFields,
 } from './dto/get-senler-group.dto';
@@ -62,11 +62,11 @@ export class SenlerGroupsService {
   async getByUniqueField(
     identifier: string | number,
     field: SenlerGroupFieldForGetByUniqueField
-  ): Promise<GetSenlerGroupResponse> {
+  ): Promise<GetSenlerGroupResponseDto> {
     identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
     if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
 
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
+    const senlerGroup = await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
       select: { id: true, amoCrmDomainName: true, senlerGroupId: true, senlerGroupVkId: true },
     });

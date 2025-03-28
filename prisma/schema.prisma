@@ -22,10 +22,10 @@ model SenlerGroup {
   senlerAccessToken                  String      @unique
 
   leads                              Lead[]
-  senlerIntegrationStepsTemplates    SenlerIntegrationStepTemplate[]
+  integrationStepTemplates           IntegrationStepTemplate[]
 }
 
-model SenlerIntegrationStepTemplate {
+model IntegrationStepTemplate {
   id               String         @id @default(uuid())
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt

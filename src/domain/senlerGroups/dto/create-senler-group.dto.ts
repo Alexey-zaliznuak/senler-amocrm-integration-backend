@@ -1,20 +1,17 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { BaseSenlerGroupDto } from './basic-senler-group.dto';
+import { BaseSenlerGroup, BaseSenlerGroupDto } from './basic-senler-group.dto';
 
-export class CreateSenlerGroupDto extends PickType(BaseSenlerGroupDto, [
-  'senlerAccessToken',
-  'senlerGroupId',
-  'amoCrmAccessToken',
-  'amoCrmRefreshToken',
-] as const) {}
+export type CreateSenlerGroupRequest = Pick<BaseSenlerGroup, 'amoCrmDomainName' | 'senlerAccessToken' | 'senlerGroupId' | 'senlerGroupVkId'> & {
+  amoCrmAuthorizationCode: string;
+}
 
 export class CreateSenlerGroupRequestDto extends PickType(BaseSenlerGroupDto, [
   'amoCrmDomainName',
   'senlerAccessToken',
   'senlerGroupId',
   'senlerGroupVkId',
-] as const) {
+] as const) implements CreateSenlerGroupRequest {
   @ApiProperty({ description: 'Auth code from amoCRM' })
   @IsString()
   @IsNotEmpty()

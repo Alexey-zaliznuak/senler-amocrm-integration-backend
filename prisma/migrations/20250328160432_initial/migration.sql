@@ -14,7 +14,7 @@ CREATE TABLE "SenlerGroup" (
 );
 
 -- CreateTable
-CREATE TABLE "SenlerIntegrationStepTemplate" (
+CREATE TABLE "IntegrationStepTemplate" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE "SenlerIntegrationStepTemplate" (
     "settings" JSONB NOT NULL,
     "senlerGroupId" TEXT NOT NULL,
 
-    CONSTRAINT "SenlerIntegrationStepTemplate_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "IntegrationStepTemplate_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -59,7 +59,7 @@ CREATE UNIQUE INDEX "Lead_senlerLeadId_key" ON "Lead"("senlerLeadId");
 CREATE UNIQUE INDEX "Lead_senlerLeadId_senlerGroupId_key" ON "Lead"("senlerLeadId", "senlerGroupId");
 
 -- AddForeignKey
-ALTER TABLE "SenlerIntegrationStepTemplate" ADD CONSTRAINT "SenlerIntegrationStepTemplate_senlerGroupId_fkey" FOREIGN KEY ("senlerGroupId") REFERENCES "SenlerGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "IntegrationStepTemplate" ADD CONSTRAINT "IntegrationStepTemplate_senlerGroupId_fkey" FOREIGN KEY ("senlerGroupId") REFERENCES "SenlerGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Lead" ADD CONSTRAINT "Lead_senlerGroupId_fkey" FOREIGN KEY ("senlerGroupId") REFERENCES "SenlerGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
