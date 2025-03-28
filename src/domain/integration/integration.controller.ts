@@ -19,7 +19,6 @@ export class IntegrationController {
 
   @Get('/getAmoFields')
   @HttpCode(200)
-  @ApiBody({ type: GetSenlerGroupFieldsDto })
   async getAmoFields(@Query() query: GetSenlerGroupFieldsDto): Promise<any> {
     return await this.integrationService.getAmoCrmFields(query);
   }
