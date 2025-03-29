@@ -32,6 +32,7 @@ import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters
     // Resources
     SenlerGroupsModule,
     IntegrationModule,
+    MetricsModule,
 
     // Infrastructure
     LoggingModule.forRoot(),
@@ -40,7 +41,6 @@ import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters
 
     // External
     AmoCrmModule,
-    MetricsModule,
   ],
 
   controllers: [AppController],
