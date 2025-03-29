@@ -4,6 +4,7 @@ import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { Logger } from 'winston';
+import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
   AcceptUnsortedResponse,
   AddUnsortedResponse,
@@ -16,7 +17,6 @@ import {
   UpdateLeadResponse,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
-import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 
 export type AmoCrmTokens = {
@@ -195,7 +195,7 @@ export class AmoCrmService {
   }
 
   @HandleAccessTokenExpiration()
-  async addLead({
+  async createLead({
     amoCrmDomainName,
     leads,
     tokens,
@@ -341,7 +341,7 @@ export class AmoCrmService {
 
       if (lead) return lead;
 
-      const actualLead = await this.addLead({ amoCrmDomainName, leads: [{ name }], tokens });
+      const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
 
       return actualLead;
     } catch (error) {

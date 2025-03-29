@@ -22,7 +22,7 @@ export const AppConfig = {
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
   STREAM_LOGGING_LEVEL: process.env.STREAM_LOGGING_LEVEL || 'info',
-  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 5000,
+  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 2000,
 
   DATABASE_URL: process.env.DEV_SERVER_URL,
 

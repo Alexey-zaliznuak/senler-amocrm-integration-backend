@@ -109,7 +109,7 @@ export class IntegrationService {
       return { lead, amoCrmLead: actualAmoCrmLead };
     }
 
-    const newAmoCrmLead = await this.amoCrmService.addLead({
+    const newAmoCrmLead = await this.amoCrmService.createLead({
       amoCrmDomainName,
       leads: [{ name }],
       tokens,
@@ -135,7 +135,9 @@ export class IntegrationService {
   }
 
   async getAmoCrmFields(body: GetSenlerGroupFieldsDto) {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { senlerGroupId: body.senlerGroupId } });
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
+      where: { senlerGroupId: body.senlerGroupId },
+    });
 
     const tokens: AmoCrmTokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
