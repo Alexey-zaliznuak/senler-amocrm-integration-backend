@@ -12,7 +12,7 @@ export class IntegrationController {
   @Post('/botStepWebhook')
   @HttpCode(200)
   @UseGuards(IntegrationSecretGuard)
-  @ApiBody({ type: BotStepWebhookDto })
+  // @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Request() req: CustomRequest, @Body() body: BotStepWebhookDto): Promise<any> {
     return "1"
     return await this.integrationService.processBotStepWebhook(req, body);
