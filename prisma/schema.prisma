@@ -18,7 +18,6 @@ model SenlerGroup {
   amoCrmRefreshToken                 String      @unique
 
   senlerGroupId                      Int         @unique
-  senlerGroupVkId                    String?
   senlerAccessToken                  String      @unique
 
   leads                              Lead[]

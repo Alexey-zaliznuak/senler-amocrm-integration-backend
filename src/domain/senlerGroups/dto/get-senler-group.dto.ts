@@ -9,11 +9,10 @@ export enum SenlerGroupFieldForGetByUniqueFieldEnum {
   senlerGroupId = 'senlerGroupId',
 }
 
-export type GetSenlerGroupResponse = Pick<BaseSenlerGroup, 'id' | 'amoCrmDomainName' | 'senlerGroupId' | 'senlerGroupVkId'>
+export type GetSenlerGroupResponse = Pick<BaseSenlerGroup, 'id' | 'amoCrmDomainName' | 'senlerGroupId'>
 
 export class GetSenlerGroupResponseDto extends PickType(BaseSenlerGroupDto, [
   'id',
   'amoCrmDomainName',
   'senlerGroupId',
-  'senlerGroupVkId',
 ] as const) implements GetSenlerGroupResponse {}

@@ -13,7 +13,6 @@ export type BaseSenlerGroup = Pick<
   | 'amoCrmRefreshToken'
   | 'senlerAccessToken'
   | 'senlerGroupId'
-  | 'senlerGroupVkId'
 >;
 
 export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
@@ -41,9 +40,4 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   @IsNumber()
   @IsNotEmpty()
   senlerGroupId: number;
-
-  @ApiProperty({ description: 'Senler VK Group Id', required: false, default: null })
-  @IsOptional()
-  @IsString()
-  senlerGroupVkId: string | null;
 }

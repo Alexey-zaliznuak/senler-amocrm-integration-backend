@@ -41,7 +41,6 @@ export class SenlerGroupsService {
           amoCrmDomainName: data.amoCrmDomainName,
           senlerAccessToken: data.senlerAccessToken,
           senlerGroupId: data.senlerGroupId,
-          senlerGroupVkId: data.senlerGroupVkId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
         },
@@ -66,14 +65,10 @@ export class SenlerGroupsService {
     identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
     if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
 
-    const senlerGroup = await this.prisma.senlerGroup.findFirstOrThrowWithCache({
+    return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
-      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, senlerGroupVkId: true },
+      select: { id: true, amoCrmDomainName: true, senlerGroupId: true },
     });
-
-    if (!senlerGroup) throw new NotFoundException('SenlerGroup not found');
-
-    return senlerGroup;
   }
 
   async validateCreateSenlerGroupData(data: CreateSenlerGroupRequestDto) {
@@ -90,7 +85,6 @@ export class SenlerGroupsService {
         | 'amoCrmRefreshToken'
         | 'senlerAccessToken'
         | 'senlerGroupId'
-        | 'senlerGroupVkId'
       >
     >
   ): Promise<void | never> {

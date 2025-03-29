@@ -10,8 +10,6 @@ export enum NodeEnv {
   production = 'production',
 }
 
-level;
-
 export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV || NodeEnv.local,
   PORT: parseInt(process.env.PORT) || 3000,

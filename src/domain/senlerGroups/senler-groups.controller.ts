@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
-import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
   GetSenlerGroupResponseDto,
@@ -33,6 +33,7 @@ export class SenlerGroupsController {
 
   @Get(':identifier/')
   @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
+  @ApiParam({ name: 'identifier' })
   @ApiResponse({type: GetSenlerGroupResponseDto})
   async getByUniqueField(
     @Param('identifier') identifier: string | number,

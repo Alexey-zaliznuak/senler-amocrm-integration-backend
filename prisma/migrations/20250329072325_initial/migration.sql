@@ -7,7 +7,6 @@ CREATE TABLE "SenlerGroup" (
     "amoCrmAccessToken" TEXT NOT NULL,
     "amoCrmRefreshToken" TEXT NOT NULL,
     "senlerGroupId" INTEGER NOT NULL,
-    "senlerGroupVkId" TEXT,
     "senlerAccessToken" TEXT NOT NULL,
 
     CONSTRAINT "SenlerGroup_pkey" PRIMARY KEY ("id")

@@ -18,6 +18,7 @@ import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
+import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters/prisma-not-found-exception.filter';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
     AppService,
 
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_FILTER, useClass: PrismaNotFoundExceptionFilter },
 
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ProcessTimeInterceptor },
