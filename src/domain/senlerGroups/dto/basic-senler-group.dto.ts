@@ -11,7 +11,6 @@ export type BaseSenlerGroup = Pick<
   | 'amoCrmDomainName'
   | 'amoCrmAccessToken'
   | 'amoCrmRefreshToken'
-  | 'senlerAccessToken'
   | 'senlerGroupId'
 >;
 
@@ -30,11 +29,6 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   @IsString()
   @IsNotEmpty()
   amoCrmRefreshToken: string;
-
-  @ApiProperty({ description: 'Access token from Senler' })
-  @IsString()
-  @IsNotEmpty()
-  senlerAccessToken: string;
 
   @ApiProperty({ description: 'Senler group Id' })
   @IsNumber()
