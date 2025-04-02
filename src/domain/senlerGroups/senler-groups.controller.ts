@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
@@ -39,6 +39,9 @@ export class SenlerGroupsController {
     @Param('identifier') identifier: string | number,
     @Query('field') field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponseDto> {
+    if (!identifier || !field) {
+      throw new BadRequestException("No identifier or field provided");
+    }
     return await this.senlerGroupsService.getByUniqueField(identifier, field);
   }
 }
