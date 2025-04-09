@@ -26,7 +26,7 @@ export class AppService {
         transform: true,
         whitelist: true,
         transformOptions: {
-          enableImplicitConversion: false,
+          enableImplicitConversion: true,
         },
       })
     );
