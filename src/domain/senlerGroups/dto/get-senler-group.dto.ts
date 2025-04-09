@@ -23,7 +23,7 @@ export class GetSenlerGroupResponseDto
 {
   @ApiProperty({
     description: 'Templates',
-    type: () => [GetIntegrationStepTemplateResponseDto], // Указываем тип массива
+    type: () => [GetIntegrationStepTemplateResponseDto],
   })
   @IsArray()
   @ValidateNested({ each: true })

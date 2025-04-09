@@ -1,7 +1,8 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import {
   CreateIntegrationStepTemplateRequest,
+  CreateIntegrationStepTemplateRequestDto,
   CreateIntegrationStepTemplateResponseDto,
 } from './dto/create-integration-step-template.dto';
 import { GetIntegrationStepTemplateResponseDto } from './dto/get-integration-step-template.dto';
@@ -13,6 +14,7 @@ export class IntegrationStepTemplatesController {
 
   @Post('')
   @HttpCode(HttpStatus.CREATED)
+  @ApiBody({ type: CreateIntegrationStepTemplateRequestDto })
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: CreateIntegrationStepTemplateResponseDto,
