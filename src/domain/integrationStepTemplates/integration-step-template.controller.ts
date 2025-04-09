@@ -28,7 +28,7 @@ export class IntegrationStepTemplatesController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid provided credentials.',
   })
-  async create(@Body() data: CreateIntegrationStepTemplateRequest): Promise<CreateIntegrationStepTemplateRequest> {
+  async create(@Body() data: CreateIntegrationStepTemplateRequestDto): Promise<CreateIntegrationStepTemplateRequest> {
     return await this.integrationStepTemplatesService.create(data);
   }
 
