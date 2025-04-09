@@ -1,9 +1,9 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { IntegrationStepTemplate } from '@prisma/client';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
-import { CreateIntegrationStepTemplateRequestDto } from './dto/create-senler-group.dto';
-import { GetSenlerGroupResponseDto } from './dto/get-senler-group.dto';
+import { CreateIntegrationStepTemplateRequestDto } from './dto/create-integration-step-template.dto';
+import { GetSenlerGroupResponseDto } from './dto/get-integration-step-template.dto';
 
 @Injectable()
 export class IntegrationStepTemplatesService {
@@ -31,7 +31,7 @@ export class IntegrationStepTemplatesService {
   async getById(id: string): Promise<GetSenlerGroupResponseDto> {
     const integrationStepTemplate = await this.prisma.integrationStepTemplate.findFirstOrThrowWithCache({
       where: { id },
-      select: { id: true, name: true, settings: true, senlerGroupId: true},
+      select: { id: true, name: true, settings: true, senlerGroupId: true },
     });
 
     return integrationStepTemplate;

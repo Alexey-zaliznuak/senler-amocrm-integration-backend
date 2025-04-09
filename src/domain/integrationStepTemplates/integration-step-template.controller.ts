@@ -1,13 +1,14 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { CreateIntegrationStepTemplateRequest, CreateIntegrationStepTemplateResponseDto } from './dto/create-senler-group.dto';
 import {
-  GetIntegrationStepTemplateResponseDto
-} from './dto/get-senler-group.dto';
-import { IntegrationStepTemplatesService } from './senler-groups.service';
+  CreateIntegrationStepTemplateRequest,
+  CreateIntegrationStepTemplateResponseDto,
+} from './dto/create-integration-step-template.dto';
+import { GetIntegrationStepTemplateResponseDto } from './dto/get-integration-step-template.dto';
+import { IntegrationStepTemplatesService } from './integration-step-template.service';
 
 @Controller('integrationStepTemplates')
-export class IntegrationStepTemplateController {
+export class IntegrationStepTemplatesController {
   constructor(private readonly integrationStepTemplatesService: IntegrationStepTemplatesService) {}
 
   @Post('')
@@ -32,9 +33,7 @@ export class IntegrationStepTemplateController {
   @Get(':identifier/')
   @ApiQuery({ name: 'id' })
   @ApiResponse({ type: GetIntegrationStepTemplateResponseDto })
-  async getByUniqueField(
-    @Param('id') id: string,
-  ): Promise<GetIntegrationStepTemplateResponseDto> {
+  async getByUniqueField(@Param('id') id: string): Promise<GetIntegrationStepTemplateResponseDto> {
     return await this.integrationStepTemplatesService.getById(id);
   }
 }

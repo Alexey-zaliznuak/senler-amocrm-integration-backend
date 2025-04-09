@@ -19,6 +19,7 @@ import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters/prisma-not-found-exception.filter';
+import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters
     // Resources
     SenlerGroupsModule,
     IntegrationModule,
+    IntegrationStepTemplatesModule,
     MetricsModule,
 
     // Infrastructure
