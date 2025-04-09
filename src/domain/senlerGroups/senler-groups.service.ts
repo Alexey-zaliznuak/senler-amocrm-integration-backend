@@ -3,7 +3,6 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  NotFoundException,
   ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -67,6 +66,7 @@ export class SenlerGroupsService {
     return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
       select: { id: true, amoCrmDomainName: true, senlerGroupId: true },
+      include: { integrationStepTemplates: true },
     });
   }
 
@@ -76,23 +76,10 @@ export class SenlerGroupsService {
 
   async checkConstraintsOrThrow(
     constraints: Partial<
-      Pick<
-        SenlerGroup,
-        | 'id'
-        | 'amoCrmAccessToken'
-        | 'amoCrmDomainName'
-        | 'amoCrmRefreshToken'
-        | 'senlerGroupId'
-      >
+      Pick<SenlerGroup, 'id' | 'amoCrmAccessToken' | 'amoCrmDomainName' | 'amoCrmRefreshToken' | 'senlerGroupId'>
     >
   ): Promise<void | never> {
-    const constraintsNames = [
-      'id',
-      'amoCrmAccessToken',
-      'amoCrmDomainName',
-      'amoCrmRefreshToken',
-      'senlerGroupId',
-    ];
+    const constraintsNames = ['id', 'amoCrmAccessToken', 'amoCrmDomainName', 'amoCrmRefreshToken', 'senlerGroupId'];
 
     if (await this.prisma.senlerGroup.existsWithCache({ OR: constraintsNames.map(key => ({ [key]: constraints[key] })) })) {
       throw new ConflictException('SenlerGroup with same properties already exists');
