@@ -65,8 +65,7 @@ export class SenlerGroupsService {
 
     return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
-      select: { id: true, amoCrmDomainName: true, senlerGroupId: true },
-      include: { integrationStepTemplates: true },
+      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, integrationStepTemplates: true },
     });
   }
 
