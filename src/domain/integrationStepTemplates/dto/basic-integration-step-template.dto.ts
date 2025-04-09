@@ -18,7 +18,7 @@ export class BaseIntegrationStepTemplateDto extends BaseModelDto implements Base
   @IsNotEmpty()
   settings: Prisma.JsonValue;
 
-  @ApiProperty({ description: 'Template Senler Group' })
+  @ApiProperty({ description: 'Senler Group object id' })
   @IsString()
   @IsNotEmpty()
   senlerGroupId: string;
