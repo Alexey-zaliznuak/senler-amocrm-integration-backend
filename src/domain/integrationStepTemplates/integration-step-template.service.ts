@@ -27,8 +27,8 @@ export class IntegrationStepTemplatesService {
         senlerGroupId,
       },
     });
-    await this.prisma.senlerGroup.invalidateCache(senlerGroupId)
-    return template
+    await this.prisma.senlerGroup.invalidateCache(senlerGroupId);
+    return template;
   }
 
   async getById(id: string): Promise<GetSenlerGroupResponseDto> {
@@ -38,6 +38,14 @@ export class IntegrationStepTemplatesService {
     });
 
     return integrationStepTemplate;
+  }
+
+  async deleteById(id: string) {
+    const integrationStepTemplate = await this.prisma.integrationStepTemplate.deleteWithCacheInvalidate({
+      where: { id },
+      select: { senlerGroupId: true },
+    });
+    await this.prisma.senlerGroup.invalidateCache(integrationStepTemplate.senlerGroupId);
   }
 
   async validateCreateIntegrationStepTemplateData(data: CreateIntegrationStepTemplateRequestDto) {
