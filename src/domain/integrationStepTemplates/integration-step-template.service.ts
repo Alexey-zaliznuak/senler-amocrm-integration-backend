@@ -14,7 +14,7 @@ export class IntegrationStepTemplatesService {
 
     await this.validateCreateIntegrationStepTemplateData(data);
 
-    return await this.prisma.integrationStepTemplate.create({
+    const template = await this.prisma.integrationStepTemplate.create({
       select: {
         id: true,
         name: true,
@@ -27,6 +27,8 @@ export class IntegrationStepTemplatesService {
         senlerGroupId,
       },
     });
+    await this.prisma.senlerGroup.invalidateCache(senlerGroupId)
+    return template
   }
 
   async getById(id: string): Promise<GetSenlerGroupResponseDto> {
