@@ -7,7 +7,8 @@ CREATE TABLE "SenlerGroup" (
     "amoCrmAccessToken" TEXT NOT NULL,
     "amoCrmRefreshToken" TEXT NOT NULL,
     "senlerGroupId" INTEGER NOT NULL,
-    "senlerAccessToken" TEXT NOT NULL,
+    "vkGroupId" TEXT NOT NULL,
+    "senlerApiAccessToken" TEXT NOT NULL,
 
     CONSTRAINT "SenlerGroup_pkey" PRIMARY KEY ("id")
 );
@@ -49,7 +50,10 @@ CREATE UNIQUE INDEX "SenlerGroup_amoCrmRefreshToken_key" ON "SenlerGroup"("amoCr
 CREATE UNIQUE INDEX "SenlerGroup_senlerGroupId_key" ON "SenlerGroup"("senlerGroupId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SenlerGroup_senlerAccessToken_key" ON "SenlerGroup"("senlerAccessToken");
+CREATE UNIQUE INDEX "SenlerGroup_vkGroupId_key" ON "SenlerGroup"("vkGroupId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SenlerGroup_senlerApiAccessToken_key" ON "SenlerGroup"("senlerApiAccessToken");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Lead_senlerLeadId_key" ON "Lead"("senlerLeadId");

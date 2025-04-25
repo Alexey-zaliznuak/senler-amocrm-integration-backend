@@ -41,6 +41,8 @@ export class SenlerGroupsService {
           senlerGroupId: data.senlerGroupId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
+          senlerApiAccessToken: data.senlerApiAccessToken,
+          vkGroupId: data.vkGroupId,
         },
       });
     } catch (exception) {
@@ -75,10 +77,27 @@ export class SenlerGroupsService {
 
   async checkConstraintsOrThrow(
     constraints: Partial<
-      Pick<SenlerGroup, 'id' | 'amoCrmAccessToken' | 'amoCrmDomainName' | 'amoCrmRefreshToken' | 'senlerGroupId'>
+      Pick<
+        SenlerGroup,
+        | 'id'
+        | 'amoCrmAccessToken'
+        | 'amoCrmDomainName'
+        | 'amoCrmRefreshToken'
+        | 'senlerGroupId'
+        | 'senlerApiAccessToken'
+        | 'vkGroupId'
+      >
     >
   ): Promise<void | never> {
-    const constraintsNames = ['id', 'amoCrmAccessToken', 'amoCrmDomainName', 'amoCrmRefreshToken', 'senlerGroupId'];
+    const constraintsNames = [
+      'id',
+      'amoCrmAccessToken',
+      'amoCrmDomainName',
+      'amoCrmRefreshToken',
+      'senlerGroupId',
+      'senlerApiAccessToken',
+      'vkGroupId',
+    ];
 
     if (await this.prisma.senlerGroup.existsWithCache({ OR: constraintsNames.map(key => ({ [key]: constraints[key] })) })) {
       throw new ConflictException('SenlerGroup with same properties already exists');

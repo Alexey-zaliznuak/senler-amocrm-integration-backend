@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IntegrationStepTemplate, Prisma } from '@prisma/client';
-import { IsNotEmpty, IsString, Validate } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { BaseModelDto } from 'src/infrastructure/dto';
 
 export type BaseIntegrationStepTemplate = Pick<

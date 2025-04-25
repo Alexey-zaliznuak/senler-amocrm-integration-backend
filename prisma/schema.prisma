@@ -19,6 +19,9 @@ model SenlerGroup {
 
   senlerGroupId                      Int         @unique
 
+  vkGroupId                          String      @unique
+  senlerApiAccessToken               String      @unique
+
   leads                              Lead[]
   integrationStepTemplates           IntegrationStepTemplate[]
 }

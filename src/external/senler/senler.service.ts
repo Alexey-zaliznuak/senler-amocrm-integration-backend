@@ -7,7 +7,7 @@
 // import { URLHelper } from './helpers/url';
 
 // @Injectable()
-// export class ApiRequestNextStepService {
+export class SenlerService {
 //   private readonly maxAttempts = 5;
 
 //   private readonly baseUrl = 'https://senler.ru';
@@ -97,4 +97,4 @@
 //     this.logger.debug(`Delaying request for ${delayMs}ms`);
 //     return new Promise(resolve => setTimeout(resolve, delayMs));
 //   }
-// }
+}
