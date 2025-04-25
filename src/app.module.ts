@@ -20,6 +20,7 @@ import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters/prisma-not-found-exception.filter';
 import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
+import { SenlerModule } from './external/senler/senler.module';
 
 @Module({
   imports: [
@@ -43,6 +44,8 @@ import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplate
 
     // External
     AmoCrmModule,
+
+    SenlerModule,
   ],
 
   controllers: [AppController],
