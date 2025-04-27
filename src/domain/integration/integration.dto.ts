@@ -22,7 +22,7 @@ export class TransferPairDto {
 }
 
 export class PublicBotStepSettingsDto {
-  @ApiProperty({ description: 'bot step type' })
+  @ApiProperty({ description: 'bot step type', enum: BotStepType })
   @IsNotEmpty()
   @IsEnum(BotStepType)
   type: BotStepType;

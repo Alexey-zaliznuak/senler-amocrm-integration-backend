@@ -21,6 +21,7 @@ import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters/prisma-not-found-exception.filter';
 import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
 import { SenlerModule } from './external/senler/senler.module';
+import { NatsModule } from './infrastructure/nats/nats.module';
 
 @Module({
   imports: [
@@ -38,14 +39,15 @@ import { SenlerModule } from './external/senler/senler.module';
     MetricsModule,
 
     // Infrastructure
+    NatsModule,
     LoggingModule.forRoot(),
     AxiosModule.forRoot(),
     DatabaseModule.forRoot(),
 
     // External
     AmoCrmModule,
-
     SenlerModule,
+    NatsModule,
   ],
 
   controllers: [AppController],

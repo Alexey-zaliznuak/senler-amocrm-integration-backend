@@ -51,6 +51,18 @@ export class CustomAxiosInstance {
     }
   }
 
+  async postForm<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const customConfig = this.setRequestId(config);
+
+    this.setRequestLogger(url, customConfig);
+
+    try {
+      return await this.axios.postForm<T>(url, data, customConfig);
+    } finally {
+      this.deleteRequestLogger(customConfig.requestId);
+    }
+  }
+
   async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const customConfig = this.setRequestId(config);
 

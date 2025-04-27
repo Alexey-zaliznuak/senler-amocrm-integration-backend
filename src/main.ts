@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
 import { AppConfigType } from './infrastructure/config/config.app-config';
+import { AckPolicy } from 'nats';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +15,19 @@ async function bootstrap() {
   AppService.setupSwaggerDocument(app);
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.NATS,
+    options: {
+      servers: [process.env.NATS_URL],
+      queue: 'workers',
+      // ackPolicy: AckPolicy.All,
+      // maxDeliver: 3,
+      // durable: 'INTEGRATION_SYNC_VARS_CONSUMER',
+    },
+  });
+
+  await app.startAllMicroservices();
 
   await app.listen(config.PORT);
 }

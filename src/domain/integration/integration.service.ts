@@ -4,23 +4,24 @@ import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
 import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
-import { CustomRequest } from 'src/infrastructure/requests';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
+import { SenlerService } from 'src/external/senler/senler.service';
 
 @Injectable()
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   constructor(
+    private readonly senlerService: SenlerService,
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     private readonly amoCrmService: AmoCrmService
   ) {}
 
-  async processBotStepWebhook(req: CustomRequest, body: BotStepWebhookDto) {
+  async processBotStepWebhook(body: BotStepWebhookDto) {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
       where: { senlerGroupId: body.senlerGroupId },
     });
@@ -39,10 +40,10 @@ export class IntegrationService {
     });
 
     if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      return await this.sendVarsToAmoCrm(body, tokens, lead);
+      await this.sendVarsToAmoCrm(body, tokens, lead);
     }
     if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      return await this.sendVarsToSenler(body, amoCrmLead);
+      await this.sendVarsToSenler(body, amoCrmLead);
     }
   }
 
@@ -70,7 +71,7 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
-    return varsValues;
+    await this.senlerService.acceptWebhookRequest();
   }
 
   async getOrCreateLeadIfNotExists({

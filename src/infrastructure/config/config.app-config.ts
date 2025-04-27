@@ -22,6 +22,7 @@ export const AppConfig = {
   STREAM_LOGGING_LEVEL: process.env.STREAM_LOGGING_LEVEL || 'info',
   MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 2000,
 
+  NATS_URL: process.env.NATS_URL,
   DATABASE_URL: process.env.DEV_SERVER_URL,
 
   CACHE_DATABASE_URL: process.env.CACHE_DATABASE_URL,

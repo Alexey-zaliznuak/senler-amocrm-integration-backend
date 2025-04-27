@@ -15,6 +15,7 @@ export const appConfigValidationSchema = Joi.object({
   INTEGRATION_SECRET: Joi.string().required(),
 
   DATABASE_URL: Joi.string().uri().required(),
+  NATS_URL: Joi.string().uri().required(),
 
   CACHE_DATABASE_URL: Joi.string().uri().required(),
   CACHE_DEFAULT_TTL: Joi.number().required(),

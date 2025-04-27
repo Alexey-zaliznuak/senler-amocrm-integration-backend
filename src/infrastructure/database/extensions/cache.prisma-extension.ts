@@ -328,6 +328,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
       if (!this.client.isOpen) {
         this.cacheReconnections += 1;
         await this.client.connect();
+        this.logger.info(`Database cache connected`);
       }
     } catch (error) {
       this.logger.error(`Cache connection error: ${error.message}`);
