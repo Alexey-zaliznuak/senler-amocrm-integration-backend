@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, Request } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
@@ -8,8 +8,10 @@ export class IntegrationSecretGuard implements CanActivate {
   constructor(@Inject(CONFIG) private readonly config: AppConfigType) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    const integrationSecretInHeaders = context.switchToHttp().getRequest<Request>().headers['x-integration-secret'];
-    const integrationSecretInBody = context.switchToHttp().getRequest<Request>().body['integrationSecret'];
+    const request = context.switchToHttp().getRequest<Request>();
+
+    const integrationSecretInHeaders = request.headers ? request.headers['x-integration-secret'] : undefined;
+    const integrationSecretInBody = request.body ? request.body['integrationSecret'] : undefined;
 
     return (
       integrationSecretInHeaders === this.config.INTEGRATION_SECRET || integrationSecretInBody === this.config.INTEGRATION_SECRET

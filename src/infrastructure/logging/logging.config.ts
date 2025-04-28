@@ -56,7 +56,10 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
     },
     json: true,
     basicAuth: config.LOKI_USERNAME + ':' + config.LOKI_AUTH_TOKEN,
-    format: winston.format.json(),
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json()
+    ),
     replaceTimestamp: true,
     onConnectionError: err => {
       if (err) {

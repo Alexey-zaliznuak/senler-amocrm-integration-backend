@@ -22,6 +22,7 @@ import { PrismaNotFoundExceptionFilter } from './infrastructure/exceptionFilters
 import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
 import { SenlerModule } from './external/senler/senler.module';
 import { NatsModule } from './infrastructure/nats/nats.module';
+import { LogsModule } from './domain/logs/logs.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { NatsModule } from './infrastructure/nats/nats.module';
     AmoCrmModule,
     SenlerModule,
     NatsModule,
+    LogsModule,
   ],
 
   controllers: [AppController],

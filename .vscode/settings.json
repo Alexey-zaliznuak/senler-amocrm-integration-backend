@@ -1,7 +1,8 @@
 {
   "cSpell.words": [
     "dbgenerated",
-    "syncable"
+    "syncable",
+    "Сенлер"
   ],
   "files.exclude": {
     "**/node_modules": true

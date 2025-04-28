@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { plainToInstance, Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 import { parseJson } from 'src/utils';
 
@@ -72,8 +72,8 @@ export class BotStepWebhookDto {
 
   @ApiProperty({ description: 'Senler VK group id.' })
   @IsNotEmpty()
-  @IsString()
-  senlerVkGroupId: string;
+  @IsNumber()
+  senlerVkGroupId: number;
 
   @ApiProperty({ description: 'Senler lead.' })
   @IsNotEmpty()
@@ -87,6 +87,11 @@ export class BotStepWebhookDto {
   @ValidateNested()
   @Type(() => PublicBotStepSettingsDto)
   publicBotStepSettings: PublicBotStepSettingsDto;
+
+  @ApiProperty({ description: 'Request uuid', example: "acde070d-8c4c-4f0d-9d8a-162843c10333" })
+  @IsNotEmpty()
+  @IsUUID()
+  requestUuid: string;
 }
 
 export class GetSenlerGroupFieldsDto {

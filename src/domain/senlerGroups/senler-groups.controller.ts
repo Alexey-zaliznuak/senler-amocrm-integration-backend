@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
@@ -43,5 +43,19 @@ export class SenlerGroupsController {
       throw new BadRequestException("No identifier or field provided");
     }
     return await this.senlerGroupsService.getByUniqueField(identifier, field);
+  }
+
+  @Delete(':identifier/')
+  @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
+  @ApiParam({ name: 'identifier' })
+  @ApiResponse({type: GetSenlerGroupResponseDto})
+  async deleteByUniqueField(
+    @Param('identifier') identifier: string | number,
+    @Query('field') field: SenlerGroupFieldForGetByUniqueField
+  ): Promise<GetSenlerGroupResponseDto> {
+    if (!identifier || !field) {
+      throw new BadRequestException("No identifier or field provided");
+    }
+    return await this.senlerGroupsService.deleteByUniqueField(identifier, field);
   }
 }

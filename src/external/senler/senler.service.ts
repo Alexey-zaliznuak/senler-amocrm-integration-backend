@@ -17,10 +17,10 @@ export class SenlerService {
   ) {}
 
   async acceptWebhookRequest(params: {
-    vk_user_id: string;
-    vk_id: string;
-    callback_key: string;
-    bot_callback: any;
+    vk_user_id: string,
+    vk_group_id: string,
+    bot_callback: any,
+    callback_key: string
     group_id: string;
   }): Promise<void> {
     const hash = this.generateHash(params, params.callback_key);
@@ -29,8 +29,7 @@ export class SenlerService {
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
     try {
-      const response = await this.axios.postForm(request.url, request.params);
-      this.logger.debug('Success accept webhook request', { params: request.params, response: response.data });
+      await this.axios.postForm(request.url, request.params);
     } catch (exception) {
       this.logger.error('Request failed after max attempts', { exception });
       throw new ServiceUnavailableException('Max attempts reached');

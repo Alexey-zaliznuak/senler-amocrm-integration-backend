@@ -38,9 +38,9 @@ export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup 
   senlerGroupId: number;
 
   @ApiProperty({ description: 'Vk group id' })
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  vkGroupId: string;
+  vkGroupId: number;
 
   @ApiProperty({ description: 'Senler API access token' })
   @IsString()

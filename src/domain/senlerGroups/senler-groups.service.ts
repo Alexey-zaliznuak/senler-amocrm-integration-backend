@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
   ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -68,6 +69,20 @@ export class SenlerGroupsService {
     return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
       select: { id: true, amoCrmDomainName: true, senlerGroupId: true, integrationStepTemplates: true },
+    });
+  }
+
+  async deleteByUniqueField(
+    identifier: string | number,
+    field: SenlerGroupFieldForGetByUniqueField
+  ): Promise<GetSenlerGroupResponseDto> {
+    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
+    if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
+
+    await this.prisma.senlerGroup.findUniqueOrThrow({ [field]: identifier } as any);
+
+    return await this.prisma.senlerGroup.deleteWithCacheInvalidate({
+      where: { [field]: identifier } as any,
     });
   }
 
