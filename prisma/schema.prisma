@@ -18,6 +18,7 @@ model SenlerGroup {
   amoCrmRefreshToken                 String      @unique
 
   senlerGroupId                      Int         @unique
+  vkGroupId                          Int         @unique
 
   senlerApiAccessToken               String      @unique
 
