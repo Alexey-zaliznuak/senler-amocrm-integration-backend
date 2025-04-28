@@ -24,8 +24,8 @@ export class IntegrationService {
   ) {}
 
   async processBotStepWebhook(body: BotStepWebhookDto) {
-    this.logger.info('Запрос в процессе обработки', { labels: this.extractLoggingLabelsFromRequest(body), status: 'PENDING' });
-    return
+    this.logger.info('Запрос в процессе обработки', { labels: this.extractLoggingLabelsFromRequest(body), status: 'IN PROGRESS' });
+
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { senlerGroupId: body.senlerGroupId },
     });
@@ -36,7 +36,6 @@ export class IntegrationService {
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',
       });
-      // unretryable
       return;
     }
 
@@ -188,7 +187,7 @@ export class IntegrationService {
     return leadFields;
   }
 
-  async buildProcessWebhookTitle(body: any) {
+  public buildProcessWebhookTitle(body: any): string {
     const operation =
       'отправку данных в ' + body.publicBotStepSettings.type === BotStepType.SendDataToAmoCrm
         ? 'amoCRM'
@@ -196,7 +195,7 @@ export class IntegrationService {
     return `Запрос на ${operation} от ${new Date().toLocaleString('UTC')} (UTC)`;
   }
 
-  extractLoggingLabelsFromRequest(body: any) {
+  public extractLoggingLabelsFromRequest(body: any) {
     return {
       groupId: body?.senlerGroupId || 'не указан',
       leadId: body?.lead?.id || 'не указан',
