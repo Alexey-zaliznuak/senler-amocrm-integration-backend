@@ -38,7 +38,7 @@ export class SenlerService {
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
     try {
-      await this.axios.postForm(request.url, request.params);
+      await this.axios.post(request.url, request.params);
     } catch (exception) {
       this.logger.error('Request failed after max attempts', { exception });
       throw new ServiceUnavailableException('Max attempts reached');
