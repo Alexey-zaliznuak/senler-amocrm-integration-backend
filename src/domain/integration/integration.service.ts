@@ -24,7 +24,12 @@ export class IntegrationService {
   ) {}
 
   async processBotStepWebhook(body: BotStepWebhookDto) {
-    this.logger.info('Запрос в процессе обработки', { labels: this.extractLoggingLabelsFromRequest(body), status: 'IN PROGRESS' });
+    this.logger.info('Запрос в процессе обработки', {
+      labels: this.extractLoggingLabelsFromRequest(body),
+      status: 'IN PROGRESS',
+    });
+    await this.senlerService.acceptWebhookRequest(body);
+    return;
 
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { senlerGroupId: body.senlerGroupId },
@@ -98,14 +103,6 @@ export class IntegrationService {
         varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
       ),
     ]);
-
-    await this.senlerService.acceptWebhookRequest({
-      vk_user_id: body.lead.vkUserId.toString(),
-      vk_group_id: body.senlerVkGroupId.toString(),
-      group_id: body.senlerGroupId.toString(),
-      callback_key: 'string',
-      bot_callback: 'string',
-    });
   }
 
   async getOrCreateLeadIfNotExists({

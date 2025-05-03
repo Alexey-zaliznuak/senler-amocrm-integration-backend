@@ -144,6 +144,11 @@ export class BotStepWebhookDto {
   @IsUUID()
   requestUuid: string;
 
+  @ApiProperty({ description: 'Integration secret', example: "acde070d-8c4c-4f0d-9d8a-162843c10333" })
+  @IsNotEmpty()
+  @IsString()
+  integrationSecret: string;
+
   @ApiProperty({ description: 'Bot callback.', type: BotCallbackDto })
   @IsNotEmpty()
   @ValidateNested()

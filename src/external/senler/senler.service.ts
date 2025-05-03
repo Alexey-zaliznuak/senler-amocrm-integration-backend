@@ -1,5 +1,6 @@
 import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { BotStepWebhookDto } from 'src/domain/integration/integration.dto';
 import { AXIOS, CustomAxiosInstance } from 'src/infrastructure/axios/instance';
 import { LOGGER } from 'src/infrastructure/logging/logging.config';
 import { Logger } from 'winston';
@@ -16,16 +17,22 @@ export class SenlerService {
     @Inject(AXIOS) private readonly axios: CustomAxiosInstance
   ) {}
 
-  async acceptWebhookRequest(params: {
-    vk_user_id: string,
-    vk_group_id: string,
-    bot_callback: any,
-    callback_key: string
-    group_id: string;
-  }): Promise<void> {
-    const hash = this.generateHash(params, params.callback_key);
-    await this.sendRequest({ url: this.callbackUrl, params: { ...params, hash } });
+  async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
+    const {group_id, ...botCallback} = body.botCallback
+    const hash = this.generateHash(botCallback, body.integrationSecret)
+
+    await this.sendRequest({ url: this.callbackUrl, params: { hash, group_id, bot_callback: botCallback } });
   }
+
+  private generateHash(body: Record<string, any>, secret: string) {
+    let values = '';
+    for (let item in body) {
+      if (body.hasOwnProperty(item)) {
+        values += body[item] + '';
+      }
+    }
+    return crypto.createHash('md5').update(values + secret).digest('hex');
+}
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
     try {
@@ -34,13 +41,5 @@ export class SenlerService {
       this.logger.error('Request failed after max attempts', { exception });
       throw new ServiceUnavailableException('Max attempts reached');
     }
-  }
-
-  private generateHash(params: Record<string, unknown>, secret: string): string {
-    const values = Object.values(params).join('');
-    return crypto
-      .createHash('md5')
-      .update(values + secret)
-      .digest('hex');
   }
 }
