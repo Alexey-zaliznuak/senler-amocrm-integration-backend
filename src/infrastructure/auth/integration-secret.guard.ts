@@ -8,7 +8,6 @@ export class IntegrationSecretGuard implements CanActivate {
   constructor(@Inject(CONFIG) private readonly config: AppConfigType) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    return true
     const request = context.switchToHttp().getRequest<Request>();
 
     const integrationSecretInHeaders = request.headers ? request.headers['x-integration-secret'] : undefined;
