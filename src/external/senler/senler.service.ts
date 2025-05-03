@@ -25,6 +25,7 @@ export class SenlerService {
   }
 
   private generateHash(body: Record<string, any>, secret: string) {
+    this.logger.info("Тело для создания хеша", body)
     let values = '';
     for (let item in body) {
       if (body.hasOwnProperty(item)) {
