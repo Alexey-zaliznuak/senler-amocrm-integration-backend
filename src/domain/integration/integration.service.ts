@@ -31,7 +31,7 @@ export class IntegrationService {
     });
 
     if (!senlerGroup) {
-      this.logger.info('Ошибка в результате выполнения запроса', {
+      this.logger.error('Ошибка в результате выполнения запроса', {
         labels: { requestId: body.requestUuid },
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',

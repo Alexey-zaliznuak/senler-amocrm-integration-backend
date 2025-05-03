@@ -27,7 +27,7 @@ export class IntegrationController {
   async botStepWebhook(@Body() body: any): Promise<any> {
     this.logger.info('Получен запрос', {
       labels: this.integrationService.extractLoggingLabelsFromRequest(body),
-      requestTile: `Запрос от ${new Date().toLocaleString('UTC')} (UTC)`,
+      requestTitle: `Запрос от ${new Date().toLocaleString('UTC')} (UTC)`,
       body,
       status: 'VALIDATING',
     });

@@ -64,6 +64,57 @@ export class LeadDto {
   vkUserId: number;
 }
 
+
+class ResultDto {
+  @ApiProperty({ description: 'Error code.' })
+  @IsNotEmpty()
+  @IsNumber()
+  error_code: number;
+}
+
+export class BotCallbackDto {
+  @ApiProperty({ description: 'Bot id.' })
+  @IsNotEmpty()
+  @IsNumber()
+  bot_id: number;
+
+  @ApiProperty({ description: 'Group id.' })
+  @IsNotEmpty()
+  @IsNumber()
+  group_id: number;
+
+  @ApiProperty({ description: 'Lead id.' })
+  @IsNotEmpty()
+  @IsString()
+  lead_id: string;
+
+  @ApiProperty({ description: 'Result object.', type: ResultDto })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => ResultDto)
+  result: ResultDto;
+
+  @ApiProperty({ description: 'Server id.' })
+  @IsNotEmpty()
+  @IsNumber()
+  server_id: number;
+
+  @ApiProperty({ description: 'Step id.' })
+  @IsNotEmpty()
+  @IsString()
+  step_id: string;
+
+  @ApiProperty({ description: 'Test flag.' })
+  @IsNotEmpty()
+  @IsNumber()
+  test: number;
+
+  @ApiProperty({ description: 'VK user id.' })
+  @IsNotEmpty()
+  @IsNumber()
+  vk_user_id: number;
+}
+
 export class BotStepWebhookDto {
   @ApiProperty({ description: 'Senler group id.' })
   @IsNotEmpty()
@@ -92,6 +143,12 @@ export class BotStepWebhookDto {
   @IsNotEmpty()
   @IsUUID()
   requestUuid: string;
+
+  @ApiProperty({ description: 'Bot callback.', type: BotCallbackDto })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => BotCallbackDto)
+  botCallback: BotCallbackDto;
 }
 
 export class GetSenlerGroupFieldsDto {
