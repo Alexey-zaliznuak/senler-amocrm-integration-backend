@@ -33,6 +33,7 @@ export class SenlerService {
         values += body[item] + '';
       }
     }
+    this.logger.info(`Строка для хеша: ${values + secret}`)
     return crypto.createHash('md5').update(values + secret).digest('hex');
 }
 
