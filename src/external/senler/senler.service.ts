@@ -28,7 +28,7 @@ export class SenlerService {
   }
 
   private generateHash(body: BotStepWebhookDto["botCallback"], secret: string) {
-    let values = [body.group_id, body.bot_id, body.lead_id, body.result.error_code, body.server_id, body.step_id, body.test, body.vk_user_id].join("");
+    let values = [body.group_id, body.bot_id, body.lead_id, body.server_id, body.step_id, body.vk_user_id].join("");
     this.logger.info(`Строка для хеша: ${values + secret}`);
     return crypto
       .createHash('md5')
