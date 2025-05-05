@@ -18,23 +18,30 @@ export class SenlerService {
   ) {}
 
   async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
-    this.logger.info("Секретный ключ интеграции: "+ body.integrationSecret)
-    const hash = this.generateHash(body.botCallback, body.integrationSecret)
+    this.logger.info('Секретный ключ интеграции: ' + body.integrationSecret);
+    const { group_id, ...botCallback } = body.botCallback;
+    const hash = this.generateHash({ group_id, ...botCallback }, body.integrationSecret);
 
-    await this.sendRequest({ url: this.callbackUrl, params: { hash, group_id: body.botCallback.group_id, bot_callback: body.botCallback } });
+    await this.sendRequest({
+      url: this.callbackUrl,
+      params: { hash, group_id: body.botCallback.group_id, bot_callback: body.botCallback },
+    });
   }
 
   private generateHash(body: Record<string, any>, secret: string) {
-    this.logger.info("Тело для создания хеша", body)
+    this.logger.info('Тело для создания хеша', body);
     let values = '';
     for (let item in body) {
       if (body.hasOwnProperty(item)) {
         values += body[item] + '';
       }
     }
-    this.logger.info(`Строка для хеша: ${values + secret}`)
-    return crypto.createHash('md5').update(values + secret).digest('hex');
-}
+    this.logger.info(`Строка для хеша: ${values + secret}`);
+    return crypto
+      .createHash('md5')
+      .update(values + secret)
+      .digest('hex');
+  }
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
     try {
