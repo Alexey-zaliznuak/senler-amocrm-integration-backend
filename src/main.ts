@@ -26,6 +26,17 @@ async function bootstrap() {
       // durable: 'INTEGRATION_SYNC_VARS_CONSUMER',
     },
   });
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.RMQ,
+  //   options: {
+  //     urls: ['amqp://localhost:5672'],
+  //     queue: 'senler-amo-crm-integration-transferring-queue',
+  //     queueOptions: { durable: true },
+  //     exchange: 'senler-amo-crm-integration-transferring',
+  //     prefetchCount: 1,
+  //     noAck: false,
+  //   },
+  // });
 
   await app.startAllMicroservices();
 
