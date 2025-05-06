@@ -22,6 +22,8 @@ export class SenlerService {
 
     const hash = this.generateHash(body.botCallback, body.integrationSecret);
 
+    delete body.botCallback.group_id
+
     await this.sendRequest({
       url: this.callbackUrl,
       params: { hash, group_id: body.botCallback.group_id, bot_callback: body.botCallback},
