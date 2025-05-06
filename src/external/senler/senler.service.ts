@@ -22,11 +22,11 @@ export class SenlerService {
 
     const hash = this.generateHash(body.botCallback, body.integrationSecret);
 
-    delete body.botCallback.group_id
+    let {group_id, ...rest} = body.botCallback;
 
     await this.sendRequest({
       url: this.callbackUrl,
-      params: { hash, group_id: body.botCallback.group_id, bot_callback: body.botCallback},
+      params: { hash, group_id: body.botCallback.group_id, bot_callback: rest},
     });
   }
 
