@@ -19,6 +19,10 @@ export class SenlerService {
 
   async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
     this.logger.info('Секретный ключ интеграции: ' + body.integrationSecret);
+
+    delete body.botCallback.result
+    delete body.botCallback.test
+
     const hash = this.generateHash(body.botCallback, body.integrationSecret);
 
     await this.sendRequest({
@@ -28,6 +32,7 @@ export class SenlerService {
   }
 
   private generateHash(body: BotStepWebhookDto["botCallback"], secret: string) {
+    this.logger.info(`Тело для хеша:`, body);
     let values = [body.group_id, body.bot_id, body.lead_id, body.server_id, body.step_id, body.vk_user_id].join("");
     this.logger.info(`Строка для хеша: ${values + secret}`);
     return crypto
