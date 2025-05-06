@@ -1,10 +1,10 @@
- 2025-05-06 16:08:19 [Application] info: Строка для хеша: 953340236041666db1078287a7ca40c579097125671b9825ff9b580ce90344b7571385862577d814e0a343c88d06836ba9cebbb6b3ae851a2239598 {}
-backend-1  | 2025-05-06 16:08:19 [AxiosInstance] info: Sending request to https://senler.ru/api/Integrations/Callback {
+backend-1  | 2025-05-06 16:14:38 [Application] info: Строка для хеша: 953340236041666db1078287a7ca40c5790970125671b9825ff9b580ce90344b71571385862577d814e0a343c88d06836ba9cebbb6b3ae851a2239598 {}
+backend-1  | 2025-05-06 16:14:38 [AxiosInstance] info: Sending request to https://senler.ru/api/Integrations/Callback {
 backend-1  |     "url": "https://senler.ru/api/Integrations/Callback",
-backend-1  |     "requestId": "f2e201af-25df-40fb-b797-a6b9c25139ca",
+backend-1  |     "requestId": "3068bba3-b790-4709-9458-0052c785090a",
 backend-1  |     "method": "post",
 backend-1  |     "data": {
-backend-1  |         "hash": "7f38890c6dc085a1b38682b9ab6eb6b3",
+backend-1  |         "hash": "06f292bb71d1cdb6ccb034df75b07d63",
 backend-1  |         "group_id": 953340,
 backend-1  |         "bot_callback": {
 backend-1  |             "bot_id": 2360416,
@@ -21,7 +21,6 @@ backend-1  |     },
 backend-1  |     "headers": {
 backend-1  |         "Accept": "application/json, text/plain, */*"
 backend-1  |     }
-backend-1  | }
 
-953340236041666db1078287a7ca40c579097125671b9825ff9b580ce90344b7571385862577d814e0a343c88d06836ba9cebbb6b3ae851a2239598
-953340236041666db1078287a7ca40c579097
+953340236041666db1078287a7ca40c5790970125671b9825ff9b580ce90344b71571385862577d814e0a343c88d06836ba9cebbb6b3ae851a2239598
+953340 2360416 66db1078287a7ca40c579097 0 125671b9825ff9b580ce90344b71571385862577d814e0a343c88d06836ba9cebbb6b3ae851a2239598
