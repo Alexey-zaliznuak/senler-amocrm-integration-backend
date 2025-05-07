@@ -32,7 +32,7 @@ export class SenlerService {
 
   private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
     const {group_id, ...bodyForHash} = body
-    const forHash = `${body.group_id}${JSON.stringify(bodyForHash)}${secret}`;
+    const forHash = `${body.group_id}${JSON.stringify(bodyForHash).replace(/:/g, ": ").replace(/,/g, ", ")}${secret}`;
 
     this.logger.info(`Тело для хеша:`, bodyForHash);
     this.logger.info(`Строка для хеша: ${forHash}`);
