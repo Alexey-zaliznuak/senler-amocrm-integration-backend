@@ -31,19 +31,21 @@ export class SenlerService {
   }
 
   private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
-    this.logger.info(`Тело для хеша:`, body);
-    // let values = [body.group_id, body.bot_id, body.lead_id, body.result.error_code, body.server_id, body.step_id, body.test, body.vk_user_id].join('');
-    let values = [body.group_id, body.bot_id, body.lead_id, body.server_id, body.step_id, body.vk_user_id].join('');
-    this.logger.info(`Строка для хеша: ${values + secret}`);
+    const {group_id, ...bodyForHash} = body
+    const forHash = `${body.group_id}${JSON.stringify(bodyForHash, undefined, 1)}${secret}`
+
+    this.logger.info(`Тело для хеша:`, bodyForHash);
+    this.logger.info(`Строка для хеша: ${forHash}`);
+
     return crypto
       .createHash('md5')
-      .update(values + secret)
+      .update(forHash)
       .digest('hex');
   }
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
     try {
-      await this.axios.post(request.url, request.params);
+      await this.axios.postForm(request.url, request.params);
     } catch (exception) {
       this.logger.error('Request failed after max attempts', { exception });
       throw new ServiceUnavailableException('Max attempts reached');
