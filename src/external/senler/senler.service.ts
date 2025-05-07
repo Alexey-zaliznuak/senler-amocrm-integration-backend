@@ -20,19 +20,20 @@ export class SenlerService {
   async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
     this.logger.info('Секретный ключ интеграции: ' + body.integrationSecret);
 
-    const { group_id, ...botCallback } = body.botCallback;
+    const { group_id, ...bodyToStringify } = body.botCallback;
+    const stringifiedBody = this.customStringify(bodyToStringify)
 
-    const hash = this.generateHash({ group_id, ...body.botCallback }, body.integrationSecret);
+    const hash = this.generateHash(body.botCallback, body.integrationSecret);
 
     await this.sendRequest({
       url: this.callbackUrl,
-      params: { hash, group_id: body.botCallback.group_id.toString(), bot_callback: botCallback },
+      params: { hash, group_id: body.botCallback.group_id.toString(), bot_callback: stringifiedBody},
     });
   }
 
   private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
     const {group_id, ...bodyForHash} = body
-    const forHash = `${body.group_id}${JSON.stringify(bodyForHash).replace(/:/g, ": ").replace(/,/g, ", ")}${secret}`;
+    const forHash = `${body.group_id}${this.customStringify(bodyForHash)}${secret}`;
 
     this.logger.info(`Тело для хеша:`, bodyForHash);
     this.logger.info(`Строка для хеша: ${forHash}`);
@@ -50,5 +51,9 @@ export class SenlerService {
       this.logger.error('Request failed after max attempts', { exception });
       throw new ServiceUnavailableException('Max attempts reached');
     }
+  }
+
+  private customStringify(data: any): string {
+    return JSON.stringify(data).replace(/:/g, ": ").replace(/,/g, ", ")
   }
 }
