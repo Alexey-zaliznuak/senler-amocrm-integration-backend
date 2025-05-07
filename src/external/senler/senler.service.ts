@@ -20,7 +20,7 @@ export class SenlerService {
   async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
     this.logger.info('Секретный ключ интеграции: ' + body.integrationSecret);
 
-    const { group_id, result, test, ...botCallback } = body.botCallback;
+    const { group_id, ...botCallback } = body.botCallback;
 
     const hash = this.generateHash({ group_id, ...body.botCallback }, body.integrationSecret);
 
