@@ -26,7 +26,7 @@ export class SenlerService {
 
     await this.sendRequest({
       url: this.callbackUrl,
-      params: { hash, group_id: body.botCallback.group_id, bot_callback: botCallback },
+      params: { hash, group_id: body.botCallback.group_id.toString(), bot_callback: botCallback },
     });
   }
 
