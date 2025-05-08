@@ -7,8 +7,6 @@ import { Logger } from 'winston';
 
 @Injectable()
 export class SenlerService {
-  private readonly maxAttempts = 5;
-
   private readonly baseUrl = 'https://senler.ru';
   private readonly callbackUrl = this.baseUrl + '/api/Integrations/Callback';
 
@@ -34,9 +32,6 @@ export class SenlerService {
   private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
     const {group_id, ...bodyForHash} = body
     const forHash = `${body.group_id}${this.customStringify(bodyForHash)}${secret}`;
-
-    this.logger.info(`Тело для хеша:`, bodyForHash);
-    this.logger.info(`Строка для хеша: ${forHash}`);
 
     return crypto
       .createHash('md5')

@@ -1,8 +1,24 @@
 import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppConfigType } from './infrastructure/config/config.app-config';
 
 @Injectable()
 export class AppService {
+  public static connectToRabbitMq(app: INestApplication, config: AppConfigType) {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [config.RABBITMQ_URL],
+        queue: config.RABBITMQ_TRANSFER_QUEUE,
+        queueOptions: {
+          durable: true,
+        },
+        prefetchCount: 10,
+        noAck: false,
+      },
+    });
+  }
   public static setupSwaggerDocument(app: INestApplication) {
     const config = new DocumentBuilder()
       .setTitle('Senler-amoCRM integration')
@@ -16,7 +32,7 @@ export class AppService {
 
     const documentFactory = () => SwaggerModule.createDocument(app, config.build());
 
-    SwaggerModule.setup('api/docs', app, documentFactory);
+    SwaggerModule.setup('/api/docs', app, documentFactory);
   }
 
   public static setupValidation(app: INestApplication) {

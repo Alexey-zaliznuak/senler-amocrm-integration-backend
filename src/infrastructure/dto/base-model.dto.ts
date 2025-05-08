@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsDate } from 'class-validator';
+import { IsDate, IsUUID } from 'class-validator';
 
 export class BaseModelDto {
   @ApiProperty({ description: 'Unique identifier', format: 'uuid' })

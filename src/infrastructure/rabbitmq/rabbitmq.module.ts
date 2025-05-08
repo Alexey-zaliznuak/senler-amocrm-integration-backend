@@ -1,57 +1,59 @@
-import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import * as amqp from 'amqplib';
 
-export const RABBITMQ = "RABBITMQ"
+import { convertExceptionToString } from 'src/utils';
+import { Logger } from 'winston';
+import { AppConfig, AppConfigType } from '../config/config.app-config';
+import { CONFIG } from '../config/config.module';
+import { LoggingModule } from '../logging/logging.module';
+import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitMq.config';
+import { RabbitMqService } from './rabbitMq.service';
 
 @Module({
-  imports: [
-    ClientsModule.register([
-      {
-        name: RABBITMQ,
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://administrator5657654335678675645356:administrator5657654335678675645356@localhost:5672'],
-          queue: 'senler-amo-crm-transferring',
-          exchange: 'senler-amo-crm-transferring-exchange',
-          queueOptions: {
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: {
-              'x-dead-letter-exchange': 'senler-amo-crm-transferring-delayed-exchange', // DLX для фейлов
-              'x-dead-letter-routing-key': 'senler.amo-crm.transferring.delayed'
+  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
+  providers: [
+    RabbitMqService,
+    {
+      provide: RABBITMQ,
+      useFactory: () => {
+        return ClientProxyFactory.create({
+          transport: Transport.RMQ,
+          options: {
+            urls: [AppConfig.RABBITMQ_URL],
+            queue: AppConfig.RABBITMQ_TRANSFER_QUEUE,
+            queueOptions: {
+              durable: true,
             },
-            channel: {
-              assertExchange: true,
-              exchangeType: 'direct',
-              exchangeOptions: {
-                durable: true,
-                internal: false,
-              },
-              bindings: [
-                {
-                  routingKey: 'senler.amo-crm.transferring',
-                  queue: 'senler-amo-crm-transferring',
-                },
-                // Для отложенной очереди
-                {
-                  exchange: 'senler-amo-crm-transferring-delayed-exchange',
-                  routingKey: 'senler.amo-crm.transferring.delayed',
-                  queue: 'senler-amo-crm-transferring-delayed',
-                  args: {
-                    'x-dead-letter-exchange': 'senler-amo-crm-transferring-exchange', // Циклическая обработка
-                    'x-message-ttl': 30000 // 30 секунд задержки
-                  }
-                }
-              ]
-            }
           },
-          prefetchCount: 10,
-          noAck: false,
-        },
+        });
       },
-    ]),
+    },
   ],
-  exports: [ClientsModule],
+  exports: [RABBITMQ, RabbitMqService],
 })
-export class RabbitmqModule {}
+export class RabbitmqModule implements OnModuleInit {
+  constructor(
+    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
+    @Inject(CONFIG) private readonly appConfig: AppConfigType
+  ) {}
+  public async onModuleInit() {
+    try {
+      const connection = await amqp.connect(this.appConfig.RABBITMQ_URL);
+      const channel = await connection.createChannel();
+
+      await channel.assertExchange(this.appConfig.RABBITMQ_TRANSFER_EXCHANGE, 'direct', { durable: true });
+      await channel.assertQueue(this.appConfig.RABBITMQ_TRANSFER_QUEUE, { durable: true });
+      await channel.bindQueue(
+        this.appConfig.RABBITMQ_TRANSFER_QUEUE,
+        this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
+        this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY
+      );
+
+      await channel.close();
+      await connection.close();
+    } catch (exception) {
+      this.logger.error('RabbitMq init failed: ' + convertExceptionToString(exception));
+    }
+  }
+}

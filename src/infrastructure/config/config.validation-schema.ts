@@ -15,7 +15,11 @@ export const appConfigValidationSchema = Joi.object({
   INTEGRATION_SECRET: Joi.string().required(),
 
   DATABASE_URL: Joi.string().uri().required(),
-  NATS_URL: Joi.string().uri().required(),
+
+  RABBITMQ_URL: Joi.string().uri().required(),
+  RABBITMQ_TRANSFER_EXCHANGE: Joi.string().required(),
+  RABBITMQ_TRANSFER_QUEUE: Joi.string().required(),
+  RABBITMQ_TRANSFER_ROUTING_KEY: Joi.string().required(),
 
   CACHE_DATABASE_URL: Joi.string().uri().required(),
   CACHE_DEFAULT_TTL: Joi.number().required(),

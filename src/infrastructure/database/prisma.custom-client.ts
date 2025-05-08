@@ -23,7 +23,7 @@ export class CustomPrismaClient extends PrismaClient {
         break;
       } catch (error) {
         this.logger.info('Failed to connect to the database:', { error });
-        this.logger.info(`Retrying connection in ${this.retryInterval / 1000} seconds`);
+        this.logger.info(`Retrying connection`);
 
         await new Promise(resolve => setTimeout(resolve, this.retryInterval));
       }

@@ -64,7 +64,6 @@ export class LeadDto {
   vkUserId: number;
 }
 
-
 class ResultDto {
   @ApiProperty({ description: 'Error code.' })
   @IsNotEmpty()
@@ -139,12 +138,12 @@ export class BotStepWebhookDto {
   @Type(() => PublicBotStepSettingsDto)
   publicBotStepSettings: PublicBotStepSettingsDto;
 
-  @ApiProperty({ description: 'Request uuid', example: "acde070d-8c4c-4f0d-9d8a-162843c10333" })
+  @ApiProperty({ description: 'Request uuid', example: 'acde070d-8c4c-4f0d-9d8a-162843c10333' })
   @IsNotEmpty()
   @IsUUID()
   requestUuid: string;
 
-  @ApiProperty({ description: 'Integration secret', example: "acde070d-8c4c-4f0d-9d8a-162843c10333" })
+  @ApiProperty({ description: 'Integration secret', example: 'acde070d-8c4c-4f0d-9d8a-162843c10333' })
   @IsNotEmpty()
   @IsString()
   integrationSecret: string;
@@ -161,4 +160,26 @@ export class GetSenlerGroupFieldsDto {
   @IsNotEmpty()
   @IsNumber()
   senlerGroupId: number;
+}
+
+export class TransferMessageMetadata {
+  @ApiProperty({ description: 'Timestamp of message created.' })
+  @IsNumber()
+  retryNumber?: number;
+
+  @ApiProperty({ description: 'Date of message created.' })
+  @IsString()
+  createdAt?: string;
+}
+
+export class TransferMessage {
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => BotStepWebhookDto)
+  payload: BotStepWebhookDto;
+
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => BotStepWebhookDto)
+  metadata: TransferMessageMetadata;
 }

@@ -1,6 +1,6 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggingModule } from '../logging/logging.module';
-import { PRISMA } from './database.config';
+import { LOGGER_INJECTABLE_NAME, PRISMA } from './database.config';
 import { DatabaseService } from './database.service';
 import { PrismaCacheExtensionService } from './extensions';
 import { CustomPrismaClient } from './prisma.custom-client';
@@ -14,7 +14,7 @@ export class DatabaseModule {
   static forRoot(): DynamicModule {
     return {
       module: DatabaseModule,
-      imports: [LoggingModule.forFeature(PRISMA)],
+      imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
       providers: [
         {
           provide: PRISMA,

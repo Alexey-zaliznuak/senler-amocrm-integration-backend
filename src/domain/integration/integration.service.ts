@@ -9,7 +9,7 @@ import { PrismaExtendedClientType } from 'src/infrastructure/database/database.s
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage, TransferMessageMetadata } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -23,21 +23,21 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService
   ) {}
 
-  async processBotStepWebhook(body: BotStepWebhookDto) {
+  async processBotStepWebhook(body: TransferMessage) {
+    let { payload, metadata } = body;
+
     this.logger.info('Запрос в процессе обработки', {
       labels: this.extractLoggingLabelsFromRequest(body),
       status: 'IN PROGRESS',
     });
-    await this.senlerService.acceptWebhookRequest(body);
-    return;
 
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
-      where: { senlerGroupId: body.senlerGroupId },
+      where: { senlerGroupId: payload.senlerGroupId },
     });
 
     if (!senlerGroup) {
       this.logger.error('Ошибка в результате выполнения запроса', {
-        labels: { requestId: body.requestUuid },
+        labels: { requestId: payload.requestUuid },
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',
       });
@@ -51,23 +51,26 @@ export class IntegrationService {
 
     try {
       const { lead, amoCrmLead } = await this.getOrCreateLeadIfNotExists({
-        senlerLeadId: body.lead.id,
-        name: body.lead.name,
-        senlerGroupId: body.senlerGroupId,
+        senlerLeadId: payload.lead.id,
+        name: payload.lead.name,
+        senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmDomainName,
         tokens,
       });
 
-      if (body.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-        await this.sendVarsToAmoCrm(body, tokens, lead);
+      if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
+        await this.sendVarsToAmoCrm(payload, tokens, lead);
       }
-      if (body.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-        await this.sendVarsToSenler(body, amoCrmLead, senlerGroup.amoCrmAccessToken);
+      if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
+        await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.amoCrmAccessToken);
       }
-      this.logger.error('Запрос выполнен успешно', { labels: { requestId: body.requestUuid }, status: 'SUCCESS' });
+
+      await this.senlerService.acceptWebhookRequest(payload);
+
+      this.logger.error('Запрос выполнен успешно', { labels: { requestId: payload.requestUuid }, status: 'SUCCESS' });
     } catch (exception) {
       this.logger.error('Ошибка в результате выполнения запроса', {
-        labels: { requestId: body.requestUuid },
+        labels: { requestId: payload.requestUuid },
         details: convertExceptionToString(exception),
         status: 'FAILED',
       });

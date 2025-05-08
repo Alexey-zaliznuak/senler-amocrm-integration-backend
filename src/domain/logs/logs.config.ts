@@ -1,7 +1,8 @@
-import { AxiosService } from 'src/infrastructure/axios/axios.service';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
+import { AXIOS } from 'src/infrastructure/axios/instance';
+import { LOGGER } from 'src/infrastructure/logging/logging.config';
 
-export const LOGS = "LogsResource"
+export const LOGS = 'LogsResource';
 
-export const LOGGING_INJECTABLE_NAME = LoggingService.buildInjectableNameByContext(LOGS)
-export const AXIOS_INJECTABLE_NAME = AxiosService.buildInjectableNameByContext(LOGS)
+export const LOGGER_INJECTABLE_NAME = LOGS + LOGGER;
+
+export const AXIOS_INJECTABLE_NAME = LOGS + AXIOS;
