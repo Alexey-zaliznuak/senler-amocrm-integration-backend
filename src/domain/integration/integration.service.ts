@@ -9,7 +9,7 @@ import { PrismaExtendedClientType } from 'src/infrastructure/database/database.s
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage, TransferMessageMetadata } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -23,11 +23,11 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService
   ) {}
 
-  async processBotStepWebhook(body: TransferMessage) {
-    let { payload, metadata } = body;
+  async processBotStepWebhook(message: TransferMessage, channel: any, originalMessage: any) {
+    let { payload, metadata } = message;
 
     this.logger.info('Запрос в процессе обработки', {
-      labels: this.extractLoggingLabelsFromRequest(body),
+      labels: this.extractLoggingLabelsFromRequest(payload),
       status: 'IN PROGRESS',
     });
 
@@ -66,6 +66,7 @@ export class IntegrationService {
       }
 
       await this.senlerService.acceptWebhookRequest(payload);
+      channel.ack(originalMessage);
 
       this.logger.error('Запрос выполнен успешно', { labels: { requestId: payload.requestUuid }, status: 'SUCCESS' });
     } catch (exception) {
@@ -74,6 +75,7 @@ export class IntegrationService {
         details: convertExceptionToString(exception),
         status: 'FAILED',
       });
+      channel.nack(originalMessage, false, true);
     }
   }
 

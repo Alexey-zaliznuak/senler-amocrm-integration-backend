@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Inject, Post, Query, UseGuards } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { ApiBody } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -11,7 +11,7 @@ import { RabbitMqService } from 'src/infrastructure/rabbitMq/rabbitMq.service';
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage, TransferMessageMetadata } from './integration.dto';
+import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
@@ -27,9 +27,9 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
-    const message: TransferMessage = {payload: body, metadata: {retryNumber: 0, createdAt: new Date().toISOString()}}
+    const message: TransferMessage = { payload: body, metadata: { retryNumber: 0, createdAt: new Date().toISOString() } };
 
-    this.logger.info('Получен запрос', {
+    this.logger.info('Получен запрос()', {
       labels: this.integrationService.extractLoggingLabelsFromRequest(message.payload),
       requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
       message,
@@ -81,8 +81,11 @@ export class IntegrationController {
   }
 
   @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
-  async handleSyncVariablesMessage(@Payload() message: TransferMessage) {
-    await this.integrationService.processBotStepWebhook(message);
+  async handleSyncVariablesMessage(@Payload() message: TransferMessage, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMessage = context.getMessage();
+
+    await this.integrationService.processBotStepWebhook(message, channel, originalMessage);
   }
 
   @Get('/getAmoFields')
