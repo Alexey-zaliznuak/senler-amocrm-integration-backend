@@ -265,7 +265,7 @@ export class IntegrationService {
     const operation =
       'отправку данных в ' + body.publicBotStepSettings.type === BotStepType.SendDataToAmoCrm
         ? 'amoCRM'
-        : 'отправку данных в Senler';
+        : 'Senler';
     return `Запрос на ${operation} от ${new Date().toLocaleString('UTC')} (UTC)`;
   }
 
