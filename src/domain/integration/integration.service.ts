@@ -146,18 +146,17 @@ export class IntegrationService {
       if (exception instanceof AxiosError) {
         const amoCrmExceptionType = this.amoCrmService.getExceptionType(exception);
 
-        // this.checkExceptionRetryable()
-        if (false) {
+        if (amoCrmExceptionType === AmoCrmErrorType.RATE_LIMIT) {
           this.republishTransferMessage(message);
           await channel.nack(originalMessage, false, false);
+          this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
           // set token to redis.delayed
           return;
-        }
-        else {
-          this.logger.info('Запрос отменен', { labels, status: 'CANCELLED' });
+        } else {
           await channel.nack(originalMessage, false, false);
           // set token to redis.cancelled
           // send error to senler
+          this.logger.info('Запрос отложен', { labels: { requestId: message.payload.requestUuid }, status: 'PENDING RETRYING' });
         }
       }
     }
@@ -175,11 +174,9 @@ export class IntegrationService {
     await this.rabbitMq.publishMessage(
       this.appConfig.RABBITMQ_TRANSFER_EXCHANGE, // queued exchange
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
-      message,
+      message
       // DELAY
     );
-
-    this.logger.info('Запрос отложен', { labels: { requestId: message.payload.requestUuid }, status: 'PENDING RETRYING' });
   }
 
   async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {

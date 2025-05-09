@@ -23,6 +23,7 @@ import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
 import { RabbitmqModule } from './infrastructure/rabbitMq/rabbitMq.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RabbitmqModule } from './infrastructure/rabbitMq/rabbitMq.module';
     // External
     AmoCrmModule,
     SenlerModule,
+    RedisModule,
   ],
 
   controllers: [AppController],
