@@ -65,7 +65,6 @@ export class LogsService {
     const transformedStreams: TransformedLogWithSortKey[] = [];
 
     for (const stream of streams) {
-      // Парсим логи и сортируем от нового к старому
       const parsedLogs = stream.values
         .map(([ns, log]) => {
           try {

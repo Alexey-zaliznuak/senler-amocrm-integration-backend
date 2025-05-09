@@ -8,7 +8,9 @@ import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
   AcceptUnsortedResponse,
   AddUnsortedResponse,
+  AmoCrmErrorType,
   AmoCrmOAuthTokenResponse,
+  AmoCrmTokens,
   CreateContactResponse,
   editLeadsByIdRequest,
   GetLeadRequest,
@@ -18,11 +20,7 @@ import {
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
-
-export type AmoCrmTokens = {
-  amoCrmAccessToken: string;
-  amoCrmRefreshToken: string;
-};
+import { AxiosError } from 'axios';
 
 @Injectable()
 export class AmoCrmService {
@@ -49,6 +47,11 @@ export class AmoCrmService {
     });
 
     return response.data;
+  }
+
+  getExceptionType(exception: AxiosError): AmoCrmErrorType {
+    // TODO
+    return AmoCrmErrorType.INTEGRATION_DEACTIVATED;
   }
 
   @HandleAccessTokenExpiration()
@@ -349,4 +352,6 @@ export class AmoCrmService {
       throw new UnauthorizedException('Failed to create lead if not exists');
     }
   }
+
+
 }

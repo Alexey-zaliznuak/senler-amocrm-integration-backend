@@ -1,4 +1,15 @@
-import { AmoCrmTokens } from './amo-crm.service';
+
+export enum AmoCrmErrorType {
+  RATE_LIMIT = 'RATE_LIMIT',
+  PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
+  INTEGRATION_DEACTIVATED = 'INTEGRATION_DEACTIVATED',
+  REFRESH_TOKEN_EXPIRED = 'REFRESH_TOKEN_EXPIRED',
+}
+
+export type AmoCrmTokens = {
+  amoCrmAccessToken: string;
+  amoCrmRefreshToken: string;
+};
 
 export type AmoCrmOAuthTokenResponse = {
   token_type: string;

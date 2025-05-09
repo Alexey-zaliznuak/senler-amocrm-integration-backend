@@ -1,11 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Lead, SenlerGroup } from '@prisma/client';
+import { AxiosError } from 'axios';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { SenlerApiClientV2 } from 'senler-sdk';
-import { AmoCrmService, AmoCrmTokens } from 'src/external/amo-crm';
-import { GetLeadResponse as AmoCrmLead } from 'src/external/amo-crm/amo-crm.dto';
+import { AmoCrmService } from 'src/external/amo-crm';
+import { AmoCrmErrorType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { SenlerService } from 'src/external/senler/senler.service';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
+import { RabbitMqService } from 'src/infrastructure/rabbitMq/rabbitMq.service';
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
@@ -17,17 +23,74 @@ export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   constructor(
-    private readonly senlerService: SenlerService,
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
+    @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    private readonly rabbitMq: RabbitMqService,
+    private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService
   ) {}
 
-  async processBotStepWebhook(message: TransferMessage, channel: any, originalMessage: any) {
+  async processBotStepWebhook(body: any) {
+    const message: TransferMessage = { payload: body, metadata: { retryNumber: 0, createdAt: new Date().toISOString() } };
+
+    this.logger.info('Получен запрос', {
+      labels: this.extractLoggingLabelsFromRequest(message.payload),
+      requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
+      message,
+      status: 'VALIDATING',
+    });
+
+    try {
+      const validationErrors = await validate(plainToInstance(BotStepWebhookDto, message.payload ?? {}));
+
+      if (validationErrors.length) {
+        const details = validationErrors.map(v => v.toString()).join('\n');
+
+        this.logger.error('Ошибка валидации запроса', {
+          labels: this.extractLoggingLabelsFromRequest(message.payload),
+          details,
+          status: 'FAILED',
+        });
+
+        return {
+          error: 'Validation failed',
+          message: details,
+        };
+      }
+
+      await this.rabbitMq.publishMessage(
+        this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
+        this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
+        message
+      );
+
+      this.logger.info('Запрос принят в обработку', {
+        labels: this.extractLoggingLabelsFromRequest(message.payload),
+        requestTitle: this.buildProcessWebhookTitle(message.payload),
+        status: 'PENDING',
+      });
+
+      return { success: true };
+    } catch (error) {
+      const details = convertExceptionToString(error);
+
+      this.logger.error('Ошибка запроса', {
+        labels: this.extractLoggingLabelsFromRequest(message.payload),
+        details,
+        status: 'FAILED',
+      });
+
+      return { error: 'internal', message: details };
+    }
+  }
+
+  async processTransferMessage(message: TransferMessage, channel: any, originalMessage: any) {
     let { payload, metadata } = message;
 
     this.logger.info('Запрос в процессе обработки', {
       labels: this.extractLoggingLabelsFromRequest(payload),
+      metadata,
       status: 'IN PROGRESS',
     });
 
@@ -75,7 +138,16 @@ export class IntegrationService {
         details: convertExceptionToString(exception),
         status: 'FAILED',
       });
-      channel.nack(originalMessage, false, true);
+
+      if (exception instanceof AxiosError) {
+        const amoCrmExceptionType = this.amoCrmService.getExceptionType(exception);
+
+        if (amoCrmExceptionType === AmoCrmErrorType.RATE_LIMIT) {
+          metadata.retryNumber++;
+          return;
+        }
+        // not retry, send error to senler
+      }
     }
   }
 
