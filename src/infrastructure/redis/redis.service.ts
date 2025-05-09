@@ -1,36 +1,60 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { RedisClientType, createClient } from 'redis';
-import { Logger } from 'winston';
-import { AppConfigType } from '../config/config.app-config';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { createClient, RedisClientType } from 'redis';
 import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
+import { AppConfigType } from '../config/config.app-config';
 
 @Injectable()
 export class RedisService {
+  private client: RedisClientType;
 
   constructor(
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
-    @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
+    @Inject(CONFIG) private appConfig: AppConfigType,
+    @Inject(LOGGER_INJECTABLE_NAME) private logger: Logger,
   ) {
+    this.client = createClient({
+      url: this.appConfig.CACHE_DATABASE_URL,
+      socket: {
+        tls: !this.appConfig.CACHE_DATABASE_URL.includes('localhost'),
+        rejectUnauthorized: false,
+        reconnectStrategy: (attempts, cause) => {
+          this.logger.warn(`Reconnect attempt ${attempts}, cause: ${cause}`);
+          return Math.min(attempts * 100, 1000);
+        },
+      },
+    });
+    this.setupEventHandlers();
   }
 
-  setupEventHandlers(client: RedisClientType) {
-    client
-      .on('connect', () => this.logger.debug('Cache database connected.'))
-      .on('ready', () => this.logger.debug('Cache database ready.'))
-      .on('error', error => this.logger.debug('Cache error: ', { error }))
-      .on('reconnecting', () => this.logger.debug('Reconnect to cache database.'))
-      .on('end', () => this.logger.debug('Cache database connection closed.'));
+  private setupEventHandlers() {
+    this.client.on('error', (err) => this.logger.error(`Redis error: ${err}`));
+    this.client.on('connect', () => this.logger.log('Redis connected'));
+    this.client.on('reconnecting', () => this.logger.log('Redis reconnecting'));
   }
 
-  async connectClientIfNeed(client: RedisClientType) {
+  public async connectIfNeed(): Promise<void> {
     try {
-      if (!client.isOpen) {
-        await client.connect();
+      if (!this.client.isOpen) {
+        await this.client.connect();
+        this.logger.log('Redis client connected successfully');
       }
     } catch (error) {
       this.logger.error(`Cache connection error: ${error.message}`);
       throw error;
+    }
+  }
+
+  public async get(key: string): Promise<string | null> {
+    await this.connectIfNeed();
+    return this.client.get(key);
+  }
+
+  public async set(key: string, value: string, ttl?: number): Promise<void> {
+    await this.connectIfNeed();
+    if (ttl) {
+      await this.client.setEx(key, ttl, value);
+    } else {
+      await this.client.set(key, value);
     }
   }
 }
