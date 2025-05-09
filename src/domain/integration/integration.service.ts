@@ -87,6 +87,7 @@ export class IntegrationService {
 
   async processTransferMessage(message: TransferMessage, channel: any, originalMessage: any) {
     let { payload, metadata } = message;
+    const labels = { requestId: payload.requestUuid };
 
     this.logger.info('Запрос в процессе обработки', {
       labels: this.extractLoggingLabelsFromRequest(payload),
@@ -94,13 +95,16 @@ export class IntegrationService {
       status: 'IN PROGRESS',
     });
 
+    // если в редисе.отмененные ключи - отменить запрос
+    // если в редисе.отложенные ключи - отложить запрос
+
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { senlerGroupId: payload.senlerGroupId },
     });
 
     if (!senlerGroup) {
       this.logger.error('Ошибка в результате выполнения запроса', {
-        labels: { requestId: payload.requestUuid },
+        labels,
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',
       });
@@ -131,24 +135,51 @@ export class IntegrationService {
       await this.senlerService.acceptWebhookRequest(payload);
       channel.ack(originalMessage);
 
-      this.logger.error('Запрос выполнен успешно', { labels: { requestId: payload.requestUuid }, status: 'SUCCESS' });
+      this.logger.error('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
     } catch (exception) {
       this.logger.error('Ошибка в результате выполнения запроса', {
-        labels: { requestId: payload.requestUuid },
-        details: convertExceptionToString(exception),
+        labels,
         status: 'FAILED',
+        details: convertExceptionToString(exception),
       });
 
       if (exception instanceof AxiosError) {
         const amoCrmExceptionType = this.amoCrmService.getExceptionType(exception);
 
-        if (amoCrmExceptionType === AmoCrmErrorType.RATE_LIMIT) {
-          metadata.retryNumber++;
+        // this.checkExceptionRetryable()
+        if (false) {
+          this.republishTransferMessage(message);
+          await channel.nack(originalMessage, false, false);
+          // set token to redis.delayed
           return;
         }
-        // not retry, send error to senler
+        else {
+          this.logger.info('Запрос отменен', { labels, status: 'CANCELLED' });
+          await channel.nack(originalMessage, false, false);
+          // set token to redis.cancelled
+          // send error to senler
+        }
       }
     }
+  }
+
+  async republishTransferMessage(message: TransferMessage) {
+    message.metadata.retryNumber++;
+
+    const delay = this.calculateTransferMessageDelay(
+      message.metadata.retryNumber,
+      this.appConfig.TRANSFER_MESSAGE_RETRY_DELAY_BASE,
+      this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+    );
+
+    await this.rabbitMq.publishMessage(
+      this.appConfig.RABBITMQ_TRANSFER_EXCHANGE, // queued exchange
+      this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
+      message,
+      // DELAY
+    );
+
+    this.logger.info('Запрос отложен', { labels: { requestId: message.payload.requestUuid }, status: 'PENDING RETRYING' });
   }
 
   async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
@@ -263,9 +294,7 @@ export class IntegrationService {
 
   public buildProcessWebhookTitle(body: any): string {
     const operation =
-      'отправку данных в ' + body.publicBotStepSettings.type === BotStepType.SendDataToAmoCrm
-        ? 'amoCRM'
-        : 'Senler';
+      'отправку данных в ' + body.publicBotStepSettings.type === BotStepType.SendDataToAmoCrm ? 'amoCRM' : 'Senler';
     return `Запрос на ${operation} от ${new Date().toLocaleString('UTC')} (UTC)`;
   }
 
@@ -275,5 +304,10 @@ export class IntegrationService {
       leadId: body?.lead?.id || 'не указан',
       requestId: body?.requestUuid || 'не указан',
     };
+  }
+
+  private calculateTransferMessageDelay(retryCount: number, base: number = 1000, max: number) {
+    const randomFactor = 0.8 + Math.random() * 0.4;
+    return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
 }

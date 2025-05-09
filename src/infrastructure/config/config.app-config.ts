@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
-import { level } from 'winston';
 
 config();
 
@@ -23,10 +22,14 @@ export const AppConfig = {
   MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 2000,
 
   DATABASE_URL: process.env.DEV_SERVER_URL,
+
   RABBITMQ_URL: process.env.RABBITMQ_URL,
   RABBITMQ_TRANSFER_EXCHANGE: process.env.RABBITMQ_TRANSFER_EXCHANGE,
   RABBITMQ_TRANSFER_QUEUE: process.env.RABBITMQ_TRANSFER_QUEUE,
   RABBITMQ_TRANSFER_ROUTING_KEY: process.env.RABBITMQ_TRANSFER_ROUTING_KEY,
+
+  TRANSFER_MESSAGE_MAX_RETRY_DELAY: parseInt(process.env.TRANSFER_MESSAGE_MAX_RETRY_DELAY) || 86_400, // 1 day
+  TRANSFER_MESSAGE_RETRY_DELAY_BASE: parseInt(process.env.TRANSFER_MESSAGE_DELAY_BASE) || 1000, // 1 second
 
   CACHE_DATABASE_URL: process.env.CACHE_DATABASE_URL,
   CACHE_DEFAULT_TTL: parseInt(process.env.CACHE_DEFAULT_TTL),
