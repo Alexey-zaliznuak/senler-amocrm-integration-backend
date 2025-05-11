@@ -15,9 +15,9 @@ export class RedisService {
     this.client = createClient({
       url: this.appConfig.CACHE_DATABASE_URL,
       socket: {
-        reconnectStrategy: (attempts, cause) => {
-          this.logger.warn(`Reconnect attempt ${attempts}, cause: ${cause}, url: ${this.appConfig.CACHE_DATABASE_URL}`);
-          return 100;
+        reconnectStrategy: attempts => {
+          this.logger.warn(`Prisma cache database reconnection attempt ${attempts}`);
+          return Math.min(100);
         },
       },
     });

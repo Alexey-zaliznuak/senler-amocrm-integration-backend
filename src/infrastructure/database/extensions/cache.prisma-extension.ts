@@ -39,11 +39,9 @@ export class PrismaCacheExtensionService implements OnModuleInit {
     return createClient({
       url: this.appConfig.CACHE_DATABASE_URL,
       socket: {
-        tls: !this.appConfig.CACHE_DATABASE_URL.includes('localhost'),
-        rejectUnauthorized: false,
-        reconnectStrategy: (attempts, cause) => {
-          this.logger.warn(`Reconnect attempt ${attempts}, cause: ${cause}`);
-          return Math.min(attempts * 100, 1000);
+        reconnectStrategy: attempts => {
+          this.logger.warn(`Prisma cache database reconnection attempt ${attempts}`);
+          return Math.min(100);
         },
       },
     });
