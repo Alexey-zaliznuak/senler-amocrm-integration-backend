@@ -16,8 +16,8 @@ export class RedisService {
       url: this.appConfig.CACHE_DATABASE_URL,
       socket: {
         reconnectStrategy: (attempts, cause) => {
-          this.logger.warn(`Reconnect attempt ${attempts}, cause: ${cause}`);
-          return Math.min(attempts * 100, 1000);
+          this.logger.warn(`Reconnect attempt ${attempts}, cause: ${cause}, url: ${this.appConfig.CACHE_DATABASE_URL}`);
+          return 100;
         },
       },
     });
