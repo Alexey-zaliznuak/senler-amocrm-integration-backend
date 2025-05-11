@@ -1,5 +1,4 @@
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
 import { AppConfigType } from './infrastructure/config/config.app-config';

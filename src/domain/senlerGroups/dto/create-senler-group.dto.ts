@@ -5,7 +5,6 @@ import { BaseSenlerGroup, BaseSenlerGroupDto } from './basic-senler-group.dto';
 export class CreateSenlerGroupRequestDto extends PickType(BaseSenlerGroupDto, [
   'amoCrmDomainName',
   'senlerGroupId',
-  'vkGroupId',
   'senlerApiAccessToken'
 ] as const) {
   @ApiProperty({ description: 'Auth code from amoCRM' })

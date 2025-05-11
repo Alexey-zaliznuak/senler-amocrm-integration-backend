@@ -43,7 +43,6 @@ export class SenlerGroupsService {
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
           senlerApiAccessToken: data.senlerApiAccessToken,
-          vkGroupId: data.vkGroupId,
         },
       });
     } catch (exception) {
@@ -100,7 +99,6 @@ export class SenlerGroupsService {
         | 'amoCrmRefreshToken'
         | 'senlerGroupId'
         | 'senlerApiAccessToken'
-        | 'vkGroupId'
       >
     >
   ): Promise<void | never> {
@@ -111,7 +109,6 @@ export class SenlerGroupsService {
       'amoCrmRefreshToken',
       'senlerGroupId',
       'senlerApiAccessToken',
-      'vkGroupId',
     ];
 
     if (await this.prisma.senlerGroup.existsWithCache({ OR: constraintsNames.map(key => ({ [key]: constraints[key] })) })) {
