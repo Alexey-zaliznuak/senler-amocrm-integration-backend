@@ -1,4 +1,3 @@
-
 export enum AmoCrmErrorType {
   RATE_LIMIT = 'RATE_LIMIT',
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',

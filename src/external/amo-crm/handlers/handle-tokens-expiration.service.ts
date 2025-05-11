@@ -5,8 +5,8 @@ import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { AXIOS_INJECTABLE_NAME } from '../amo-crm.config';
-import { AmoCrmTokens } from '../amo-crm.service';
 import { CustomAxiosInstance } from 'src/infrastructure/axios/instance';
+import { AmoCrmTokens } from '../amo-crm.dto';
 
 @Injectable()
 export class RefreshTokensService {
