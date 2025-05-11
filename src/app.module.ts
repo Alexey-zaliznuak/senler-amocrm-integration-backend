@@ -22,7 +22,7 @@ import { LoggingInterceptor } from './infrastructure/logging/logging.interceptor
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RequestLoggerMiddleware } from './infrastructure/logging/request-logger.middleware';
 import { RequestIdMiddleware } from './infrastructure/middlewares';
-import { RabbitmqModule } from './infrastructure/rabbitMq/rabbitMq.module';
+import { RabbitmqModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 
 @Module({

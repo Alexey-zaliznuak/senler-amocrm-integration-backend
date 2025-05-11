@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Logger } from 'winston';
-import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitMq.config';
 import { lastValueFrom } from 'rxjs';
+import { Logger } from 'winston';
+import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitmq.config';
 
 @Injectable()
 export class RabbitMqService {

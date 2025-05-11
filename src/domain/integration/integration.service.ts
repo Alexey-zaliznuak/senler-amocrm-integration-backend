@@ -11,7 +11,7 @@ import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
-import { RabbitMqService } from 'src/infrastructure/rabbitMq/rabbitMq.service';
+import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';

@@ -7,8 +7,8 @@ import { Logger } from 'winston';
 import { AppConfig, AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LoggingModule } from '../logging/logging.module';
-import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitMq.config';
-import { RabbitMqService } from './rabbitMq.service';
+import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitmq.config';
+import { RabbitMqService } from './rabbitmq.service';
 
 @Module({
   imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
