@@ -1,4 +1,5 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { AxiosError } from 'axios';
 import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.instance';
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -8,7 +9,7 @@ import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
   AcceptUnsortedResponse,
   AddUnsortedResponse,
-  AmoCrmErrorType,
+  AmoCrmExceptionType,
   AmoCrmOAuthTokenResponse,
   AmoCrmTokens,
   CreateContactResponse,
@@ -20,7 +21,6 @@ import {
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
-import { AxiosError } from 'axios';
 
 @Injectable()
 export class AmoCrmService {
@@ -49,9 +49,9 @@ export class AmoCrmService {
     return response.data;
   }
 
-  getExceptionType(exception: AxiosError): AmoCrmErrorType {
+  getExceptionType(exception: AxiosError): AmoCrmExceptionType {
     // TODO
-    return AmoCrmErrorType.INTEGRATION_DEACTIVATED;
+    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
   }
 
   @HandleAccessTokenExpiration()
@@ -352,6 +352,4 @@ export class AmoCrmService {
       throw new UnauthorizedException('Failed to create lead if not exists');
     }
   }
-
-
 }

@@ -5,14 +5,15 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AmoCrmErrorType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import { AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
-import { convertExceptionToString } from 'src/utils';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
+import { convertExceptionToString, timeToMilliseconds } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
@@ -22,10 +23,14 @@ import { IntegrationUtils } from './integration.utils';
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
+  private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
+  private readonly CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:cancelled:';
+
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    private readonly redis: RedisService,
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService
@@ -95,9 +100,6 @@ export class IntegrationService {
       status: 'IN PROGRESS',
     });
 
-    // если в редисе.отмененные ключи - отменить запрос
-    // если в редисе.отложенные ключи - отложить запрос
-
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { senlerGroupId: payload.senlerGroupId },
     });
@@ -108,6 +110,25 @@ export class IntegrationService {
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',
       });
+      return;
+    }
+
+    const delayedAmoCrmKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+    const cancelledAmoCrmKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+
+    if (this.redis.exists(delayedAmoCrmKey)) {
+      this.republishTransferMessage(message);
+
+      await channel.nack(originalMessage, false, false);
+
+      return;
+    }
+
+    if (this.redis.exists(cancelledAmoCrmKey)) {
+      this.republishTransferMessage(message);
+
+      await channel.nack(originalMessage, false, false);
+
       return;
     }
 
@@ -144,25 +165,34 @@ export class IntegrationService {
       });
 
       if (exception instanceof AxiosError) {
-        const amoCrmExceptionType = this.amoCrmService.getExceptionType(exception);
+        const exceptionType = this.amoCrmService.getExceptionType(exception);
 
-        if (amoCrmExceptionType === AmoCrmErrorType.RATE_LIMIT) {
-          this.republishTransferMessage(message);
+        if (exceptionType === AmoCrmExceptionType.RATE_LIMIT) {
+          const delay = await this.republishTransferMessage(message);
           await channel.nack(originalMessage, false, false);
+          await this.redis.set(delayedAmoCrmKey, delay.toString(), delay);
           this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
-          // set token to redis.delayed
-          return;
         } else {
+          let cancelKeyTtl = timeToMilliseconds({ hours: 1 });
+
           await channel.nack(originalMessage, false, false);
-          // set token to redis.cancelled
-          // send error to senler
-          this.logger.info('Запрос отложен', { labels: { requestId: message.payload.requestUuid }, status: 'PENDING RETRYING' });
+
+          // Если проблема не решаема без обновления токена то ttl больше
+          if (
+            exceptionType === AmoCrmExceptionType.INTEGRATION_DEACTIVATED ||
+            exceptionType === AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED
+          )
+            cancelKeyTtl = timeToMilliseconds({ days: 1 });
+
+          await this.redis.set(cancelledAmoCrmKey, 'cancelled', cancelKeyTtl);
+
+          this.logger.info('Запрос отменен', { labels: { requestId: message.payload.requestUuid }, status: 'CANCELLED' });
         }
       }
     }
   }
 
-  async republishTransferMessage(message: TransferMessage) {
+  async republishTransferMessage(message: TransferMessage): Promise<number> {
     message.metadata.retryNumber++;
 
     const delay = this.calculateTransferMessageDelay(
@@ -172,11 +202,12 @@ export class IntegrationService {
     );
 
     await this.rabbitMq.publishMessage(
-      this.appConfig.RABBITMQ_TRANSFER_EXCHANGE, // queued exchange
+      this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
       message
       // DELAY
     );
+    return delay;
   }
 
   async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
@@ -288,6 +319,13 @@ export class IntegrationService {
 
     return leadFields;
   }
+
+  private checkMessageInDelayed(message: TransferMessage) {
+    const key = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + message.payload.requestUuid;
+    return this.redis.exists(key);
+  }
+
+  private checkMessageInCancelled(message: TransferMessage) {}
 
   public buildProcessWebhookTitle(body: any): string {
     const operation =

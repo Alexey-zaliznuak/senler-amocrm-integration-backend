@@ -37,23 +37,47 @@ export class RabbitmqModule implements OnModuleInit {
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly appConfig: AppConfigType
   ) {}
+
   public async onModuleInit() {
     try {
       const connection = await amqp.connect(this.appConfig.RABBITMQ_URL);
       const channel = await connection.createChannel();
 
-      await channel.assertExchange(this.appConfig.RABBITMQ_TRANSFER_EXCHANGE, 'direct', { durable: true });
-      await channel.assertQueue(this.appConfig.RABBITMQ_TRANSFER_QUEUE, { durable: true });
-      await channel.bindQueue(
-        this.appConfig.RABBITMQ_TRANSFER_QUEUE,
-        this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
-        this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY
-      );
+      const transferExchange = this.appConfig.RABBITMQ_TRANSFER_EXCHANGE;
+      const transferQueue = this.appConfig.RABBITMQ_TRANSFER_QUEUE;
+      const transferRoutingKey = this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY;
+
+      const dlxExchange = 'dlx_exchange';
+      const delayQueue = 'delay_queue';
+
+      // Создание основного exchange
+      await channel.assertExchange(transferExchange, 'direct', { durable: true });
+
+      // Создание DLX exchange
+      await channel.assertExchange(dlxExchange, 'direct', { durable: true });
+
+      // Создание основной очереди с DLX
+      await channel.assertQueue(transferQueue, {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': dlxExchange,
+        },
+      });
+      await channel.bindQueue(transferQueue, transferExchange, transferRoutingKey);
+
+      // Создание очереди для задержки с DLX на основной exchange
+      await channel.assertQueue(delayQueue, {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': transferExchange,
+        },
+      });
+      await channel.bindQueue(delayQueue, dlxExchange, transferRoutingKey);
 
       await channel.close();
       await connection.close();
     } catch (exception) {
-      this.logger.error('RabbitMq init failed: ' + convertExceptionToString(exception));
+      this.logger.error('RabbitMQ init failed: ' + convertExceptionToString(exception));
     }
   }
 }

@@ -47,6 +47,12 @@ export class RedisService {
     return this.client.get(key);
   }
 
+  public async exists(key: string): Promise<boolean> {
+    await this.connectIfNeed();
+    const result = await this.client.exists(key);
+    return result === 1;
+  }
+
   public async set(key: string, value: string, ttl?: number): Promise<void> {
     await this.connectIfNeed();
     if (ttl) {
@@ -54,5 +60,10 @@ export class RedisService {
     } else {
       await this.client.set(key, value);
     }
+  }
+
+  public async delete(key: string): Promise<void> {
+    await this.connectIfNeed();
+    await this.client.del(key);
   }
 }

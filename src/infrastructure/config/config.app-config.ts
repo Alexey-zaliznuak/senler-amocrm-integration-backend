@@ -34,8 +34,8 @@ export const AppConfig = {
   CACHE_DATABASE_URL: process.env.CACHE_DATABASE_URL,
   CACHE_DEFAULT_TTL: parseInt(process.env.CACHE_DEFAULT_TTL),
   CACHE_SPECIFIC_TTL: {
-    SenlerGroup: parseInt(process.env.SENLER_GROUP_CACHE_TTL),
-    Lead: parseInt(process.env.LEAD_CACHE_TTL),
+    SenlerGroup: parseInt(process.env.SENLER_GROUP_CACHE_TTL) || parseInt(process.env.CACHE_DEFAULT_TTL),
+    Lead: parseInt(process.env.LEAD_CACHE_TTL) || parseInt(process.env.CACHE_DEFAULT_TTL),
   },
   CACHE_NULL_RESULT_TTL: parseInt(process.env.CACHE_NULL_RESULT_TTL),
 

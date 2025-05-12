@@ -1,22 +1,33 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import * as amqp from 'amqplib';
 import { Logger } from 'winston';
-import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitmq.config';
+import { AppConfigType } from '../config/config.app-config';
+import { CONFIG } from '../config/config.module';
+import { LOGGER_INJECTABLE_NAME } from './rabbitmq.config';
 
 @Injectable()
-export class RabbitMqService {
+export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
+  private channel: amqp.Channel;
+
   constructor(
-    @Inject(RABBITMQ) private readonly client: ClientProxy,
+    @Inject(CONFIG) private readonly appConfig: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {}
 
-  async publishMessage(exchange: string, routingKey: string, payload: any) {
-    await lastValueFrom(this.client.emit({ cmd: exchange, routingKey }, payload));
+  async onModuleInit() {
+    const channelModel = await amqp.connect(this.appConfig.RABBITMQ_URL);
+    this.channel = await channelModel.createChannel();
+    this.logger.info('RabbitMq connection and channel created');
   }
 
-  async onModuleInit() {
-    await this.client.connect();
-    this.logger.info('RabbitMq cluster connected');
+  async publishMessage(exchange: string, routingKey: string, payload: any, params?: { expiration?: number }) {
+    const message = Buffer.from(JSON.stringify(payload));
+    this.channel.publish(exchange, routingKey, message, params);
+    this.logger.debug(`Message published to ${exchange} with routingKey ${routingKey}`, params);
+  }
+
+  async onModuleDestroy() {
+    await this.channel.close();
+    this.logger.info('RabbitMq connection closed');
   }
 }

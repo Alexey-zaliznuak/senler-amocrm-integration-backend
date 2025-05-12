@@ -5,20 +5,6 @@ import { AppConfigType } from './infrastructure/config/config.app-config';
 
 @Injectable()
 export class AppService {
-  public static connectToRabbitMq(app: INestApplication, config: AppConfigType) {
-    app.connectMicroservice<MicroserviceOptions>({
-      transport: Transport.RMQ,
-      options: {
-        urls: [config.RABBITMQ_URL],
-        queue: config.RABBITMQ_TRANSFER_QUEUE,
-        queueOptions: {
-          durable: true,
-        },
-        prefetchCount: 10,
-        noAck: false,
-      },
-    });
-  }
   public static setupSwaggerDocument(app: INestApplication) {
     const config = new DocumentBuilder()
       .setTitle('Senler-amoCRM integration')

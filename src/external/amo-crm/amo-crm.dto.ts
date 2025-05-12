@@ -1,4 +1,4 @@
-export enum AmoCrmErrorType {
+export enum AmoCrmExceptionType {
   RATE_LIMIT = 'RATE_LIMIT',
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
   INTEGRATION_DEACTIVATED = 'INTEGRATION_DEACTIVATED',

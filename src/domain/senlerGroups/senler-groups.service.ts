@@ -26,6 +26,8 @@ export class SenlerGroupsService {
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType
   ) {}
 
+  // TODO: update method, with invalidate cache for group
+
   async create(data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     await this.validateCreateSenlerGroupData(data);
 
