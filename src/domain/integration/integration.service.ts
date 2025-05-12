@@ -204,8 +204,8 @@ export class IntegrationService {
     await this.rabbitMq.publishMessage(
       this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
-      message
-      // DELAY
+      message,
+      { expiration: delay }
     );
     return delay;
   }

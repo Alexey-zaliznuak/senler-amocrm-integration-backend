@@ -1,7 +1,5 @@
 import { HttpStatus, INestApplication, Injectable, ValidationPipe } from '@nestjs/common';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppConfigType } from './infrastructure/config/config.app-config';
 
 @Injectable()
 export class AppService {
