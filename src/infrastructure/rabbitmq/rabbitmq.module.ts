@@ -53,16 +53,16 @@ export class RabbitmqModule implements OnModuleInit {
       this.logger.info(`Exchange ${transferExchange} asserted`);
 
       // Создание delayed exchange
-      // await channel.assertExchange(delayedExchange, 'x-delayed-message', {
-      //   durable: true,
-      //   arguments: { 'x-delayed-type': 'direct' }, // Тип маршрутизации для отложенных сообщений
-      // });
+      await channel.assertExchange(delayedExchange, 'x-delayed-message', {
+        durable: true,
+        arguments: { 'x-delayed-type': 'direct' }, // Тип маршрутизации для отложенных сообщений
+      });
 
       await channel.assertQueue(transferQueue, { durable: true });
 
       // Привязка очереди к основному и отложенному exchange
       await channel.bindQueue(transferQueue, transferExchange, transferRoutingKey);
-      // await channel.bindQueue(transferQueue, delayedExchange, transferRoutingKey);
+      await channel.bindQueue(transferQueue, delayedExchange, transferRoutingKey);
 
       this.logger.info(`Queue ${transferQueue} bound to exchanges`);
 
