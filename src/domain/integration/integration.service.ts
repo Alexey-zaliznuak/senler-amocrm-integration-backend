@@ -118,16 +118,16 @@ export class IntegrationService {
       return;
     }
 
-    const delayedAmoCrmKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
-    const cancelledAmoCrmKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+    const delayedAmoCrmCacheKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+    const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
-    if (this.redis.exists(delayedAmoCrmKey)) {
+    if (this.redis.exists(delayedAmoCrmCacheKey)) {
       this.republishTransferMessage(message);
       await channel.nack(originalMessage, false, false);
       return;
     }
 
-    if (this.redis.exists(cancelledAmoCrmKey)) {
+    if (this.redis.exists(cancelledAmoCrmCacheKey)) {
       await channel.nack(originalMessage, false, false);
       return;
     }
@@ -175,7 +175,7 @@ export class IntegrationService {
 
           await channel.nack(originalMessage, false, false);
 
-          await this.redis.set(delayedAmoCrmKey, delay.toString(), this.AMO_CRM_QUOTA_WINDOW_IN_SECONDS);
+          await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), this.AMO_CRM_QUOTA_WINDOW_IN_SECONDS);
 
           this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
         } else {
@@ -183,7 +183,7 @@ export class IntegrationService {
 
           await channel.nack(originalMessage, false, false);
 
-          await this.redis.set(cancelledAmoCrmKey, delay.toString(), delay / 1000);
+          await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
 
           this.logger.info('Запрос отменен', { labels: { requestId: message.payload.requestUuid }, status: 'CANCELLED' });
         }
