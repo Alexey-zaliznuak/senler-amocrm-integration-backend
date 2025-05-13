@@ -18,6 +18,7 @@ export const appConfigValidationSchema = Joi.object({
 
   RABBITMQ_URL: Joi.string().uri().required(),
   RABBITMQ_TRANSFER_EXCHANGE: Joi.string().required(),
+  RABBITMQ_TRANSFER_DELAYED_EXCHANGE: Joi.string().required(),
   RABBITMQ_TRANSFER_QUEUE: Joi.string().required(),
   RABBITMQ_TRANSFER_ROUTING_KEY: Joi.string().required(),
 

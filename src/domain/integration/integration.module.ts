@@ -6,9 +6,10 @@ import { RabbitmqModule } from 'src/infrastructure/rabbitmq/rabbitmq.module';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { IntegrationController } from './integration.controller';
 import { IntegrationService } from './integration.service';
+import { RedisModule } from 'src/infrastructure/redis/redis.module';
 
 @Module({
-  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME), AmoCrmModule, SenlerModule, RabbitmqModule],
+  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME), AmoCrmModule, SenlerModule, RabbitmqModule, RedisModule],
   controllers: [IntegrationController],
   providers: [IntegrationService],
 })

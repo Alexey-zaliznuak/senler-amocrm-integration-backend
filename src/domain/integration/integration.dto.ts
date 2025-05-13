@@ -170,6 +170,10 @@ export class TransferMessageMetadata {
   @ApiProperty({ description: 'Date of message created.' })
   @IsString()
   createdAt?: string;
+
+  @ApiProperty({ description: 'Last message delay.' })
+  @IsString()
+  delay?: number;
 }
 
 export class TransferMessage {

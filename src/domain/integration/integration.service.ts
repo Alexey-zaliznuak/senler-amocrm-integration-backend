@@ -23,6 +23,8 @@ import { IntegrationUtils } from './integration.utils';
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
+  private readonly AMO_CRM_QUOTA_WINDOW_IN_SECONDS = 1;
+
   private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
   private readonly CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:cancelled:';
 
@@ -37,7 +39,10 @@ export class IntegrationService {
   ) {}
 
   async processBotStepWebhook(body: any) {
-    const message: TransferMessage = { payload: body, metadata: { retryNumber: 0, createdAt: new Date().toISOString() } };
+    const message: TransferMessage = {
+      payload: body,
+      metadata: { retryNumber: 0, createdAt: new Date().toISOString(), delay: 0 },
+    };
 
     this.logger.info('Получен запрос', {
       labels: this.extractLoggingLabelsFromRequest(message.payload),
@@ -114,21 +119,16 @@ export class IntegrationService {
     }
 
     const delayedAmoCrmKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
-    const cancelledAmoCrmKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+    const cancelledAmoCrmKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
     if (this.redis.exists(delayedAmoCrmKey)) {
       this.republishTransferMessage(message);
-
       await channel.nack(originalMessage, false, false);
-
       return;
     }
 
     if (this.redis.exists(cancelledAmoCrmKey)) {
-      this.republishTransferMessage(message);
-
       await channel.nack(originalMessage, false, false);
-
       return;
     }
 
@@ -156,7 +156,7 @@ export class IntegrationService {
       await this.senlerService.acceptWebhookRequest(payload);
       channel.ack(originalMessage);
 
-      this.logger.error('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
+      this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
     } catch (exception) {
       this.logger.error('Ошибка в результате выполнения запроса', {
         labels,
@@ -167,24 +167,23 @@ export class IntegrationService {
       if (exception instanceof AxiosError) {
         const exceptionType = this.amoCrmService.getExceptionType(exception);
 
-        if (exceptionType === AmoCrmExceptionType.RATE_LIMIT) {
+        if (
+          exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
+          message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+        ) {
           const delay = await this.republishTransferMessage(message);
+
           await channel.nack(originalMessage, false, false);
-          await this.redis.set(delayedAmoCrmKey, delay.toString(), delay);
+
+          await this.redis.set(delayedAmoCrmKey, delay.toString(), this.AMO_CRM_QUOTA_WINDOW_IN_SECONDS);
+
           this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
         } else {
-          let cancelKeyTtl = timeToMilliseconds({ hours: 1 });
+          const delay = timeToMilliseconds({ days: 1 });
 
           await channel.nack(originalMessage, false, false);
 
-          // Если проблема не решаема без обновления токена то ttl больше
-          if (
-            exceptionType === AmoCrmExceptionType.INTEGRATION_DEACTIVATED ||
-            exceptionType === AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED
-          )
-            cancelKeyTtl = timeToMilliseconds({ days: 1 });
-
-          await this.redis.set(cancelledAmoCrmKey, 'cancelled', cancelKeyTtl);
+          await this.redis.set(cancelledAmoCrmKey, delay.toString(), delay / 1000);
 
           this.logger.info('Запрос отменен', { labels: { requestId: message.payload.requestUuid }, status: 'CANCELLED' });
         }
@@ -201,11 +200,12 @@ export class IntegrationService {
       this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
 
+    message.metadata.delay = delay;
     await this.rabbitMq.publishMessage(
       this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
       message,
-      { expiration: delay }
+      delay
     );
     return delay;
   }
@@ -320,13 +320,6 @@ export class IntegrationService {
     return leadFields;
   }
 
-  private checkMessageInDelayed(message: TransferMessage) {
-    const key = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + message.payload.requestUuid;
-    return this.redis.exists(key);
-  }
-
-  private checkMessageInCancelled(message: TransferMessage) {}
-
   public buildProcessWebhookTitle(body: any): string {
     const operation =
       'отправку данных в ' + body.publicBotStepSettings.type === BotStepType.SendDataToAmoCrm ? 'amoCRM' : 'Senler';
@@ -341,7 +334,7 @@ export class IntegrationService {
     };
   }
 
-  private calculateTransferMessageDelay(retryCount: number, base: number = 1000, max: number) {
+  private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number) {
     const randomFactor = 0.8 + Math.random() * 0.4;
     return Math.min(base * 2 ** retryCount * randomFactor, max);
   }

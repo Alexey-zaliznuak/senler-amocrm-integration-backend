@@ -1,14 +1,19 @@
-import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Post, Query, UseGuards } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { ApiBody } from '@nestjs/swagger';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
+import { LOGGER } from 'src/infrastructure/logging/logging.config';
+import { Logger } from 'winston';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(private readonly integrationService: IntegrationService) {}
+  constructor(
+    private readonly integrationService: IntegrationService,
+    @Inject(LOGGER) private readonly logger: Logger
+  ) {}
 
   @Post('/botStepWebhook')
   @HttpCode(200)
@@ -19,9 +24,12 @@ export class IntegrationController {
   }
 
   @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
+  @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
   async handleTransferMessage(@Payload() message: TransferMessage, @Ctx() context: RmqContext) {
     const channel = context.getChannelRef();
     const originalMessage = context.getMessage();
+
+    this.logger.info('Message received', { message, originalMessage });
 
     await this.integrationService.processTransferMessage(message, channel, originalMessage);
   }

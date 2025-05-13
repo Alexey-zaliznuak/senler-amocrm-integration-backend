@@ -46,33 +46,25 @@ export class RabbitmqModule implements OnModuleInit {
       const transferExchange = this.appConfig.RABBITMQ_TRANSFER_EXCHANGE;
       const transferQueue = this.appConfig.RABBITMQ_TRANSFER_QUEUE;
       const transferRoutingKey = this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY;
-
-      const dlxExchange = 'dlx_exchange';
-      const delayQueue = 'delay_queue';
+      const delayedExchange = 'senler-amo-crm.integration.delayed';
 
       // Создание основного exchange
       await channel.assertExchange(transferExchange, 'direct', { durable: true });
+      this.logger.info(`Exchange ${transferExchange} asserted`);
 
-      // Создание DLX exchange
-      await channel.assertExchange(dlxExchange, 'direct', { durable: true });
-
-      // Создание основной очереди с DLX
-      await channel.assertQueue(transferQueue, {
+      // Создание delayed exchange
+      await channel.assertExchange(delayedExchange, 'x-delayed-message', {
         durable: true,
-        arguments: {
-          'x-dead-letter-exchange': dlxExchange,
-        },
+        arguments: { 'x-delayed-type': 'direct' }, // Тип маршрутизации для отложенных сообщений
       });
+
+      await channel.assertQueue(transferQueue, { durable: true });
+
+      // Привязка очереди к основному и отложенному exchange
       await channel.bindQueue(transferQueue, transferExchange, transferRoutingKey);
+      await channel.bindQueue(transferQueue, delayedExchange, transferRoutingKey);
 
-      // Создание очереди для задержки с DLX на основной exchange
-      await channel.assertQueue(delayQueue, {
-        durable: true,
-        arguments: {
-          'x-dead-letter-exchange': transferExchange,
-        },
-      });
-      await channel.bindQueue(delayQueue, dlxExchange, transferRoutingKey);
+      this.logger.info(`Queue ${transferQueue} bound to exchanges`);
 
       await channel.close();
       await connection.close();

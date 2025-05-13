@@ -14,8 +14,6 @@ async function bootstrap() {
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
 
-  AppService.connectToRabbitMq(app, config);
-
   await app.startAllMicroservices();
 
   await app.listen(config.PORT);

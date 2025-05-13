@@ -20,10 +20,10 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     this.logger.info('RabbitMq connection and channel created');
   }
 
-  async publishMessage(exchange: string, routingKey: string, payload: any, params?: { expiration?: number }) {
+  async publishMessage(exchange: string, routingKey: string, payload: any, delay: number = 0) {
     const message = Buffer.from(JSON.stringify(payload));
-    this.channel.publish(exchange, routingKey, message, params);
-    this.logger.debug(`Message published to ${exchange} with routingKey ${routingKey}`, params);
+    this.channel.publish(exchange, routingKey, message, delay ? { headers: { 'x-delay': delay } } : undefined);
+    this.logger.debug(`Message published to ${exchange} with routingKey ${routingKey}, delay: ${delay}`);
   }
 
   async onModuleDestroy() {
