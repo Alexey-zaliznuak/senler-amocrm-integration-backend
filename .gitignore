@@ -1,6 +1,5 @@
 dist/
 temp/
-# ./logs/
 
 node_modules/
 

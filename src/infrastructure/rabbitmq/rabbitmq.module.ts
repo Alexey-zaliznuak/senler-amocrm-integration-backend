@@ -1,36 +1,21 @@
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import * as amqp from 'amqplib';
 
+import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core';
 import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
-import { AppConfig, AppConfigType } from '../config/config.app-config';
+import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LoggingModule } from '../logging/logging.module';
-import { LOGGER_INJECTABLE_NAME, RABBITMQ } from './rabbitmq.config';
+import { AmqpService } from './events/amqp.service';
+import { AmqpHandlerService } from './events/handler-service';
+import { LOGGER_INJECTABLE_NAME } from './rabbitmq.config';
 import { RabbitMqService } from './rabbitmq.service';
 
 @Module({
   imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
-  providers: [
-    RabbitMqService,
-    {
-      provide: RABBITMQ,
-      useFactory: () => {
-        return ClientProxyFactory.create({
-          transport: Transport.RMQ,
-          options: {
-            urls: [AppConfig.RABBITMQ_URL],
-            queue: AppConfig.RABBITMQ_TRANSFER_QUEUE,
-            queueOptions: {
-              durable: true,
-            },
-          },
-        });
-      },
-    },
-  ],
-  exports: [RABBITMQ, RabbitMqService],
+  providers: [RabbitMqService, DiscoveryService, MetadataScanner, Reflector, AmqpService, AmqpHandlerService],
+  exports: [RabbitMqService],
 })
 export class RabbitmqModule implements OnModuleInit {
   constructor(
@@ -46,7 +31,7 @@ export class RabbitmqModule implements OnModuleInit {
       const transferExchange = this.appConfig.RABBITMQ_TRANSFER_EXCHANGE;
       const transferQueue = this.appConfig.RABBITMQ_TRANSFER_QUEUE;
       const transferRoutingKey = this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY;
-      const delayedExchange = 'senler-amo-crm.integration.delayed';
+      const delayedExchange = this.appConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE;
 
       // Создание основного exchange
       await channel.assertExchange(transferExchange, 'direct', { durable: true });
@@ -55,8 +40,9 @@ export class RabbitmqModule implements OnModuleInit {
       // Создание delayed exchange
       await channel.assertExchange(delayedExchange, 'x-delayed-message', {
         durable: true,
-        arguments: { 'x-delayed-type': 'direct' }, // Тип маршрутизации для отложенных сообщений
+        arguments: { 'x-delayed-type': 'direct' },
       });
+      this.logger.info(`Exchange ${delayedExchange} asserted`);
 
       await channel.assertQueue(transferQueue, { durable: true });
 

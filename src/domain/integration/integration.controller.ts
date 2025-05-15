@@ -1,19 +1,16 @@
-import { Body, Controller, Get, HttpCode, Inject, Post, Query, UseGuards } from '@nestjs/common';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
+import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
-import { LOGGER } from 'src/infrastructure/logging/logging.config';
-import { Logger } from 'winston';
+import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
+import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(
-    private readonly integrationService: IntegrationService,
-    @Inject(LOGGER) private readonly logger: Logger
-  ) {}
+  constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('/botStepWebhook')
   @HttpCode(200)
@@ -23,15 +20,9 @@ export class IntegrationController {
     return await this.integrationService.processBotStepWebhook(body);
   }
 
-  @EventPattern({ exchange: AppConfig.RABBITMQ_TRANSFER_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
-  // @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
-  async handleTransferMessage(@Payload() message: TransferMessage, @Ctx() context: RmqContext) {
-    const channel = context.getChannelRef();
-    const originalMessage = context.getMessage();
-
-    this.logger.info('Message received', { message, originalMessage });
-
-    // await this.integrationService.processTransferMessage(message, channel, originalMessage);
+  @AmqpEventPattern(AppConfig.RABBITMQ_TRANSFER_QUEUE)
+  async handleTransferMessage(msg: AmqpSerializedMessage<TransferMessage>, channel: amqp.Channel) {
+    await this.integrationService.processTransferMessage(msg.content, channel, msg);
   }
 
   @Get('/getAmoFields')
