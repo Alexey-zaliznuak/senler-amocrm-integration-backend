@@ -42,8 +42,12 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
     format: prettyLogStreamFormatWithColorsAndDatetime,
     filename: path.join('logs', new Date().toISOString().split('T')[0], 'log.log'),
   }) : undefined,
+  // new winston.transports.Console({
+  //   level: 'debug',
+  //   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+  // }),
   new winston.transports.Console({
     level: 'debug',
-    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+    format: prettyLogStreamFormatWithColorsAndDatetime,
   }),
 ];
