@@ -27,7 +27,7 @@ export const prettyLogStreamFormat = winston.format.printf(({ level, message, ti
   const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 4) : message;
   const formattedMeta = meta && Object.keys(meta) ? JSON.stringify(meta, null, 4) : '';
 
-  return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`;
+  return `${timestamp} [${context || 'Application'}] ${level}: ${formattedMessage} ${formattedMeta}`.slice(0, 2000); // TODO убрать
 });
 
 export const prettyLogStreamFormatWithColorsAndDatetime = winston.format.combine(
