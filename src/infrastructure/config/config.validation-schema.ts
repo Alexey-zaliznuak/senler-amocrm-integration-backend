@@ -9,9 +9,6 @@ export const appConfigValidationSchema = Joi.object({
   MICROSERVICE_NAME: Joi.string().default('senler_amo_crm'),
   INSTANCE_ID: Joi.string().default(AppConfig.INSTANCE_ID),
 
-  MAX_CONSOLE_LOG_MESSAGE: Joi.number().default(AppConfig.MAX_CONSOLE_LOG_MESSAGE),
-  STREAM_LOGGING_INFO: Joi.string().default('info'),
-
   INTEGRATION_SECRET: Joi.string().required(),
 
   DATABASE_URL: Joi.string().uri().required(),
@@ -35,8 +32,4 @@ export const appConfigValidationSchema = Joi.object({
   AMO_CRM_CLIENT_ID: Joi.string().required(),
   AMO_CRM_CLIENT_SECRET: Joi.string().required(),
   AMO_CRM_REDIRECT_URI: Joi.string().uri().required(),
-
-  LOKI_HOST: Joi.string().uri().required(),
-  LOKI_USERNAME: Joi.string().required(),
-  LOKI_AUTH_TOKEN: Joi.string().required(),
 });

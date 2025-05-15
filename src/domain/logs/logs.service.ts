@@ -15,8 +15,8 @@ export class LogsService {
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {
     this.auth = {
-      username: this.appConfig.LOKI_USERNAME,
-      password: this.appConfig.LOKI_AUTH_TOKEN,
+      username: "this.appConfig.LOKI_USERNAME",
+      password: "this.appConfig.LOKI_AUTH_TOKEN",
     };
   }
 
@@ -40,7 +40,7 @@ export class LogsService {
     const query = `{${labelString}}`;
 
     try {
-      const response = await this.axios.get(`${this.appConfig.LOKI_HOST}/loki/api/v1/query_range`, {
+      const response = await this.axios.get(`host/loki/api/v1/query_range`, {
         params: {
           query,
           limit: Math.min(limit),

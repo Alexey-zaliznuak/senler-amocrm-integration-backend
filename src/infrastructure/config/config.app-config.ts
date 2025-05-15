@@ -18,9 +18,6 @@ export const AppConfig = {
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
-  STREAM_LOGGING_LEVEL: process.env.STREAM_LOGGING_LEVEL || 'info',
-  MAX_CONSOLE_LOG_MESSAGE: parseInt(process.env.MAX_CONSOLE_LOG_MESSAGE) || 2000,
-
   DATABASE_URL: process.env.DEV_SERVER_URL,
 
   RABBITMQ_URL: process.env.RABBITMQ_URL,
@@ -43,10 +40,6 @@ export const AppConfig = {
   AMO_CRM_CLIENT_ID: process.env.AMO_CRM_CLIENT_ID,
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
   AMO_CRM_REDIRECT_URI: process.env.AMO_CRM_REDIRECT_URI,
-
-  LOKI_HOST: process.env.LOKI_HOST,
-  LOKI_USERNAME: process.env.LOKI_USERNAME,
-  LOKI_AUTH_TOKEN: process.env.LOKI_AUTH_TOKEN,
 };
 
 export type AppConfigType = typeof AppConfig;
