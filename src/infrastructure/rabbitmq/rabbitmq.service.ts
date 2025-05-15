@@ -15,14 +15,27 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    const channelModel = await amqp.connect(this.appConfig.RABBITMQ_URL);
-    this.channel = await channelModel.createChannel();
-    this.logger.info('RabbitMq connection and channel created');
+    try {
+      const channelModel = await amqp.connect(this.appConfig.RABBITMQ_URL);
+      this.channel = await channelModel.createChannel();
+      this.logger.info('RabbitMq connection and channel created');
+    } catch (exception) {
+      this.logger.error('Could not connect to rabbitmq, retry...');
+      await this.onModuleInit();
+    }
   }
 
   async publishMessage(exchange: string, routingKey: string, payload: any, delay: number = 0) {
     const message = Buffer.from(JSON.stringify(payload));
-    this.channel.publish(exchange, routingKey, message, delay ? { headers: { 'x-delay': delay } } : undefined);
+    const headers: any = {
+      'x-match': 'all', // Указывает, что должны совпадать все условия паттерна
+      exchange: exchange, // Передаем exchange как заголовок
+      routingKey: routingKey, // Передаем routingKey как заголовок
+    };
+    if (delay) {
+      headers['x-delay'] = delay; // Добавляем заголовок для задержки, если он есть
+    }
+    this.channel.publish(exchange, routingKey, message, { headers });
     this.logger.debug(`Message published to ${exchange} with routingKey ${routingKey}, delay: ${delay}`);
   }
 

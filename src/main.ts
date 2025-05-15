@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
 import { AppConfigType } from './infrastructure/config/config.app-config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,8 @@ async function bootstrap() {
   AppService.setupSwaggerDocument(app);
   AppService.removePoweredByHeader(app);
   AppService.setupValidation(app);
+
+  AppService.connectToRabbitMq(app, config);
 
   await app.startAllMicroservices();
 

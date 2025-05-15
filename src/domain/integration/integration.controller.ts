@@ -23,15 +23,15 @@ export class IntegrationController {
     return await this.integrationService.processBotStepWebhook(body);
   }
 
-  @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
-  @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
+  @EventPattern({ exchange: AppConfig.RABBITMQ_TRANSFER_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
+  // @EventPattern({ cmd: AppConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE, routingKey: AppConfig.RABBITMQ_TRANSFER_ROUTING_KEY })
   async handleTransferMessage(@Payload() message: TransferMessage, @Ctx() context: RmqContext) {
     const channel = context.getChannelRef();
     const originalMessage = context.getMessage();
 
     this.logger.info('Message received', { message, originalMessage });
 
-    await this.integrationService.processTransferMessage(message, channel, originalMessage);
+    // await this.integrationService.processTransferMessage(message, channel, originalMessage);
   }
 
   @Get('/getAmoFields')
