@@ -1,10 +1,10 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
+import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './rabbitmq.config';
-import { convertExceptionToString } from 'src/utils';
 
 @Injectable()
 export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
@@ -16,6 +16,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
+    await this.connect();
     this.logger.info('RabbitMq connection and channel created');
   }
 
@@ -35,10 +36,9 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     try {
       const channelModel = await amqp.connect(this.appConfig.RABBITMQ_URL);
       this.channel = await channelModel.createChannel();
-      this.logger.info("RabbitMq service connected");
-    }
-    catch (exception) {
-      this.logger.error("RabbitMq failed to connect: " + convertExceptionToString(exception));
+      this.logger.info('RabbitMq service connected');
+    } catch (exception) {
+      this.logger.error('RabbitMq failed to connect: ' + convertExceptionToString(exception));
       setTimeout(() => this.connect(), 1000);
     }
   }
