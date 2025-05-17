@@ -1,5 +1,6 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
+import { Logger } from 'winston';
 import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
@@ -16,8 +17,8 @@ export class RedisService {
       url: this.appConfig.CACHE_DATABASE_URL,
       socket: {
         reconnectStrategy: attempts => {
-          this.logger.warn(`Prisma cache database reconnection attempt ${attempts}`);
-          return Math.min(100);
+          this.logger.warn(`Cache database reconnection attempt ${attempts}`);
+          return 1000;
         },
       },
     });
@@ -26,15 +27,15 @@ export class RedisService {
 
   private setupEventHandlers() {
     this.client.on('error', err => this.logger.error(`Redis error: ${err}`));
-    this.client.on('connect', () => this.logger.log('Redis connected'));
-    this.client.on('reconnecting', () => this.logger.warn('Redis reconnecting'));
+    this.client.on('connect', () => this.logger.info('Redis connected'));
+    this.client.on('reconnecting', () => this.logger.error('Redis reconnecting'));
   }
 
   public async connectIfNeed(): Promise<void> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
-        this.logger.log('Redis client connected successfully');
+        this.logger.info('Redis client connected successfully');
       }
     } catch (error) {
       this.logger.error(`Cache connection error: ${error.message}`);
@@ -71,7 +72,7 @@ export class RedisService {
     await this.connectIfNeed();
     try {
       await this.client.flushDb();
-      this.logger.log('Redis database cleared successfully');
+      this.logger.info('Redis database cleared successfully');
     } catch (error) {
       this.logger.error(`Failed to clear Redis database: ${error.message}`);
       throw error;

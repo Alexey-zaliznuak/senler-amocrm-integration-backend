@@ -45,12 +45,12 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     LoggingModule.forRoot(),
     AxiosModule.forRoot(),
     DatabaseModule.forRoot(),
+    RedisModule,
     RabbitmqModule,
 
     // External
     AmoCrmModule,
     SenlerModule,
-    RedisModule,
   ],
 
   controllers: [AppController],
