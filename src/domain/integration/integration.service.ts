@@ -340,6 +340,7 @@ export class IntegrationService {
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number) {
     const randomFactor = 0.8 + Math.random() * 0.4;
+    this.logger.debug(`${base} * 2 ** ${retryCount} * ${randomFactor} = ${base * 2 ** retryCount * randomFactor}`)
     return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
 }
