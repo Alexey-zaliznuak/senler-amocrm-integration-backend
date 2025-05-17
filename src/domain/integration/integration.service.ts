@@ -202,7 +202,7 @@ export class IntegrationService {
 
     message.metadata.delay = delay;
     await this.rabbitMq.publishMessage(
-      this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
+      this.appConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE,
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
       message,
       delay
