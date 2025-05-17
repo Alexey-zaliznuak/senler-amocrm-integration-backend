@@ -93,8 +93,8 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
       for (const queue of this.handlers.keys()) {
         await this.setupQueueConsumer(queue);
       }
-    } catch (error) {
-      this.logger.error('Failed to connect to RabbitMQ:', error);
+    } catch (exception) {
+      this.logger.error('Failed to connect to RabbitMQ:', exception);
       this.isConnected = false;
       setTimeout(() => this.connect(), 5000);
     }
