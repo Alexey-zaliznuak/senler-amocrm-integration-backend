@@ -123,7 +123,9 @@ export class IntegrationService {
 
     // if (await this.redis.exists(delayedAmoCrmCacheKey)) {
     if (true) {
-      await this.republishTransferMessage(message);
+      if (message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+        await this.republishTransferMessage(message);
+      }
       await channel.nack(originalMessage, false, false);
       return;
     }
@@ -338,7 +340,11 @@ export class IntegrationService {
     };
   }
 
-  private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number = timeToMilliseconds({ days: 1 })) {
+  private calculateTransferMessageDelay(
+    retryCount: number,
+    base: number = timeToMilliseconds({ minutes: 1 }),
+    max: number = timeToMilliseconds({ days: 1 })
+  ) {
     const randomFactor = 0.8 + Math.random() * 0.4;
     return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
