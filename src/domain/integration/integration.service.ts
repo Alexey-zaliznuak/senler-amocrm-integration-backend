@@ -121,7 +121,9 @@ export class IntegrationService {
     const delayedAmoCrmCacheKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
     const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
+    this.logger.info("Stage - 1");
     if (this.redis.exists(delayedAmoCrmCacheKey)) {
+      this.logger.info("Stage - 1.1");
       this.logger.info("Сообщение отложено т.к ключ есть в кеше")
       this.republishTransferMessage(message);
       await channel.nack(originalMessage, false, false);
@@ -129,10 +131,12 @@ export class IntegrationService {
     }
 
     if (this.redis.exists(cancelledAmoCrmCacheKey)) {
+      this.logger.info("Stage - 1.2");
       this.logger.info("Сообщение отменено т.к ключ есть в кеше")
       await channel.nack(originalMessage, false, false);
       return;
     }
+      this.logger.info("Stage - 2");
 
     const tokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
@@ -340,6 +344,6 @@ export class IntegrationService {
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number) {
     const randomFactor = 0.8 + Math.random() * 0.4;
-    return Math.min(base * 2 ** retryCount * randomFactor, max);
+    return Math.min(1000000 * 2 ** retryCount * randomFactor, max);
   }
 }
