@@ -50,11 +50,7 @@ export class RedisService {
 
   public async exists(key: string): Promise<boolean> {
     await this.connectIfNeed();
-    this.logger.info('Проверка существования ключа' + key);
-    const res = await this.client.get(key);
-    this.logger.info('Найден по гету', { res });
     const result = await this.client.exists(key);
-    this.logger.info('Найден по эхзисту', { result });
     return result === 1;
   }
 

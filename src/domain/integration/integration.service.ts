@@ -121,22 +121,16 @@ export class IntegrationService {
     const delayedAmoCrmCacheKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
     const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
-    this.logger.info("Stage - 1");
-    if (this.redis.exists(delayedAmoCrmCacheKey)) {
-      this.logger.info("Stage - 1.1");
-      this.logger.info("Сообщение отложено т.к ключ есть в кеше")
-      this.republishTransferMessage(message);
+    if (await this.redis.exists(delayedAmoCrmCacheKey)) {
+      await this.republishTransferMessage(message);
       await channel.nack(originalMessage, false, false);
       return;
     }
 
-    if (this.redis.exists(cancelledAmoCrmCacheKey)) {
-      this.logger.info("Stage - 1.2");
-      this.logger.info("Сообщение отменено т.к ключ есть в кеше")
+    if (await this.redis.exists(cancelledAmoCrmCacheKey)) {
       await channel.nack(originalMessage, false, false);
       return;
     }
-      this.logger.info("Stage - 2");
 
     const tokens = {
       amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
@@ -177,7 +171,7 @@ export class IntegrationService {
           exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
           message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
         ) {
-          this.logger.info("Сообщение отложено из за ошибки" + convertExceptionToString(exception))
+          this.logger.info('Сообщение отложено из за ошибки' + convertExceptionToString(exception));
           const delay = await this.republishTransferMessage(message);
 
           await channel.nack(originalMessage, false, false);
@@ -206,7 +200,7 @@ export class IntegrationService {
       this.appConfig.TRANSFER_MESSAGE_RETRY_DELAY_BASE,
       this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
-    this.logger.debug("Задержка сообщения в миллисикундах:" + delay.toString());
+    this.logger.debug('Задержка сообщения в миллисикундах:' + delay.toString());
 
     message.metadata.delay = delay;
     await this.rabbitMq.publishMessage(
