@@ -118,19 +118,34 @@ export class IntegrationService {
       return;
     }
 
-    const delayedAmoCrmCacheKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
-    const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
+    const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
+    const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
 
-    // if (await this.redis.exists(delayedAmoCrmCacheKey)) {
-    if (true) {
+    if (await this.redis.exists(delayedAmoCrmCacheKey)) {
       if (message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+        this.logger.info('Сообщение отложено', {
+          labels,
+          details: 'Сообщение отложено из за ограничения по количеству запросов',
+          status: 'PENDING',
+        });
         await this.republishTransferMessage(message);
+      } else {
+        this.logger.info('Сообщение отменено', {
+          labels,
+          details: 'Превышено время в течении которого сообщение могло быть отложено',
+          status: 'CANCELLED',
+        });
       }
       await channel.nack(originalMessage, false, false);
       return;
     }
 
     if (await this.redis.exists(cancelledAmoCrmCacheKey)) {
+      this.logger.info('Сообщение отменено', {
+        labels,
+        details: 'AmoCRM токен признан невалидным',
+        status: 'CANCELLED',
+      });
       await channel.nack(originalMessage, false, false);
       return;
     }
@@ -204,9 +219,9 @@ export class IntegrationService {
       this.appConfig.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
       this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
-    this.logger.debug('Задержка сообщения в миллисикундах:' + delay.toString());
 
     message.metadata.delay = delay;
+
     await this.rabbitMq.publishMessage(
       this.appConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE,
       this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
@@ -348,4 +363,7 @@ export class IntegrationService {
     const randomFactor = 0.8 + Math.random() * 0.4;
     return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
+
+  public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
+  public buildDelayedAmoCrmCacheKey = (accessToken: string) => this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + accessToken;
 }
