@@ -40,7 +40,7 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
   config.NODE_ENV !== NodeEnv.production ? new winston.transports.File({
     level: 'debug',
     format: prettyLogStreamFormatWithColorsAndDatetime,
-    filename: path.join('logs', new Date().toISOString().split('T')[0], 'log.log'),
+    filename: path.join('appLogs', new Date().toISOString().split('T')[0], 'log.log'),
   }) : undefined,
   // new winston.transports.Console({
   //   level: 'debug',

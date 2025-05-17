@@ -83,7 +83,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
       this.connection.on('error', err => {
         this.logger.error('RabbitMQ connection error:', err);
         this.isConnected = false;
-        setTimeout(() => this.connect(), 5000);
+        setTimeout(() => this.connect(), 1000);
       });
 
       this.channel = await this.connection.createChannel();
@@ -96,7 +96,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
     } catch (exception) {
       this.logger.error('Failed to connect to RabbitMQ:', exception);
       this.isConnected = false;
-      setTimeout(() => this.connect(), 5000);
+      setTimeout(() => this.connect(), 1000);
     }
   }
 
