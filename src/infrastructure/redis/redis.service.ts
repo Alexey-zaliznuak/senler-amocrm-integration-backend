@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
+import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
-import { AppConfigType } from '../config/config.app-config';
 
 @Injectable()
 export class RedisService {
@@ -10,7 +10,7 @@ export class RedisService {
 
   constructor(
     @Inject(CONFIG) private appConfig: AppConfigType,
-    @Inject(LOGGER_INJECTABLE_NAME) private logger: Logger,
+    @Inject(LOGGER_INJECTABLE_NAME) private logger: Logger
   ) {
     this.client = createClient({
       url: this.appConfig.CACHE_DATABASE_URL,
@@ -25,9 +25,9 @@ export class RedisService {
   }
 
   private setupEventHandlers() {
-    this.client.on('error', (err) => this.logger.error(`Redis error: ${err}`));
+    this.client.on('error', err => this.logger.error(`Redis error: ${err}`));
     this.client.on('connect', () => this.logger.log('Redis connected'));
-    this.client.on('reconnecting', () => this.logger.log('Redis reconnecting'));
+    this.client.on('reconnecting', () => this.logger.warn('Redis reconnecting'));
   }
 
   public async connectIfNeed(): Promise<void> {
@@ -65,5 +65,16 @@ export class RedisService {
   public async delete(key: string): Promise<void> {
     await this.connectIfNeed();
     await this.client.del(key);
+  }
+
+  public async flushDb(): Promise<void> {
+    await this.connectIfNeed();
+    try {
+      await this.client.flushDb();
+      this.logger.log('Redis database cleared successfully');
+    } catch (error) {
+      this.logger.error(`Failed to clear Redis database: ${error.message}`);
+      throw error;
+    }
   }
 }
