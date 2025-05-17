@@ -233,7 +233,6 @@ export class AmoCrmService {
         },
       }
     );
-    this.logger.debug('Get lead by id response data:', response.data);
     return response.data;
   }
 
