@@ -121,7 +121,8 @@ export class IntegrationService {
     const delayedAmoCrmCacheKey = this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
     const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
-    if (await this.redis.exists(delayedAmoCrmCacheKey)) {
+    // if (await this.redis.exists(delayedAmoCrmCacheKey)) {
+    if (true) {
       await this.republishTransferMessage(message);
       await channel.nack(originalMessage, false, false);
       return;
@@ -339,6 +340,6 @@ export class IntegrationService {
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number) {
     const randomFactor = 0.8 + Math.random() * 0.4;
-    return Math.min(1000000 * 2 ** retryCount * randomFactor, max);
+    return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
 }
