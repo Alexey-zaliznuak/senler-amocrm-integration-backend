@@ -153,7 +153,7 @@ export class IntegrationService {
         await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.amoCrmAccessToken);
       }
 
-      await this.senlerService.acceptWebhookRequest(payload);
+      await this.senlerService.setCallbackOnWebhookRequest(payload);
       channel.ack(originalMessage);
 
       this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
@@ -183,6 +183,7 @@ export class IntegrationService {
           const delay = timeToMilliseconds({ days: 1 });
 
           await channel.nack(originalMessage, false, false);
+          await this.senlerService.setCallbackOnWebhookRequest(message.payload, true);
 
           await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
 

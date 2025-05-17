@@ -15,28 +15,25 @@ export class SenlerService {
     @Inject(AXIOS) private readonly axios: CustomAxiosInstance
   ) {}
 
-  async acceptWebhookRequest(body: BotStepWebhookDto): Promise<void> {
-    this.logger.info('Секретный ключ интеграции: ' + body.integrationSecret);
-
+  async setCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
     const { group_id, ...bodyToStringify } = body.botCallback;
-    const stringifiedBody = this.customStringify(bodyToStringify)
+    bodyToStringify.result.error_code = sendError ? 1 : bodyToStringify.result.error_code;
+
+    const stringifiedBody = this.customStringify(bodyToStringify);
 
     const hash = this.generateHash(body.botCallback, body.integrationSecret);
 
     await this.sendRequest({
       url: this.callbackUrl,
-      params: { hash, group_id: body.botCallback.group_id.toString(), bot_callback: stringifiedBody},
+      params: { hash, group_id: body.botCallback.group_id.toString(), bot_callback: stringifiedBody },
     });
   }
 
   private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
-    const {group_id, ...bodyForHash} = body
+    const { group_id, ...bodyForHash } = body;
     const forHash = `${body.group_id}${this.customStringify(bodyForHash)}${secret}`;
 
-    return crypto
-      .createHash('md5')
-      .update(forHash)
-      .digest('hex');
+    return crypto.createHash('md5').update(forHash).digest('hex');
   }
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
@@ -49,6 +46,6 @@ export class SenlerService {
   }
 
   private customStringify(data: any): string {
-    return JSON.stringify(data).replace(/:/g, ": ").replace(/,/g, ", ")
+    return JSON.stringify(data).replace(/:/g, ': ').replace(/,/g, ', ');
   }
 }
