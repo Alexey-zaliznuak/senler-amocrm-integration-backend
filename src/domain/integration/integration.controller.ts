@@ -6,14 +6,14 @@ import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secr
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
-import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
+import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
   constructor(
     private readonly integrationService: IntegrationService,
-    private readonly redisServices: RedisService,
+    private readonly redisServices: RedisService
   ) {}
 
   @Post('/botStepWebhook')
@@ -21,7 +21,7 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
-    return await this.integrationService.processBotStepWebhook(body);
+    return AppConfig.TRANSFER_MESSAGE_BASE_RETRY_DELAY;
   }
 
   @AmqpEventPattern(AppConfig.RABBITMQ_TRANSFER_QUEUE)

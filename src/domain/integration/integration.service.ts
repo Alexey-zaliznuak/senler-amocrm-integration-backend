@@ -199,7 +199,7 @@ export class IntegrationService {
 
     const delay = this.calculateTransferMessageDelay(
       message.metadata.retryNumber,
-      this.appConfig.TRANSFER_MESSAGE_RETRY_DELAY_BASE,
+      this.appConfig.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
       this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
     this.logger.debug('Задержка сообщения в миллисикундах:' + delay.toString());
@@ -338,9 +338,8 @@ export class IntegrationService {
     };
   }
 
-  private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number) {
+  private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 }), max: number = timeToMilliseconds({ days: 1 })) {
     const randomFactor = 0.8 + Math.random() * 0.4;
-    this.logger.debug(`${base} * 2 ** ${retryCount} * ${randomFactor} = ${base * 2 ** retryCount * randomFactor}`)
     return Math.min(base * 2 ** retryCount * randomFactor, max);
   }
 }

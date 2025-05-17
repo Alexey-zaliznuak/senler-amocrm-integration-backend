@@ -21,7 +21,7 @@ export const appConfigValidationSchema = Joi.object({
   RABBITMQ_TRANSFER_ROUTING_KEY: Joi.string().required(),
 
   TRANSFER_MESSAGE_MAX_RETRY_DELAY: Joi.number().required(),
-  TRANSFER_MESSAGE_RETRY_DELAY_BASE: Joi.number().required(),
+  TRANSFER_MESSAGE_BASE_RETRY_DELAY: Joi.number().required(),
 
   CACHE_DATABASE_URL: Joi.string().uri().required(),
   CACHE_DEFAULT_TTL: Joi.number().required(),
