@@ -35,6 +35,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
   private async setupQueueConsumer(queue: string) {
     try {
       await this.channel.assertQueue(queue, { durable: true });
+      await this.channel.prefetch(this.appConfig.RABBITMQ_PREFETCH_COUNT);
 
       this.logger.info(`Setting up consumer for queue: ${queue}`);
 
@@ -42,18 +43,33 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
         queue,
         async msg => {
           if (!msg) return;
-          msg.content = JSON.parse(msg.content.toString());
+
+          let parsedContent;
+          try {
+            parsedContent = JSON.parse(msg.content.toString());
+          } catch (parseError) {
+            this.logger.error(`Failed to parse message content from queue ${queue}:`, parseError);
+            // Отклоняем сообщение при ошибке парсинга без повторной отправки
+            this.channel.nack(msg, false, false);
+            return;
+          }
+
+          // Создаем объект сообщения с разобранным контентом
+          const serializedMsg = {
+            ...msg,
+            content: parsedContent,
+          } as AmqpSerializedMessage;
 
           try {
             const handler = this.handlers.get(queue);
 
             if (!handler) {
               this.logger.error(`No handler registered for queue: ${queue}`);
-              this.channel.nack(msg);
+              this.channel.nack(msg, false, false);
               return;
             }
 
-            await handler(msg, this.channel);
+            await handler(serializedMsg, this.channel);
           } catch (error) {
             this.logger.error(`Error processing message from queue ${queue}:`, error);
             this.channel.nack(msg, false, false);
