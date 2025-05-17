@@ -122,12 +122,14 @@ export class IntegrationService {
     const cancelledAmoCrmCacheKey = this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + senlerGroup.amoCrmAccessToken;
 
     if (this.redis.exists(delayedAmoCrmCacheKey)) {
+      this.logger.info("Сообщение отложено т.к ключ есть в кеше")
       this.republishTransferMessage(message);
       await channel.nack(originalMessage, false, false);
       return;
     }
 
     if (this.redis.exists(cancelledAmoCrmCacheKey)) {
+      this.logger.info("Сообщение отменено т.к ключ есть в кеше")
       await channel.nack(originalMessage, false, false);
       return;
     }
@@ -171,6 +173,7 @@ export class IntegrationService {
           exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
           message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
         ) {
+          this.logger.info("Сообщение отложено из за ошибки" + convertExceptionToString(exception))
           const delay = await this.republishTransferMessage(message);
 
           await channel.nack(originalMessage, false, false);
@@ -199,6 +202,7 @@ export class IntegrationService {
       this.appConfig.TRANSFER_MESSAGE_RETRY_DELAY_BASE,
       this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
+    this.logger.debug("Задержка сообщения в миллисикундах:" + delay.toString());
 
     message.metadata.delay = delay;
     await this.rabbitMq.publishMessage(
