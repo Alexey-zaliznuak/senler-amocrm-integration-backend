@@ -6,14 +6,11 @@ import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secr
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
-import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(
-    private readonly integrationService: IntegrationService,
-  ) {}
+  constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('/botStepWebhook')
   @HttpCode(200)
