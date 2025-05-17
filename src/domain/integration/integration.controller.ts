@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
@@ -13,7 +13,6 @@ import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './i
 export class IntegrationController {
   constructor(
     private readonly integrationService: IntegrationService,
-    private readonly redisServices: RedisService
   ) {}
 
   @Post('/botStepWebhook')
@@ -33,10 +32,5 @@ export class IntegrationController {
   @HttpCode(200)
   async getAmoFields(@Query() query: GetSenlerGroupFieldsDto): Promise<any> {
     return await this.integrationService.getAmoCrmFields(query);
-  }
-
-  @Delete('/flushRedis')
-  async flush_redis(msg: AmqpSerializedMessage<TransferMessage>, channel: amqp.Channel) {
-    await this.redisServices.flushDb();
   }
 }
