@@ -165,6 +165,11 @@ export class IntegrationService {
         tokens,
       });
 
+      this.logger.info("DDDDDDDDDDDDDD", {
+        1: payload.publicBotStepSettings.type,
+        2: payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm,
+        3: payload.publicBotStepSettings.type == BotStepType.SendDataToSenler,
+      })
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
         this.logger.info("DDDDDDDDDDDDDD AMO CRM")
         await this.sendVarsToAmoCrm(payload, tokens, lead);
