@@ -47,7 +47,7 @@ export class IntegrationService {
     this.logger.info('Получен запрос', {
       labels: this.extractLoggingLabelsFromRequest(message.payload),
       requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
-      message,
+      data: message,
       status: 'VALIDATING',
     });
 

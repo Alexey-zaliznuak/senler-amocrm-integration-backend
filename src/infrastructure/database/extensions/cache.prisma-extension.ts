@@ -323,9 +323,6 @@ export class PrismaCacheExtensionService implements OnModuleInit {
       const cachedData = await this.client.get(cacheKey);
       if (cachedData) {
         this.cacheHits += 1;
-
-        this.logger.info("Cache found: ", {cachedData: JSON.parse(cachedData)})
-
         return JSON.parse(cachedData);
       }
 
