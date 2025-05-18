@@ -166,9 +166,11 @@ export class IntegrationService {
       });
 
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
+        this.logger.info("DDDDDDDDDDDDDD AMO CRM")
         await this.sendVarsToAmoCrm(payload, tokens, lead);
       }
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
+        this.logger.info("DDDDDDDDDDDDDD Senler")
         await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.amoCrmAccessToken);
       }
 
@@ -241,6 +243,7 @@ export class IntegrationService {
       body.lead.personalVars
     );
 
+    this.logger.info("ОТПРАВКА ДАННЫХ В АМО")
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
       amoCrmLeadId: lead.amoCrmLeadId,
