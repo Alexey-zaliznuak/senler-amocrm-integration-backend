@@ -34,13 +34,13 @@ export class SenlerGroupsController {
   @Get(':identifier/')
   @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
   @ApiParam({ name: 'identifier' })
-  @ApiResponse({type: GetSenlerGroupResponseDto})
+  @ApiResponse({ type: GetSenlerGroupResponseDto })
   async getByUniqueField(
     @Param('identifier') identifier: string | number,
     @Query('field') field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponseDto> {
     if (!identifier || !field) {
-      throw new BadRequestException("No identifier or field provided");
+      throw new BadRequestException('No identifier or field provided');
     }
     return await this.senlerGroupsService.getByUniqueField(identifier, field);
   }
@@ -48,13 +48,13 @@ export class SenlerGroupsController {
   @Delete(':identifier/')
   @ApiQuery({ name: 'field', enum: SenlerGroupFieldForGetByUniqueFieldEnum })
   @ApiParam({ name: 'identifier' })
-  @ApiResponse({type: GetSenlerGroupResponseDto})
+  @ApiResponse({ type: GetSenlerGroupResponseDto })
   async deleteByUniqueField(
     @Param('identifier') identifier: string | number,
     @Query('field') field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponseDto> {
     if (!identifier || !field) {
-      throw new BadRequestException("No identifier or field provided");
+      throw new BadRequestException('No identifier or field provided');
     }
     return await this.senlerGroupsService.deleteByUniqueField(identifier, field);
   }
