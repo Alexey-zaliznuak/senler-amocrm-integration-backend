@@ -17,7 +17,7 @@ export class IntegrationController {
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
-    return AppConfig.TRANSFER_MESSAGE_BASE_RETRY_DELAY;
+    return await this.integrationService.processBotStepWebhook(body);
   }
 
   @AmqpEventPattern(AppConfig.RABBITMQ_TRANSFER_QUEUE)
