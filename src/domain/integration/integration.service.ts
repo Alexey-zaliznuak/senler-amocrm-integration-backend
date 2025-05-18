@@ -166,7 +166,7 @@ export class IntegrationService {
       });
 
       this.logger.info("DDDDDDDDDDDDDD", {
-        1: payload.publicBotStepSettings.type,
+        1: payload,
         2: payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm,
         3: payload.publicBotStepSettings.type == BotStepType.SendDataToSenler,
       })
