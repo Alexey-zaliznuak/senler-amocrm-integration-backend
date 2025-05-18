@@ -137,6 +137,7 @@ export class IntegrationService {
         });
       }
       await channel.nack(originalMessage, false, false);
+      await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
       return;
     }
 
@@ -171,7 +172,7 @@ export class IntegrationService {
         await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.amoCrmAccessToken);
       }
 
-      await this.senlerService.setCallbackOnWebhookRequest(payload);
+      await this.senlerService.sendCallbackOnWebhookRequest(payload);
       channel.ack(originalMessage);
 
       this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
@@ -189,7 +190,10 @@ export class IntegrationService {
           exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
           message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
         ) {
-          this.logger.info('Сообщение отложено из за ошибки: ' + convertExceptionToString(exception), { labels, status: 'PENDING' });
+          this.logger.info('Сообщение отложено из за ошибки: ' + convertExceptionToString(exception), {
+            labels,
+            status: 'PENDING',
+          });
           const delay = await this.republishTransferMessage(message);
 
           await channel.nack(originalMessage, false, false);
@@ -201,7 +205,7 @@ export class IntegrationService {
           const delay = timeToMilliseconds({ days: 1 });
 
           await channel.nack(originalMessage, false, false);
-          await this.senlerService.setCallbackOnWebhookRequest(message.payload, true);
+          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
 
           await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
 

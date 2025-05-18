@@ -15,7 +15,7 @@ export class SenlerService {
     @Inject(AXIOS) private readonly axios: CustomAxiosInstance
   ) {}
 
-  async setCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
+  async sendCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
     const { group_id, ...bodyToStringify } = body.botCallback;
     bodyToStringify.result.error_code = sendError ? 1 : bodyToStringify.result.error_code;
 
