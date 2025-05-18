@@ -189,7 +189,7 @@ export class IntegrationService {
           exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
           message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
         ) {
-          this.logger.info('Сообщение отложено из за ошибки' + convertExceptionToString(exception));
+          this.logger.info('Сообщение отложено из за ошибки: ' + convertExceptionToString(exception), { labels, status: 'PENDING' });
           const delay = await this.republishTransferMessage(message);
 
           await channel.nack(originalMessage, false, false);
