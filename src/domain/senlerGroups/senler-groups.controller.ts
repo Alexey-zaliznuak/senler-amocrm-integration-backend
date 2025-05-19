@@ -38,8 +38,8 @@ export class SenlerGroupsController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid amoCRM domain name.',
   })
-  async updateAmoCrmCredentials(@Body() data: UpdateSenlerGroupAmoCrmCredentialsRequestDto): Promise<void> {
-    // return await this.senlerGroupsService.create(data);
+  async updateAmoCrmCredentials(@Body() data: UpdateSenlerGroupAmoCrmCredentialsRequestDto): Promise<any> {
+    return "STAGED";
   }
 
   @Get(':identifier/')
