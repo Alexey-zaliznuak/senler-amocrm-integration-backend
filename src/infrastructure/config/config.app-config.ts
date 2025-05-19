@@ -14,7 +14,6 @@ export const AppConfig = {
   PORT: parseInt(process.env.PORT) || 3000,
 
   MICROSERVICE_NAME: process.env.MICROSERVICE_NAME || 'senler_amo_crm',
-  INSTANCE_ID: process.env.INSTANCE_ID || uuidv4(),
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
