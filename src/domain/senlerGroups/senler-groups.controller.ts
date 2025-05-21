@@ -1,4 +1,16 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
@@ -6,8 +18,8 @@ import {
   SenlerGroupFieldForGetByUniqueField,
   SenlerGroupFieldForGetByUniqueFieldEnum,
 } from './dto/get-senler-group.dto';
-import { SenlerGroupsService } from './senler-groups.service';
 import { UpdateSenlerGroupAmoCrmCredentialsRequestDto } from './dto/update-senler-group.dto';
+import { SenlerGroupsService } from './senler-groups.service';
 
 @Controller('senlerGroups')
 export class SenlerGroupsController {
@@ -39,7 +51,7 @@ export class SenlerGroupsController {
     description: 'Invalid amoCRM domain name.',
   })
   async updateAmoCrmCredentials(@Body() data: UpdateSenlerGroupAmoCrmCredentialsRequestDto): Promise<any> {
-    return "STAGED";
+    return 'STAGED';
   }
 
   @Get(':identifier/')
