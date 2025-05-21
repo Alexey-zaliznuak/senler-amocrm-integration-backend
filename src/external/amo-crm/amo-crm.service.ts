@@ -50,7 +50,21 @@ export class AmoCrmService {
   }
 
   getExceptionType(exception: AxiosError): AmoCrmExceptionType {
-    // TODO
+    const errorCode = exception.response?.status;
+    const error: any = exception.response?.data;
+    const message = error.title;
+
+    if (message === 'Token has expired') {
+      return AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED;
+    }
+    if (errorCode === 401) {
+      return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
+    }
+
+    if (errorCode === 402) {
+      return AmoCrmExceptionType.PAYMENT_REQUIRED;
+    }
+
     return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
   }
 
