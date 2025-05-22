@@ -46,6 +46,12 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
         delete info.timestamp;
         return info;
       })(),
+      winston.format(info => {
+        const labels = { app: config.MICROSERVICE_NAME, env: config.NODE_ENV };
+        info.labels =
+          info.labels && typeof info.labels === 'object' && !Array.isArray(info.labels) ? { ...info.labels, ...labels } : labels;
+        return info;
+      })(),
       winston.format.json({ space: 4 })
     ),
   }),
