@@ -3,7 +3,6 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  NotFoundException,
   ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -95,12 +94,7 @@ export class SenlerGroupsService {
     constraints: Partial<
       Pick<
         SenlerGroup,
-        | 'id'
-        | 'amoCrmAccessToken'
-        | 'amoCrmDomainName'
-        | 'amoCrmRefreshToken'
-        | 'senlerGroupId'
-        | 'senlerApiAccessToken'
+        'id' | 'amoCrmAccessToken' | 'amoCrmDomainName' | 'amoCrmRefreshToken' | 'senlerGroupId' | 'senlerApiAccessToken'
       >
     >
   ): Promise<void | never> {
