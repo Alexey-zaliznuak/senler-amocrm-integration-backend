@@ -1,8 +1,6 @@
 import * as winston from 'winston';
 import * as Transport from 'winston-transport';
-import { AppConfigType, NodeEnv } from '../config/config.app-config';
-
-import path from 'path';
+import { AppConfigType } from '../config/config.app-config';
 
 export const LOGGER = 'WinstonLogger';
 
@@ -37,14 +35,24 @@ export const prettyLogStreamFormatWithColorsAndDatetime = winston.format.combine
 );
 
 export const baseTransports = (config: AppConfigType): Transport[] => [
-  // new winston.transports.Console({
-  //   level: 'debug',
-  //   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-  // }),
   new winston.transports.Console({
     level: 'debug',
-    format: prettyLogStreamFormatWithColorsAndDatetime,
+    format: winston.format.combine(
+      winston.format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss',
+      }),
+      winston.format(info => {
+        info.datetime = info.timestamp;
+        delete info.timestamp;
+        return info;
+      })(),
+      winston.format.json({ space: 4 })
+    ),
   }),
+  // new winston.transports.Console({
+  //   level: 'debug',
+  //   format: prettyLogStreamFormatWithColorsAndDatetime,
+  // }),
   // config.NODE_ENV !== NodeEnv.production ? new winston.transports.File({
   //   level: 'debug',
   //   format: prettyLogStreamFormatWithColorsAndDatetime,
