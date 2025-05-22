@@ -34,12 +34,10 @@ export class LoggingInterceptor implements NestInterceptor {
     const statusCode = payload instanceof HttpException ? payload.getStatus() : res.statusCode;
 
     const headers = res.getHeaders();
-    const contentLength = headers['content-length'] || 'unknown';
     const processTime = headers['x-process-time'] || `${Date.now() - startTime} ms`;
 
     req.logger.info('Response sent', {
       statusCode,
-      contentLength,
       headers,
       payload,
       req: this.extractLoggableData(req),
