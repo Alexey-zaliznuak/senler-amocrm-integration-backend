@@ -35,30 +35,30 @@ export const prettyLogStreamFormatWithColorsAndDatetime = winston.format.combine
 );
 
 export const baseTransports = (config: AppConfigType): Transport[] => [
-  new winston.transports.Console({
-    level: 'debug',
-    format: winston.format.combine(
-      winston.format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss',
-      }),
-      winston.format(info => {
-        info.datetime = info.timestamp;
-        delete info.timestamp;
-        return info;
-      })(),
-      winston.format(info => {
-        const labels = { app: config.MICROSERVICE_NAME, env: config.NODE_ENV };
-        info.labels =
-          info.labels && typeof info.labels === 'object' && !Array.isArray(info.labels) ? { ...info.labels, ...labels } : labels;
-        return info;
-      })(),
-      winston.format.json({ space: 4 })
-    ),
-  }),
   // new winston.transports.Console({
   //   level: 'debug',
-  //   format: prettyLogStreamFormatWithColorsAndDatetime,
+  //   format: winston.format.combine(
+  //     winston.format.timestamp({
+  //       format: 'YYYY-MM-DD HH:mm:ss',
+  //     }),
+  //     winston.format(info => {
+  //       info.datetime = info.timestamp;
+  //       delete info.timestamp;
+  //       return info;
+  //     })(),
+  //     winston.format(info => {
+  //       const labels = { app: config.MICROSERVICE_NAME, env: config.NODE_ENV };
+  //       info.labels =
+  //         info.labels && typeof info.labels === 'object' && !Array.isArray(info.labels) ? { ...info.labels, ...labels } : labels;
+  //       return info;
+  //     })(),
+  //     winston.format.json({ space: 4 })
+  //   ),
   // }),
+  new winston.transports.Console({
+    level: 'debug',
+    format: prettyLogStreamFormatWithColorsAndDatetime,
+  }),
   // config.NODE_ENV !== NodeEnv.production ? new winston.transports.File({
   //   level: 'debug',
   //   format: prettyLogStreamFormatWithColorsAndDatetime,
