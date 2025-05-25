@@ -38,9 +38,6 @@ export class RateLimitsService {
       increment
     );
 
-    const logger = new LoggingService(AppConfig).createLogger();
-    logger.error("Информация по рейт лимиту", {rate, allowed})
-
     if (!allowed) throw new AmoCrmError(AmoCrmExceptionType.TOO_MANY_REQUESTS, true);
   }
 
