@@ -433,8 +433,9 @@ export class IntegrationService {
     base: number = timeToMilliseconds({ minutes: 1 }),
     max: number = timeToMilliseconds({ days: 1 })
   ) {
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    return Math.min(base * 2 ** retryCount * randomFactor, max);
+    const difference = 0.2
+    const randomFactor = (1 - difference) + Math.random() * difference * 2;
+    return Math.min(base * (1 + difference * 2) ** retryCount * randomFactor, max);
   }
 
   public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
