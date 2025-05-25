@@ -229,7 +229,7 @@ export class IntegrationService {
           await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
 
           this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
-        } else if (exceptionType === AmoCrmExceptionType.INVALID_REQUEST) {
+        } else if (exceptionType === AmoCrmExceptionType.INVALID_DATA_STRUCTURE) {
           channel.nack(originalMessage as any, false, false);
           this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных', {
             exception: {
