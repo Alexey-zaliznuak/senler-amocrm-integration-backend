@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Counter, Registry } from 'prom-client';
+import { Registry } from 'prom-client';
 import { PrismaCacheExtensionService } from 'src/infrastructure/database/extensions';
 import * as si from 'systeminformation';
-import { MicroserviceGauge as Gauge } from './metrics.microservice-gauge';
-
+import { MicroserviceCounter as Counter, MicroserviceGauge as Gauge } from './metrics.microservice-gauge';
 
 @Injectable()
 export class MetricsService {
