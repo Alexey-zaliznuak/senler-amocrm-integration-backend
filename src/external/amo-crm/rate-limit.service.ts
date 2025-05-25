@@ -24,6 +24,11 @@ export class RateLimitsService {
   async updateRateLimitAndThrowIfNeed(amoCrmDomainName: string, increment?: number) {
     increment = increment ?? 1;
     const group = await this.prisma.senlerGroup.findUniqueWithCache({ where: { amoCrmDomainName } });
+
+    if (!group) {
+      return;
+    }
+
     const { rate, allowed } = await this.redisService.incrementSlidingWindowRate(
       this.buildWindowKey(amoCrmDomainName),
       group.amoCrmRateLimit,

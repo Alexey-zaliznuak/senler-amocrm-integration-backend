@@ -9,8 +9,10 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
   GetSenlerGroupResponseDto,
@@ -31,7 +33,7 @@ export class SenlerGroupsService {
     await this.validateCreateSenlerGroupData(data);
 
     try {
-      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens(data.amoCrmDomainName, data.amoCrmAuthorizationCode);
+      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens({amoCrmDomainName: data.amoCrmDomainName, code: data.amoCrmAuthorizationCode});
 
       return await this.prisma.senlerGroup.create({
         select: {
@@ -77,7 +79,6 @@ export class SenlerGroupsService {
     field: SenlerGroupFieldForGetByUniqueField
   ): Promise<GetSenlerGroupResponseDto> {
     identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
-    if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
 
     await this.prisma.senlerGroup.findUniqueOrThrow({ [field]: identifier } as any);
 
@@ -106,9 +107,16 @@ export class SenlerGroupsService {
       'senlerGroupId',
       'senlerApiAccessToken',
     ];
+    const validConstraints = constraintsNames
+      .filter(key => constraints[key] !== undefined && constraints[key] !== null)
+      .map(key => ({ [key]: constraints[key] }));
 
-    if (await this.prisma.senlerGroup.existsWithCache({ OR: constraintsNames.map(key => ({ [key]: constraints[key] })) })) {
-      throw new ConflictException('SenlerGroup with same properties already exists');
+    if (validConstraints.length === 0) {
+      return;
+    }
+
+    if (await this.prisma.senlerGroup.existsWithCache({ OR: validConstraints })) {
+      throw new ConflictException('SenlerGroup с такими свойствами уже существует');
     }
   }
 }

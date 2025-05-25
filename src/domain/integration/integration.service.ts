@@ -192,7 +192,7 @@ export class IntegrationService {
         labels,
         status: 'FAILED',
         exception: {
-          details: convertExceptionToString(exception),
+          message: convertExceptionToString(exception),
         },
       });
 
