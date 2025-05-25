@@ -389,10 +389,10 @@ export class AmoCrmService {
       switch (errorCode) {
         case 110:
           return AmoCrmExceptionType.AUTHENTICATION_FAILED;
-        case 111:
-          return AmoCrmExceptionType.CAPTCHA_REQUIRED;
-        case 112:
-          return AmoCrmExceptionType.USER_DISABLED;
+        // case 111:
+          // return AmoCrmExceptionType.CAPTCHA_REQUIRED;
+        // case 112:
+          // return AmoCrmExceptionType.USER_DISABLED;
         case 101:
           return AmoCrmExceptionType.ACCOUNT_NOT_FOUND;
         default:
@@ -407,7 +407,8 @@ export class AmoCrmService {
         case 403:
           return AmoCrmExceptionType.ACCOUNT_BLOCKED;
         default:
-          return AmoCrmExceptionType.FORBIDDEN;
+          // return AmoCrmExceptionType.FORBIDDEN;
+          return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
       }
     }
 
@@ -416,84 +417,84 @@ export class AmoCrmService {
     }
 
     if (httpCode === 429) {
-      return AmoCrmExceptionType.RATE_LIMIT_EXCEEDED;
+      return AmoCrmExceptionType.TOO_MANY_REQUESTS;
     }
 
-    switch (errorCode) {
-      case 202:
-        return AmoCrmExceptionType.CONTACTS_NO_PERMISSION;
-      case 203:
-        return AmoCrmExceptionType.CONTACTS_CUSTOM_FIELD_ERROR;
-      case 205:
-        return AmoCrmExceptionType.CONTACTS_NOT_CREATED;
-      case 212:
-        return AmoCrmExceptionType.CONTACTS_NOT_UPDATED;
-      case 219:
-        return AmoCrmExceptionType.CONTACTS_SEARCH_ERROR;
-      case 330:
-        return AmoCrmExceptionType.CONTACTS_TOO_MANY_DEALS;
-    }
+    // switch (errorCode) {
+    //   case 202:
+    //     return AmoCrmExceptionType.CONTACTS_NO_PERMISSION;
+    //   case 203:
+    //     return AmoCrmExceptionType.CONTACTS_CUSTOM_FIELD_ERROR;
+    //   case 205:
+    //     return AmoCrmExceptionType.CONTACTS_NOT_CREATED;
+    //   case 212:
+    //     return AmoCrmExceptionType.CONTACTS_NOT_UPDATED;
+    //   case 219:
+    //     return AmoCrmExceptionType.CONTACTS_SEARCH_ERROR;
+    //   case 330:
+    //     return AmoCrmExceptionType.CONTACTS_TOO_MANY_DEALS;
+    // }
 
-    if (errorCode === 330) {
-      return AmoCrmExceptionType.DEALS_TOO_MANY_CONTACTS;
-    }
+    // if (errorCode === 330) {
+    //   return AmoCrmExceptionType.DEALS_TOO_MANY_CONTACTS;
+    // }
 
-    switch (errorCode) {
-      case 244:
-        return AmoCrmExceptionType.EVENTS_NO_PERMISSION;
-      case 225:
-        return AmoCrmExceptionType.EVENTS_NOT_FOUND;
-    }
+    // switch (errorCode) {
+    //   case 244:
+    //     return AmoCrmExceptionType.EVENTS_NO_PERMISSION;
+    //   case 225:
+    //     return AmoCrmExceptionType.EVENTS_NOT_FOUND;
+    // }
 
-    switch (errorCode) {
-      case 231:
-        return AmoCrmExceptionType.TASKS_NOT_FOUND;
-      case 233:
-        return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
-      case 234:
-        return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
-      case 235:
-        return AmoCrmExceptionType.TASKS_TYPE_NOT_SPECIFIED;
-      case 236:
-        return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
-      case 237:
-        return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
-      case 244:
-        return AmoCrmExceptionType.DEALS_NO_PERMISSION;
-    }
+    // switch (errorCode) {
+    //   case 231:
+    //     return AmoCrmExceptionType.TASKS_NOT_FOUND;
+    //   case 233:
+    //     return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
+    //   case 234:
+    //     return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
+    //   case 235:
+    //     return AmoCrmExceptionType.TASKS_TYPE_NOT_SPECIFIED;
+    //   case 236:
+    //     return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
+    //   case 237:
+    //     return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
+    //   case 244:
+    //     return AmoCrmExceptionType.DEALS_NO_PERMISSION;
+    // }
 
-    switch (errorCode) {
-      case 244:
-        return AmoCrmExceptionType.CATALOGS_NO_PERMISSION;
-      case 281:
-        return AmoCrmExceptionType.CATALOGS_NOT_DELETED;
-      case 282:
-        return AmoCrmExceptionType.CATALOGS_NOT_FOUND;
-    }
+    // switch (errorCode) {
+    //   case 244:
+    //     return AmoCrmExceptionType.CATALOGS_NO_PERMISSION;
+    //   case 281:
+    //     return AmoCrmExceptionType.CATALOGS_NOT_DELETED;
+    //   case 282:
+    //     return AmoCrmExceptionType.CATALOGS_NOT_FOUND;
+    // }
 
-    switch (errorCode) {
-      case 203:
-        return AmoCrmExceptionType.CATALOG_ITEMS_CUSTOM_FIELD_ERROR;
-      case 204:
-        return AmoCrmExceptionType.CATALOG_ITEMS_FIELD_NOT_FOUND;
-      case 244:
-        return AmoCrmExceptionType.CATALOG_ITEMS_NO_PERMISSION;
-      case 280:
-        return AmoCrmExceptionType.CATALOG_ITEMS_CREATED;
-      case 282:
-        return AmoCrmExceptionType.CATALOG_ITEMS_NOT_FOUND;
-    }
+    // switch (errorCode) {
+    //   case 203:
+    //     return AmoCrmExceptionType.CATALOG_ITEMS_CUSTOM_FIELD_ERROR;
+    //   case 204:
+    //     return AmoCrmExceptionType.CATALOG_ITEMS_FIELD_NOT_FOUND;
+    //   case 244:
+    //     return AmoCrmExceptionType.CATALOG_ITEMS_NO_PERMISSION;
+    //   case 280:
+    //     return AmoCrmExceptionType.CATALOG_ITEMS_CREATED;
+    //   case 282:
+    //     return AmoCrmExceptionType.CATALOG_ITEMS_NOT_FOUND;
+    // }
 
-    switch (errorCode) {
-      case 288:
-        return AmoCrmExceptionType.CUSTOMERS_NO_PERMISSION;
-      case 402:
-        return AmoCrmExceptionType.CUSTOMERS_PAYMENT_REQUIRED;
-      case 425:
-        return AmoCrmExceptionType.CUSTOMERS_FEATURE_UNAVAILABLE;
-      case 426:
-        return AmoCrmExceptionType.CUSTOMERS_FEATURE_DISABLED;
-    }
+    // switch (errorCode) {
+    //   case 288:
+    //     return AmoCrmExceptionType.CUSTOMERS_NO_PERMISSION;
+    //   case 402:
+    //     return AmoCrmExceptionType.CUSTOMERS_PAYMENT_REQUIRED;
+    //   case 425:
+    //     return AmoCrmExceptionType.CUSTOMERS_FEATURE_UNAVAILABLE;
+    //   case 426:
+    //     return AmoCrmExceptionType.CUSTOMERS_FEATURE_DISABLED;
+    // }
 
     switch (errorCode) {
       case 400:
@@ -506,6 +507,7 @@ export class AmoCrmService {
         return AmoCrmExceptionType.NO_CONTENT_FOUND;
     }
 
-    return AmoCrmExceptionType.UNKNOWN_ERROR;
+    // return AmoCrmExceptionType.UNKNOWN_ERROR;
+    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
   }
 }
