@@ -1,7 +1,9 @@
 export enum AmoCrmExceptionType {
-  RATE_LIMIT = 'RATE_LIMIT',
+  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
   INTEGRATION_DEACTIVATED = 'INTEGRATION_DEACTIVATED',
+  INVALID_REQUEST = 'INVALID_REQUEST',
+  ACCOUNT_BLOCKED_BY_TOO_MANY_REQUESTS = 'ACCOUNT_BLOCKED_BY_TOO_MANY_REQUESTS',
   REFRESH_TOKEN_EXPIRED = 'REFRESH_TOKEN_EXPIRED',
   ACCESS_TOKEN_EXPIRED = 'ACCESS_TOKEN_EXPIRED',
 }
@@ -169,3 +171,14 @@ export type editLeadsByIdVarsValueRequest = {
   vars?: { n: string; v: string }[];
   glob_vars?: { n: string; v: string }[];
 };
+
+export class AmoCrmError extends Error {
+  type: AmoCrmExceptionType;
+  preliminary: boolean;  // Если ошибка создана до запроса к амо, например при проверке рейт лимита
+
+  constructor(type: AmoCrmExceptionType, preliminary: boolean = false, message?: string) {
+    super(message);
+    this.type = type;
+    this.preliminary = preliminary;
+  }
+}

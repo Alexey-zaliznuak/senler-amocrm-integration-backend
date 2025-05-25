@@ -9,6 +9,7 @@ import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
   AcceptUnsortedResponse,
   AddUnsortedResponse,
+  AmoCrmError,
   AmoCrmExceptionType,
   AmoCrmOAuthTokenResponse,
   AmoCrmTokens,
@@ -21,6 +22,8 @@ import {
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
+import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
+import { RateLimitsService } from './rate-limit.service';
 
 @Injectable()
 export class AmoCrmService {
@@ -28,9 +31,11 @@ export class AmoCrmService {
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: CustomAxiosInstance,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly refreshTokensService: RefreshTokensService
+    private readonly refreshTokensService: RefreshTokensService,
+    private readonly rateLimitsService: RateLimitsService
   ) {}
 
+  @UpdateRateLimitAndThrowIfNeed()
   async getAccessAndRefreshTokens(amoCrmDomainName: string, code: string): Promise<AmoCrmOAuthTokenResponse> {
     const response = await this.axios.post<AmoCrmOAuthTokenResponse>(`https://${amoCrmDomainName}/oauth2/access_token`, {
       client_id: this.config.AMO_CRM_CLIENT_ID,
@@ -49,25 +54,7 @@ export class AmoCrmService {
     return response.data;
   }
 
-  getExceptionType(exception: AxiosError): AmoCrmExceptionType {
-    const errorCode = exception.response?.status;
-    const error: any = exception.response?.data;
-    const message = error.title;
-
-    if (message === 'Token has expired') {
-      return AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED;
-    }
-    if (errorCode === 401) {
-      return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
-    }
-
-    if (errorCode === 402) {
-      return AmoCrmExceptionType.PAYMENT_REQUIRED;
-    }
-
-    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
-  }
-
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async addContact({
     amoCrmDomainName,
@@ -104,6 +91,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async addUnsorted({
     amoCrmDomainName,
@@ -152,6 +140,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async acceptUnsorted({
     amoCrmDomainName,
@@ -187,6 +176,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async getUnsortedByUID({
     amoCrmDomainName,
@@ -211,6 +201,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async createLead({
     amoCrmDomainName,
@@ -233,6 +224,7 @@ export class AmoCrmService {
     return response.data['_embedded']['leads'][0];
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async getLeadById(data: GetLeadRequest): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
@@ -250,6 +242,7 @@ export class AmoCrmService {
     return response.data;
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomainName,
@@ -284,6 +277,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async createLeadField({
     amoCrmDomainName,
@@ -312,6 +306,7 @@ export class AmoCrmService {
     }
   }
 
+  @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async getLeadFields({
     amoCrmDomainName,
@@ -364,5 +359,44 @@ export class AmoCrmService {
       this.logger.error('Error creating lead if not exists', { error });
       throw new UnauthorizedException('Failed to create lead if not exists');
     }
+  }
+
+  getExceptionType(exception: AxiosError | AmoCrmError): AmoCrmExceptionType {
+    /*
+    Return type of amo crm error
+    (source)[https://www.amocrm.ru/developers/content/crm_platform/error-codes]
+    */
+    if (exception instanceof AmoCrmError) {
+      return exception.type;
+    }
+
+    const errorCode = exception.response?.status;
+    const error: any = exception.response?.data;
+    const message = error.title;
+
+    if (message === 'Token has expired') {
+      return AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED;
+    }
+    if (errorCode === 401) {
+      return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
+    }
+
+    if (errorCode === 402) {
+      return AmoCrmExceptionType.PAYMENT_REQUIRED;
+    }
+
+    if (errorCode === 403) {
+      return AmoCrmExceptionType.ACCOUNT_BLOCKED_BY_TOO_MANY_REQUESTS;
+    }
+
+    if (errorCode === 422) {
+      return AmoCrmExceptionType.INVALID_REQUEST;
+    }
+
+    if (errorCode === 429) {
+      return AmoCrmExceptionType.TOO_MANY_REQUESTS;
+    }
+
+    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
   }
 }

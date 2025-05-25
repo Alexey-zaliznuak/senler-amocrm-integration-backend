@@ -25,12 +25,6 @@ export class RedisService {
     this.setupEventHandlers();
   }
 
-  private setupEventHandlers() {
-    this.client.on('error', err => this.logger.error(`Redis error: ${err}`));
-    this.client.on('connect', () => this.logger.info('Redis connected'));
-    this.client.on('reconnecting', () => this.logger.error('Redis reconnecting'));
-  }
-
   public async connectIfNeed(): Promise<void> {
     try {
       if (!this.client.isOpen) {
@@ -77,5 +71,43 @@ export class RedisService {
       this.logger.error(`Failed to clear Redis database: ${error.message}`);
       throw error;
     }
+  }
+
+  public async incrementSlidingWindowRate(
+    key: string,
+    maxRate: number,
+    windowSeconds: number,
+    increment: number = 1
+  ): Promise<{ rate: number; allowed: boolean }> {
+    await this.connectIfNeed();
+
+    const now = Date.now();
+
+    const currentRate = await this.getSlidingWindowRate(key, windowSeconds);
+
+    if (currentRate + increment <= maxRate) {
+      await this.client.zAdd(key, { score: now, value: now.toString() });
+      await this.client.expire(key, windowSeconds + 1);
+      return { rate: currentRate + increment, allowed: true };
+    }
+
+    return { rate: currentRate, allowed: false };
+  }
+
+  public async getSlidingWindowRate(key: string, windowSeconds: number) {
+    const multi = this.client.multi();
+    const windowStart = Date.now() - windowSeconds * 1000;
+
+    multi.zRemRangeByScore(key, '-inf', windowStart);
+    multi.zCard(key);
+
+    const [_, currentRate] = (await multi.exec()) as [unknown, number];
+    return currentRate;
+  }
+
+  private setupEventHandlers() {
+    this.client.on('error', err => this.logger.error(`Redis error: ${err}`));
+    this.client.on('connect', () => this.logger.info('Redis connected'));
+    this.client.on('reconnecting', () => this.logger.error('Redis reconnecting'));
   }
 }

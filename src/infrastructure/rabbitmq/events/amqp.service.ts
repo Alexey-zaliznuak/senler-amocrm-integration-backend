@@ -49,7 +49,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
             parsedContent = JSON.parse(msg.content.toString());
           } catch (parseError) {
             this.logger.error(`Failed to parse message content from queue ${queue}:`, parseError);
-            // Отклоняем сообщение при ошибке парсинга без повторной отправки
+            // Отклоняем сообщение без повторной отправки
             this.channel.nack(msg, false, false);
             return;
           }

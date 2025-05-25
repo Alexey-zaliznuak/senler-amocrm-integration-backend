@@ -16,6 +16,7 @@ model SenlerGroup {
 
   amoCrmAccessToken                  String      @unique
   amoCrmRefreshToken                 String      @unique
+  amoCrmRateLimit                    Int         @default(7)
 
   senlerGroupId                      Int         @unique
   senlerApiAccessToken               String      @unique

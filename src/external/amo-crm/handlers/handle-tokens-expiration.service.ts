@@ -7,17 +7,21 @@ import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { AXIOS_INJECTABLE_NAME } from '../amo-crm.config';
 import { AmoCrmTokens } from '../amo-crm.dto';
+import { RateLimitsService } from '../rate-limit.service';
+import { UpdateRateLimitAndThrowIfNeed } from './rate-limit.decorator';
 
 @Injectable()
 export class RefreshTokensService {
   constructor(
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axiosService: CustomAxiosInstance,
     @Inject(CONFIG) private readonly config: AppConfigType,
-    @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType
+    @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
+    @Inject(PRISMA) private readonly rateLimitsService: RateLimitsService // used in UpdateRateLimitAndThrowIfNeed
   ) {}
 
-  async refresh({ amoCrmDomain, tokens }: { tokens: AmoCrmTokens; amoCrmDomain: string }): Promise<AmoCrmTokens> {
-    const response: AxiosResponse = await this.axiosService.post(`https://${amoCrmDomain}/oauth2/access_token`, {
+  @UpdateRateLimitAndThrowIfNeed()
+  async refresh({ amoCrmDomainName, tokens }: { tokens: AmoCrmTokens; amoCrmDomainName: string }): Promise<AmoCrmTokens> {
+    const response: AxiosResponse = await this.axiosService.post(`https://${amoCrmDomainName}/oauth2/access_token`, {
       client_id: this.config.AMO_CRM_CLIENT_ID,
       client_secret: this.config.AMO_CRM_CLIENT_SECRET,
       grant_type: 'refresh_token',

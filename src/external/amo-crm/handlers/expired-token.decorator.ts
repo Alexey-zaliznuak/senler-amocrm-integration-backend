@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
-import { RefreshTokensService } from './handle-tokens-expiration.service';
 import { AmoCrmTokens } from '../amo-crm.dto';
+import { RefreshTokensService } from './handle-tokens-expiration.service';
 
 export function HandleAccessTokenExpiration() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -18,11 +18,11 @@ export function HandleAccessTokenExpiration() {
 
         const originalMethodProperty = args[0];
         const tokens: AmoCrmTokens = originalMethodProperty.tokens;
-        const amoCrmDomain: string = originalMethodProperty.amoCrmDomainName;
+        const amoCrmDomainName: string = originalMethodProperty.amoCrmDomainName;
 
         const newTokens = await refreshTokensService.refresh({
           tokens,
-          amoCrmDomain,
+          amoCrmDomainName,
         });
 
         args[0].tokens = newTokens;

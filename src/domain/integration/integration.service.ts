@@ -1,16 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Lead, SenlerGroup } from '@prisma/client';
+import * as amqp from 'amqplib';
 import { AxiosError } from 'axios';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS, RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
+import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds } from 'src/utils';
@@ -23,10 +26,15 @@ import { IntegrationUtils } from './integration.utils';
 export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
-  private readonly AMO_CRM_QUOTA_WINDOW_IN_SECONDS = 1;
-
   private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
   private readonly CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:cancelled:';
+
+  // от 2-х до 3-х запросов на выполнение
+  // проверить существует ли лид, (опционально: если лида нет то создать), отправить в него данные
+  private readonly REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_AMO_CRM = 3;
+
+  // проверить существует ли лид, (опционально: если лида нет то создать), отправить данные в сенлер
+  private readonly REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_SENLER = 2;
 
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
@@ -35,7 +43,8 @@ export class IntegrationService {
     private readonly redis: RedisService,
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
-    private readonly amoCrmService: AmoCrmService
+    private readonly amoCrmService: AmoCrmService,
+    private readonly rateLimitsService: RateLimitsService
   ) {}
 
   async processBotStepWebhook(body: any) {
@@ -97,7 +106,11 @@ export class IntegrationService {
     }
   }
 
-  async processTransferMessage(message: TransferMessage, channel: any, originalMessage: any) {
+  async processTransferMessage(
+    message: TransferMessage,
+    channel: amqp.Channel,
+    originalMessage: AmqpSerializedMessage<TransferMessage>
+  ) {
     let { payload, metadata } = message;
     const labels = { requestId: payload.requestUuid };
 
@@ -120,26 +133,22 @@ export class IntegrationService {
       return;
     }
 
+    const { currentRate, maxRate } = await this.rateLimitsService.getRateInfo(senlerGroup.amoCrmDomainName);
+    const requiredRate =
+      payload.publicBotStepSettings.type === BotStepType.SendDataToSenler
+        ? this.REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_SENLER
+        : this.REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_AMO_CRM;
+
+    if (currentRate + requiredRate > maxRate) {
+      await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
+      return;
+    }
+
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
     const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
 
     if (await this.redis.exists(delayedAmoCrmCacheKey)) {
-      if (message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
-        this.logger.info('Сообщение отложено', {
-          labels,
-          details: 'Сообщение отложено из за ограничения по количеству запросов',
-          status: 'PENDING',
-        });
-        await this.republishTransferMessage(message);
-      } else {
-        this.logger.info('Сообщение отменено', {
-          labels,
-          details: 'Превышено время в течении которого сообщение могло быть отложено',
-          status: 'CANCELLED',
-        });
-      }
-      await channel.nack(originalMessage, false, false);
-      await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+      await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
       return;
     }
 
@@ -149,7 +158,7 @@ export class IntegrationService {
         details: 'AmoCRM токен признан невалидным',
         status: 'CANCELLED',
       });
-      await channel.nack(originalMessage, false, false);
+      channel.nack(originalMessage as any, false, false);
       return;
     }
 
@@ -175,49 +184,105 @@ export class IntegrationService {
       }
 
       await this.senlerService.sendCallbackOnWebhookRequest(payload);
-      channel.ack(originalMessage);
+      channel.ack(originalMessage as any);
 
       this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
     } catch (exception) {
       this.logger.error('Ошибка в результате выполнения запроса', {
         labels,
         status: 'FAILED',
-        details: convertExceptionToString(exception),
+        exception: {
+          details: convertExceptionToString(exception),
+        },
       });
 
-      if (exception instanceof AxiosError) {
+      if (exception instanceof AxiosError || exception instanceof AmoCrmError) {
         const exceptionType = this.amoCrmService.getExceptionType(exception);
 
-        if (
-          exceptionType === AmoCrmExceptionType.RATE_LIMIT &&
-          message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
-        ) {
-          this.logger.info('Сообщение отложено из за ошибки: ' + convertExceptionToString(exception), {
+        if (exceptionType === AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+          if (!(message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
+            this.logger.info('Запрос отменен без блокировки ключей, из-за исчерпания попыток', {
+              labels: { requestId: message.payload.requestUuid },
+              exception: {
+                message: convertExceptionToString(message),
+                type: exceptionType,
+              },
+              status: 'CANCELLED',
+            });
+            channel.nack(originalMessage as any, false, false);
+            return;
+          }
+          this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(exception), {
             labels,
-            status: 'PENDING',
+            status: 'FAILED',
+            exception: {
+              message: convertExceptionToString(exception),
+              type: exceptionType,
+            },
           });
-          const delay = await this.republishTransferMessage(message);
+          const delay = await this.publishTransferMessageWithLongerDelay(message);
 
-          await channel.nack(originalMessage, false, false);
+          channel.nack(originalMessage as any, false, false);
 
-          await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), this.AMO_CRM_QUOTA_WINDOW_IN_SECONDS);
+          await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
 
           this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
+        } else if (exceptionType === AmoCrmExceptionType.INVALID_REQUEST) {
+          channel.nack(originalMessage as any, false, false);
+          this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных', {
+            exception: {
+              type: exceptionType,
+              message: convertExceptionToString(exception),
+            },
+            labels: { requestId: message.payload.requestUuid },
+            status: 'CANCELLED',
+          });
         } else {
           const delay = timeToMilliseconds({ days: 1 });
 
-          await channel.nack(originalMessage, false, false);
+          channel.nack(originalMessage as any, false, false);
           await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
 
           await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
 
-          this.logger.info('Запрос отменен', { labels: { requestId: message.payload.requestUuid }, status: 'CANCELLED' });
+          this.logger.info('Запрос отменен с блокировкой ключей', {
+            labels: { requestId: message.payload.requestUuid },
+            exception: {
+              message: convertExceptionToString(message),
+              type: exceptionType,
+            },
+            status: 'CANCELLED',
+          });
         }
       }
     }
   }
 
-  async republishTransferMessage(message: TransferMessage): Promise<number> {
+  async republishTransferMessageWithLongerDelay(
+    message: TransferMessage,
+    labels: object,
+    channel: amqp.Channel,
+    originalMessage: AmqpSerializedMessage
+  ) {
+    if (message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+      this.logger.info('Сообщение отложено', {
+        labels,
+        details: 'Сообщение отложено из-за ограничения по количеству запросов',
+        status: 'PENDING',
+      });
+      await this.publishTransferMessageWithLongerDelay(message);
+    } else {
+      this.logger.info('Сообщение отменено', {
+        labels,
+        details: 'Превышено время в течении которого сообщение могло быть отложено',
+        status: 'CANCELLED',
+      });
+    }
+    channel.nack(originalMessage as any, false, false);
+    await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+  }
+
+  async publishTransferMessageWithLongerDelay(message: TransferMessage): Promise<number> {
     message.metadata.retryNumber++;
 
     const delay = this.calculateTransferMessageDelay(
