@@ -11,7 +11,7 @@ export const AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS = 1;
 export class RateLimitsService {
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
-    @Inject(PRISMA) private readonly redisService: RedisService
+    private readonly redisService: RedisService
   ) {}
 
   /**
