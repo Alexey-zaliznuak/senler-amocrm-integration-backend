@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
 import { Logger } from 'winston';
 import { AppConfigType } from '../config/config.app-config';
@@ -6,7 +6,7 @@ import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
 
 @Injectable()
-export class RedisService {
+export class RedisService implements OnModuleInit {
   private client: RedisClientType;
 
   constructor(
@@ -23,6 +23,10 @@ export class RedisService {
       },
     });
     this.setupEventHandlers();
+  }
+
+  async onModuleInit() {
+    await this.connectIfNeed()
   }
 
   public async connectIfNeed(): Promise<void> {
@@ -95,6 +99,7 @@ export class RedisService {
   }
 
   public async getSlidingWindowRate(key: string, windowSeconds: number) {
+    await this.connectIfNeed();
     const multi = this.client.multi();
     const windowStart = Date.now() - windowSeconds * 1000;
 
