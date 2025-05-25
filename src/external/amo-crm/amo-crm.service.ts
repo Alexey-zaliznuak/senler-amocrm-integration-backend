@@ -376,33 +376,136 @@ export class AmoCrmService {
       return exception.type;
     }
 
-    const errorCode = exception.response?.status;
+    const httpCode = exception.response?.status;
     const error: any = exception.response?.data;
     const message = error.title;
+    const errorCode = error.status;
 
     if (message === 'Token has expired') {
       return AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED;
     }
-    if (errorCode === 401) {
-      return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
+
+    if (httpCode === 401 || errorCode === 401) {
+      switch (errorCode) {
+        case 110:
+          return AmoCrmExceptionType.AUTHENTICATION_FAILED;
+        case 111:
+          return AmoCrmExceptionType.CAPTCHA_REQUIRED;
+        case 112:
+          return AmoCrmExceptionType.USER_DISABLED;
+        case 101:
+          return AmoCrmExceptionType.ACCOUNT_NOT_FOUND;
+        default:
+          return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
+      }
     }
 
-    if (errorCode === 402) {
+    if (httpCode === 403) {
+      switch (errorCode) {
+        case 113:
+          return AmoCrmExceptionType.IP_ACCESS_DENIED;
+        case 403:
+          return AmoCrmExceptionType.ACCOUNT_BLOCKED;
+        default:
+          return AmoCrmExceptionType.FORBIDDEN;
+      }
+    }
+
+    if (httpCode === 402 || errorCode === 402) {
       return AmoCrmExceptionType.PAYMENT_REQUIRED;
     }
 
-    if (errorCode === 403) {
-      return AmoCrmExceptionType.ACCOUNT_BLOCKED_BY_TOO_MANY_REQUESTS;
+    if (httpCode === 429) {
+      return AmoCrmExceptionType.RATE_LIMIT_EXCEEDED;
     }
 
-    if (errorCode === 422) {
-      return AmoCrmExceptionType.INVALID_REQUEST;
+    switch (errorCode) {
+      case 202:
+        return AmoCrmExceptionType.CONTACTS_NO_PERMISSION;
+      case 203:
+        return AmoCrmExceptionType.CONTACTS_CUSTOM_FIELD_ERROR;
+      case 205:
+        return AmoCrmExceptionType.CONTACTS_NOT_CREATED;
+      case 212:
+        return AmoCrmExceptionType.CONTACTS_NOT_UPDATED;
+      case 219:
+        return AmoCrmExceptionType.CONTACTS_SEARCH_ERROR;
+      case 330:
+        return AmoCrmExceptionType.CONTACTS_TOO_MANY_DEALS;
     }
 
-    if (errorCode === 429) {
-      return AmoCrmExceptionType.TOO_MANY_REQUESTS;
+    if (errorCode === 330) {
+      return AmoCrmExceptionType.DEALS_TOO_MANY_CONTACTS;
     }
 
-    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
+    switch (errorCode) {
+      case 244:
+        return AmoCrmExceptionType.EVENTS_NO_PERMISSION;
+      case 225:
+        return AmoCrmExceptionType.EVENTS_NOT_FOUND;
+    }
+
+    switch (errorCode) {
+      case 231:
+        return AmoCrmExceptionType.TASKS_NOT_FOUND;
+      case 233:
+        return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
+      case 234:
+        return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
+      case 235:
+        return AmoCrmExceptionType.TASKS_TYPE_NOT_SPECIFIED;
+      case 236:
+        return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
+      case 237:
+        return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
+      case 244:
+        return AmoCrmExceptionType.DEALS_NO_PERMISSION;
+    }
+
+    switch (errorCode) {
+      case 244:
+        return AmoCrmExceptionType.CATALOGS_NO_PERMISSION;
+      case 281:
+        return AmoCrmExceptionType.CATALOGS_NOT_DELETED;
+      case 282:
+        return AmoCrmExceptionType.CATALOGS_NOT_FOUND;
+    }
+
+    switch (errorCode) {
+      case 203:
+        return AmoCrmExceptionType.CATALOG_ITEMS_CUSTOM_FIELD_ERROR;
+      case 204:
+        return AmoCrmExceptionType.CATALOG_ITEMS_FIELD_NOT_FOUND;
+      case 244:
+        return AmoCrmExceptionType.CATALOG_ITEMS_NO_PERMISSION;
+      case 280:
+        return AmoCrmExceptionType.CATALOG_ITEMS_CREATED;
+      case 282:
+        return AmoCrmExceptionType.CATALOG_ITEMS_NOT_FOUND;
+    }
+
+    switch (errorCode) {
+      case 288:
+        return AmoCrmExceptionType.CUSTOMERS_NO_PERMISSION;
+      case 402:
+        return AmoCrmExceptionType.CUSTOMERS_PAYMENT_REQUIRED;
+      case 425:
+        return AmoCrmExceptionType.CUSTOMERS_FEATURE_UNAVAILABLE;
+      case 426:
+        return AmoCrmExceptionType.CUSTOMERS_FEATURE_DISABLED;
+    }
+
+    switch (errorCode) {
+      case 400:
+        return AmoCrmExceptionType.INVALID_DATA_STRUCTURE;
+      case 422:
+        return AmoCrmExceptionType.DATA_PROCESSING_FAILED;
+      case 405:
+        return AmoCrmExceptionType.METHOD_NOT_SUPPORTED;
+      case 2002:
+        return AmoCrmExceptionType.NO_CONTENT_FOUND;
+    }
+
+    return AmoCrmExceptionType.UNKNOWN_ERROR;
   }
 }
