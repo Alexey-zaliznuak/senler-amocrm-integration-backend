@@ -193,6 +193,8 @@ export class IntegrationService {
         status: 'FAILED',
         exception: {
           message: convertExceptionToString(exception),
+          amoType: exception instanceof AmoCrmError ? exception.type : null,
+          preliminary: exception instanceof AmoCrmError ? exception.preliminary : false,
         },
       });
 
