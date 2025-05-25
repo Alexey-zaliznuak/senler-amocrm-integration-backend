@@ -1,8 +1,9 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { Module, DynamicModule, Global } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { LoggingModule } from '../logging/logging.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
 
+@Global()
 @Module({
   imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME)],
   providers: [RedisService],
