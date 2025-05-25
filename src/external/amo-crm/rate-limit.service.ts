@@ -40,12 +40,12 @@ export class RateLimitsService {
   }
 
   async getRateInfo(amoCrmDomainName: string): Promise<{ currentRate: number; maxRate: number }> {
-    const [currentRate, maxRate] = await Promise.all([
-      await this.redisService.getSlidingWindowRate(this.buildWindowKey(amoCrmDomainName), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS),
-      (await this.prisma.senlerGroup.findUniqueWithCache({ where: { amoCrmDomainName } })).amoCrmRateLimit,
+    const [currentRate, group] = await Promise.all([
+      this.redisService.getSlidingWindowRate(this.buildWindowKey(amoCrmDomainName), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS),
+      this.prisma.senlerGroup.findUniqueWithCache({ where: { amoCrmDomainName } }),
     ]);
 
-    return { currentRate, maxRate };
+    return { currentRate, maxRate: group.amoCrmRateLimit };
   }
 
   public buildWindowKey = (amoCrmDomainName: string) => SENLER_GROUP_AMO_CRM_RATE_LIMIT_CACHE_KEY + amoCrmDomainName;
