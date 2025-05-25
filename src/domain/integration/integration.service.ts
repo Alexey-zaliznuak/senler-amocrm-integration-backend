@@ -428,14 +428,24 @@ export class IntegrationService {
     };
   }
 
+  // private calculateTransferMessageDelay(
+  //   retryCount: number,
+  //   base: number = timeToMilliseconds({ minutes: 1 }),
+  //   max: number = timeToMilliseconds({ days: 1 })
+  // ) {
+  //   const difference = 0.3
+  //   const randomFactor = (1 - difference) + Math.random() * difference * 2;
+  //   return Math.min(base * (1 + difference * 2) ** retryCount * randomFactor, max);
+  // }
+
   private calculateTransferMessageDelay(
     retryCount: number,
     base: number = timeToMilliseconds({ minutes: 1 }),
     max: number = timeToMilliseconds({ days: 1 })
   ) {
-    const difference = 0.3
-    const randomFactor = (1 - difference) + Math.random() * difference * 2;
-    return Math.min(base * (1 + difference * 2) ** retryCount * randomFactor, max);
+    const delay = 2 ** retryCount * (1 + Math.random()) * base;
+
+    return Math.min(delay, max, base);
   }
 
   public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
