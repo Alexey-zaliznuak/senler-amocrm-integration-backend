@@ -20,7 +20,7 @@ export type CacheConfig = {
 
 @Injectable()
 export class PrismaCacheExtensionService implements OnModuleInit {
-  public readonly client: RedisClientType; // TODO: use redis infrastructure module
+  public readonly client: RedisClientType;
 
   private cacheErrors = 0;
   private cacheMisses = 0;
