@@ -1,4 +1,3 @@
-// src/amqp/amqp-event-pattern.decorator.ts
 import { SetMetadata } from '@nestjs/common';
 
 export const AMQP_EVENT_PATTERN = 'AMQP_EVENT_PATTERN';

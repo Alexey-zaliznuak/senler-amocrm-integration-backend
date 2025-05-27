@@ -31,8 +31,8 @@ export class AmoCrmService {
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: CustomAxiosInstance,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly refreshTokensService: RefreshTokensService,
-    private readonly rateLimitsService: RateLimitsService
+    public readonly refreshTokensService: RefreshTokensService,
+    public readonly rateLimitsService: RateLimitsService
   ) {}
 
   @UpdateRateLimitAndThrowIfNeed()
