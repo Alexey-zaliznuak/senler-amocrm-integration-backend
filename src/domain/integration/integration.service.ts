@@ -29,13 +29,6 @@ export class IntegrationService {
   private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
   private readonly CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:cancelled:';
 
-  // от 2-х до 3-х запросов на выполнение
-  // проверить существует ли лид, (опционально: если лида нет то создать), отправить в него данные
-  private readonly REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_AMO_CRM = 3;
-
-  // проверить существует ли лид, (опционально: если лида нет то создать), отправить данные в сенлер
-  private readonly REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_SENLER = 2;
-
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
@@ -133,17 +126,7 @@ export class IntegrationService {
       return;
     }
 
-    const { currentRate, maxRate } = await this.rateLimitsService.getRateInfo(senlerGroup.amoCrmDomainName);
-    const requiredRate =
-      payload.publicBotStepSettings.type === BotStepType.SendDataToSenler
-        ? this.REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_SENLER
-        : this.REQUESTS_FOR_PROCESS_TRANSFER_MESSAGE_TO_AMO_CRM;
-
-    if (currentRate + requiredRate > maxRate) {
-      await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
-      return;
-    }
-
+    // Проверяем что ключ не в отложенных(при 429 блочим ключ на секунду) и не заблоченных
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
     const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
 
