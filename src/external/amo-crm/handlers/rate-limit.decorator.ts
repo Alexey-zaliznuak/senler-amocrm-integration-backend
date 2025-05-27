@@ -18,7 +18,7 @@ export function UpdateRateLimitAndThrowIfNeed(increment: number = 1) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      new LoggingService(AppConfig).createLogger().error(this.rateLimitsService);
+      await this.rateLimitsService.updateRateLimitAndThrowIfNeed(args[0].amoCrmDomainName, increment);
       return await originalMethod.apply(this, args);
     };
 
