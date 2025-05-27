@@ -2,6 +2,7 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import * as amqp from 'amqplib';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
+import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from '../rabbitmq.config';
 
@@ -69,9 +70,11 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
               return;
             }
 
+            await this.connect();
             await handler(serializedMsg, this.channel);
           } catch (error) {
             this.logger.error(`Error processing message from queue ${queue}:`, error);
+            await this.connect();
             this.channel.nack(msg, false, false);
           }
         },
@@ -92,14 +95,22 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async connect() {
+    if (this.isConnected) return;
+
     try {
       this.logger.info('Connecting to RabbitMQ...');
       this.connection = await amqp.connect(this.appConfig.RABBITMQ_URL);
 
-      this.connection.on('error', err => {
-        this.logger.error('RabbitMQ connection error:', err);
+      this.connection.on('close', () => {
+        this.logger.info('Соединение с RabbitMQ закрыто');
         this.isConnected = false;
-        setTimeout(() => this.connect(), 1000);
+        setTimeout(() => this.connect(), 100);
+      });
+
+      this.connection.on('error', err => {
+        this.logger.error('RabbitMQ connection error:', convertExceptionToString(err));
+        this.isConnected = false;
+        setTimeout(() => this.connect(), 100);
       });
 
       this.channel = await this.connection.createChannel();

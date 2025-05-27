@@ -1,4 +1,7 @@
 export function convertExceptionToString(exception: unknown): string {
+  if (typeof exception === 'string') {
+    return exception;
+  }
   if (exception instanceof Error) {
     return exception.message;
   }
