@@ -19,9 +19,11 @@ export function UpdateRateLimitAndThrowIfNeed(increment: number = 1) {
 
     descriptor.value = async function (...args: any[]) {
       const className = target.prototype ? target.name : target.constructor.name;
-      new LoggingService(AppConfig).createLogger().info(`Декоратор применяется к методу ${propertyKey} в классе ${className}`);
-
-      await this.rateLimitsService.updateRateLimitAndThrowIfNeed(args[0].amoCrmDomainName, increment);
+      try{
+        await this.rateLimitsService.updateRateLimitAndThrowIfNeed(args[0].amoCrmDomainName, increment);
+      } catch {
+        new LoggingService(AppConfig).createLogger().info(`Декоратор не применяется к методу ${propertyKey} в классе ${className}`);
+      }
       return await originalMethod.apply(this, args);
     };
 
