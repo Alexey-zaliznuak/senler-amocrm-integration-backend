@@ -52,7 +52,7 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
         info.labels && typeof info.labels === 'object' && !Array.isArray(info.labels) ? { ...info.labels, ...labels } : labels;
         return info;
       })(),
-      winston.format.json({ space: 4 }),
+      winston.format.json(),
     ),
   }),
   // new winston.transports.Console({
