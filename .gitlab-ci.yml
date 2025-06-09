@@ -7,3 +7,13 @@ amocrm-backend:prod:
     - if: $CI_PIPELINE_SOURCE == "pipeline" 
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+amocrm-backend:dev:
+  stage: deploy
+  trigger:
+    project: integrations/amocrm/deployment/amocrm-backend
+    branch: "dev"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline" 
+      when: never
+    - if: $CI_COMMIT_BRANCH == "dev"
