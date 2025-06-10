@@ -1,6 +1,3 @@
-import { AppConfig } from "src/infrastructure/config/config.app-config";
-import { LoggingService } from "src/infrastructure/logging/logging.service";
-
 /**
  * Извлекает имя домена в амо, для него проверяет лимит(берется из бд)
  *

@@ -126,7 +126,7 @@ export class IntegrationService {
       return;
     }
 
-    // Проверяем что ключ не в отложенных(при 429 блочим ключ на секунду) и не заблоченных
+    // Проверяем что ключ не в отложенных(при 429 блокируем ключ на секунду) и не заблоченных
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
     const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
 
@@ -301,7 +301,7 @@ export class IntegrationService {
     });
   }
 
-  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, apiToken) {
+  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, apiToken: string) {
     const client = new SenlerApiClientV2({ apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
     const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values;
 
@@ -410,16 +410,6 @@ export class IntegrationService {
       requestId: body?.requestUuid || 'не указан',
     };
   }
-
-  // private calculateTransferMessageDelay(
-  //   retryCount: number,
-  //   base: number = timeToMilliseconds({ minutes: 1 }),
-  //   max: number = timeToMilliseconds({ days: 1 })
-  // ) {
-  //   const difference = 0.3
-  //   const randomFactor = (1 - difference) + Math.random() * difference * 2;
-  //   return Math.min(base * (1 + difference * 2) ** retryCount * randomFactor, max);
-  // }
 
   private calculateTransferMessageDelay(
     retryCount: number,

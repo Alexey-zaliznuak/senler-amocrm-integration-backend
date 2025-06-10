@@ -396,7 +396,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
       misses: this.cacheMisses,
       errors: this.cacheErrors,
       reconnections: this.cacheReconnections,
-      hitsRatio: ((this.cacheHits / (this.cacheHits + this.cacheMisses + this.cacheErrors)) * 100 || 0).toFixed(1),
+      hitsRatio: ((this.cacheHits / (this.cacheHits + this.cacheMisses + this.cacheErrors)) * 100 || 0).toFixed(4),
     };
   }
 }
