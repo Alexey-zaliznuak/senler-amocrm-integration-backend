@@ -9,10 +9,8 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
   GetSenlerGroupResponseDto,
@@ -29,11 +27,27 @@ export class SenlerGroupsService {
 
   // TODO: update method, with invalidate cache for group
 
+  async getByUniqueField(
+    identifier: string | number,
+    field: SenlerGroupFieldForGetByUniqueField
+  ): Promise<GetSenlerGroupResponseDto> {
+    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
+    if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
+
+    return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
+      where: { [field]: identifier } as any,
+      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, integrationStepTemplates: true },
+    });
+  }
+
   async create(data: CreateSenlerGroupRequestDto): Promise<CreateSenlerGroupResponseDto> {
     await this.validateCreateSenlerGroupData(data);
 
     try {
-      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens({amoCrmDomainName: data.amoCrmDomainName, code: data.amoCrmAuthorizationCode});
+      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens({
+        amoCrmDomainName: data.amoCrmDomainName,
+        code: data.amoCrmAuthorizationCode,
+      });
 
       return await this.prisma.senlerGroup.create({
         select: {
@@ -61,18 +75,13 @@ export class SenlerGroupsService {
     }
   }
 
-  async getByUniqueField(
-    identifier: string | number,
-    field: SenlerGroupFieldForGetByUniqueField
-  ): Promise<GetSenlerGroupResponseDto> {
-    identifier = SenlerGroupNumericFieldsForGetByUniqueFields.includes(field) ? +identifier : identifier;
-    if (!identifier) throw new UnprocessableEntityException('Invalid identifier');
+  // async setSenlerAccessToken(token: string, senlerGroupId: number) {
+  //   if (await this.prisma.senlerGroup.findUniqueWithCache({ where: { senlerApiAccessToken: token } })) {
+  //     throw new BadRequestException('Group with same token found');
+  //   }
 
-    return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
-      where: { [field]: identifier } as any,
-      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, integrationStepTemplates: true },
-    });
-  }
+  //   return "1"
+  // }
 
   async deleteByUniqueField(
     identifier: string | number,

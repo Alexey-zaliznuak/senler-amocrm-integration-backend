@@ -2,13 +2,13 @@ import { ConsoleLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
-import { AppConfigType } from './infrastructure/config/config.app-config';
+import { AppConfigType, NodeEnv } from './infrastructure/config/config.app-config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: new ConsoleLogger({
+    logger: process.env.NODE_ENV != NodeEnv.local ? new ConsoleLogger({
       json: true,
-    }),
+    }) : undefined,
   });
 
   const config = app.get<AppConfigType>('CONFIG');
