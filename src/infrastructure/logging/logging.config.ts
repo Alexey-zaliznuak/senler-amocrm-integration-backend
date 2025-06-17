@@ -62,9 +62,4 @@ export const baseTransports = (config: AppConfigType): Transport[] => [
         level: 'debug',
         format: prettyLogStreamFormatWithColorsAndDatetime,
       }),
-  // config.NODE_ENV !== NodeEnv.production ? new winston.transports.File({
-  //   level: 'debug',
-  //   format: prettyLogStreamFormatWithColorsAndDatetime,
-  //   filename: path.join('appLogs', new Date().toISOString().split('T')[0], 'log.log'),
-  // }) : undefined,
 ];
