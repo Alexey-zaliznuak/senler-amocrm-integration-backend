@@ -7,24 +7,23 @@ import {
 export class IntegrationUtils {
   // TODO: docstring, assigner: maxi-q
   private replaceVariables(str: string, vars: { [x: string]: any }) {
-    return str.replace(/%(\w+)%/g, (match, p1) => {
+    return str.replace(/(\w+)/g, (match, p1) => {
       return vars[p1] !== undefined ? vars[p1] : match;
     });
   }
 
   private replaceIdsWithValues(str: string, customFields: { [key: string]: AmoCustomField }): string {
-    const idRegex = /\b%\d+%\b/g;
+    const idRegex = /%?(\d+)%?/g;
 
-    return str.replace(idRegex, (id: string) => {
+    return str.replace(idRegex, (match: string, id: string) => {
       const fieldId = parseInt(id, 10);
-
       const field = Object.values(customFields).find(field => field.field_id === fieldId);
 
       if (field?.values?.[0]?.value) {
         return field.values[0].value;
       }
 
-      return id;
+      return match; // Возвращаем исходное значение, включая %, если не нашли замену
     });
   }
 
@@ -55,6 +54,7 @@ export class IntegrationUtils {
       const toValue = syncableVariables[key].to;
 
       const field_name = toValue;
+
       const value = this.replaceIdsWithValues(fromValue, amoLeadCustomFieldValues);
 
       customFieldsValues.vars.push({

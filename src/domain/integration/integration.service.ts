@@ -307,10 +307,12 @@ export class IntegrationService {
     // this.logger.debug('DEBUG CLIENT', { apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: senlerAccessToken } });
     const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values || {};
 
+    this.logger.debug('DEBUG', { 1: body.publicBotStepSettings.syncableVariables, amoCrmLeadCustomFieldsValues });
     const varsValues = this.utils.convertAmoFieldsToSenlerVars(
       body.publicBotStepSettings.syncableVariables,
       amoCrmLeadCustomFieldsValues
     );
+    this.logger.debug('DEBUG LAST', { varsValues });
 
     // for (const userVar of varsValues.vars) {
     //   this.logger.debug('DEBUG CLIENT, Отправка переменной в Senler', {
