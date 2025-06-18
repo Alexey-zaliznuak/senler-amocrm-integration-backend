@@ -14,13 +14,6 @@ export class IntegrationSecretGuard implements CanActivate {
     const integrationSecretInHeaders = request.headers ? request.headers['x-integration-secret'] : undefined;
     const integrationSecretInBody = request.body ? request.body['integrationSecret'] : undefined;
 
-    const activate = integrationSecretInHeaders === this.config.INTEGRATION_SECRET || integrationSecretInBody === this.config.INTEGRATION_SECRET
-
-    new LoggingService(this.config).createLogger().info("Request: ", {body: request.body, headers: request.headers})
-    new LoggingService(this.config).createLogger().info("Can activate result", activate)
-
-    return (
-      integrationSecretInHeaders === this.config.INTEGRATION_SECRET || integrationSecretInBody === this.config.INTEGRATION_SECRET
-    );
+    return integrationSecretInHeaders === this.config.INTEGRATION_SECRET || integrationSecretInBody === this.config.INTEGRATION_SECRET;
   }
 }
