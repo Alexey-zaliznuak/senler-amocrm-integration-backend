@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import {
   CreateIntegrationStepTemplateRequest,
   CreateIntegrationStepTemplateRequestDto,
@@ -34,6 +34,7 @@ export class IntegrationStepTemplatesController {
 
   @Get(':identifier/')
   @ApiQuery({ name: 'id' })
+  @ApiParam({ name: 'identifier' })
   @ApiResponse({ type: GetIntegrationStepTemplateResponseDto })
   async getById(@Param('id') id: string): Promise<GetIntegrationStepTemplateResponseDto> {
     return await this.integrationStepTemplatesService.getById(id);
@@ -41,6 +42,7 @@ export class IntegrationStepTemplatesController {
 
   @Delete(':identifier/')
   @ApiQuery({ name: 'id' })
+  @ApiParam({ name: 'identifier' })
   async deleteById(@Param('id') id: string): Promise<void> {
     return await this.integrationStepTemplatesService.deleteById(id);
   }
