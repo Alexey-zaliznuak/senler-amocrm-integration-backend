@@ -13,7 +13,7 @@ export class IntegrationUtils {
   }
 
   private replaceIdsWithValues(str: string, customFields: { [key: string]: AmoCustomField }): string {
-    const idRegex = /\b\d+\b/g;
+    const idRegex = /\b%\d+%\b/g;
 
     return str.replace(idRegex, (id: string) => {
       const fieldId = parseInt(id, 10);
