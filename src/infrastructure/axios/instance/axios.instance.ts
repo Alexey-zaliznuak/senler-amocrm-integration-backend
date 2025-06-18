@@ -114,6 +114,7 @@ export class CustomAxiosInstance {
           url: config.url,
           data: config.data,
           headers: config.headers,
+          params: config.params,
         });
 
         return config;
