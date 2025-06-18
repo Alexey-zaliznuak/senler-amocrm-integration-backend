@@ -11,7 +11,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
   private channel: amqp.Channel;
 
   constructor(
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    @Inject(CONFIG) private readonly config: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {}
 
@@ -34,11 +34,11 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const channelModel = await amqp.connect(this.appConfig.RABBITMQ_URL);
+      const channelModel = await amqp.connect(this.config.RABBITMQ_URL);
       this.channel = await channelModel.createChannel();
       this.logger.info('RabbitMq service connected');
-    } catch (exception) {
-      this.logger.error('RabbitMq failed to connect: ' + convertExceptionToString(exception));
+    } catch (error) {
+      this.logger.error('RabbitMq failed to connect: ' + convertExceptionToString(error));
       setTimeout(() => this.connect(), 1000);
     }
   }

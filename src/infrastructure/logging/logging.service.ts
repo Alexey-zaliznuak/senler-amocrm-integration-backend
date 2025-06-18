@@ -9,7 +9,7 @@ import { baseLogFormat, baseTransports, LOGGER } from './logging.config';
 export class LoggingService {
   private readonly BASE_CONFIG: winston.LoggerOptions;
 
-  constructor(@Inject(CONFIG) private readonly appConfig: AppConfigType) {
+  constructor(@Inject(CONFIG) private readonly config: AppConfigType) {
     this.BASE_CONFIG = this.buildConfig();
   }
 
@@ -23,7 +23,7 @@ export class LoggingService {
     return {
       level: 'info',
       format: baseLogFormat,
-      transports: baseTransports(this.appConfig),
+      transports: baseTransports(this.config),
     };
   }
 

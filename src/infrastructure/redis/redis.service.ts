@@ -10,11 +10,11 @@ export class RedisService implements OnModuleInit {
   private client: RedisClientType;
 
   constructor(
-    @Inject(CONFIG) private appConfig: AppConfigType,
+    @Inject(CONFIG) private config: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private logger: Logger
   ) {
     this.client = createClient({
-      url: this.appConfig.CACHE_DATABASE_URL,
+      url: this.config.CACHE_DATABASE_URL,
       socket: {
         reconnectStrategy: attempts => {
           this.logger.warn(`Cache database reconnection attempt ${attempts}`);
@@ -26,7 +26,7 @@ export class RedisService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.connectIfNeed()
+    await this.connectIfNeed();
   }
 
   public async connectIfNeed(): Promise<void> {

@@ -22,7 +22,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly appConfig: AppConfigType
+    @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
 
   async addHandler(queue: string, handler: (msg: amqp.ConsumeMessage, channel: amqp.Channel) => Promise<void>) {
@@ -36,7 +36,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
   private async setupQueueConsumer(queue: string) {
     try {
       await this.channel.assertQueue(queue, { durable: true });
-      await this.channel.prefetch(this.appConfig.RABBITMQ_PREFETCH_COUNT);
+      await this.channel.prefetch(this.config.RABBITMQ_PREFETCH_COUNT);
 
       this.logger.info(`Setting up consumer for queue: ${queue}`);
 
@@ -99,7 +99,7 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
 
     try {
       this.logger.info('Connecting to RabbitMQ...');
-      this.connection = await amqp.connect(this.appConfig.RABBITMQ_URL);
+      this.connection = await amqp.connect(this.config.RABBITMQ_URL);
 
       this.connection.on('close', () => {
         this.logger.info('Соединение с RabbitMQ закрыто');
@@ -120,8 +120,8 @@ export class AmqpService implements OnModuleInit, OnModuleDestroy {
       for (const queue of this.handlers.keys()) {
         await this.setupQueueConsumer(queue);
       }
-    } catch (exception) {
-      this.logger.error('Failed to connect to RabbitMQ:', exception);
+    } catch (error) {
+      this.logger.error('Failed to connect to RabbitMQ:', error);
       this.isConnected = false;
       setTimeout(() => this.connect(), 1000);
     }

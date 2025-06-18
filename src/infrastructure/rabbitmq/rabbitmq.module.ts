@@ -20,18 +20,18 @@ import { RabbitMqService } from './rabbitmq.service';
 export class RabbitmqModule implements OnModuleInit {
   constructor(
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly appConfig: AppConfigType
+    @Inject(CONFIG) private readonly config: AppConfigType
   ) {}
 
   public async onModuleInit() {
     try {
-      const connection = await amqp.connect(this.appConfig.RABBITMQ_URL);
+      const connection = await amqp.connect(this.config.RABBITMQ_URL);
       const channel = await connection.createChannel();
 
-      const transferExchange = this.appConfig.RABBITMQ_TRANSFER_EXCHANGE;
-      const transferQueue = this.appConfig.RABBITMQ_TRANSFER_QUEUE;
-      const transferRoutingKey = this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY;
-      const delayedExchange = this.appConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE;
+      const transferExchange = this.config.RABBITMQ_TRANSFER_EXCHANGE;
+      const transferQueue = this.config.RABBITMQ_TRANSFER_QUEUE;
+      const transferRoutingKey = this.config.RABBITMQ_TRANSFER_ROUTING_KEY;
+      const delayedExchange = this.config.RABBITMQ_TRANSFER_DELAYED_EXCHANGE;
 
       // Создание основного exchange
       await channel.assertExchange(transferExchange, 'direct', { durable: true });
@@ -54,8 +54,8 @@ export class RabbitmqModule implements OnModuleInit {
 
       await channel.close();
       await connection.close();
-    } catch (exception) {
-      this.logger.error('RabbitMQ init failed: ' + convertExceptionToString(exception));
+    } catch (error) {
+      this.logger.error('RabbitMQ init failed: ' + convertExceptionToString(error));
     }
   }
 }

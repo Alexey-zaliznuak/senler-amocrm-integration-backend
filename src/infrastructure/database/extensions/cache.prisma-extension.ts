@@ -28,7 +28,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
   private cacheReconnections = -1;
 
   constructor(
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    @Inject(CONFIG) private readonly config: AppConfigType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {
     this.client = this.createRedisClient();
@@ -37,7 +37,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
   private createRedisClient(): RedisClientType {
     return createClient({
-      url: this.appConfig.CACHE_DATABASE_URL,
+      url: this.config.CACHE_DATABASE_URL,
       socket: {
         reconnectStrategy: attempts => {
           this.logger.warn(`Prisma cache database reconnection attempt ${attempts}`);
@@ -326,7 +326,6 @@ export class PrismaCacheExtensionService implements OnModuleInit {
         return JSON.parse(cachedData);
       }
 
-
       this.cacheMisses += 1;
 
       return null;
@@ -341,12 +340,12 @@ export class PrismaCacheExtensionService implements OnModuleInit {
     await this.connectClientIfNeed();
 
     try {
-      const ttl = cacheConfig?.ttl || this.appConfig.CACHE_SPECIFIC_TTL[model] || this.appConfig.CACHE_DEFAULT_TTL;
+      const ttl = cacheConfig?.ttl || this.config.CACHE_SPECIFIC_TTL[model] || this.config.CACHE_DEFAULT_TTL;
 
       if (result === null) {
         await this.client.setEx(
           cacheKey,
-          cacheConfig?.nullResultTtl || this.appConfig.CACHE_NULL_RESULT_TTL,
+          cacheConfig?.nullResultTtl || this.config.CACHE_NULL_RESULT_TTL,
           JSON.stringify(NULL_CACHE_VALUE)
         );
         return;
@@ -354,8 +353,8 @@ export class PrismaCacheExtensionService implements OnModuleInit {
 
       const indexKey = this.buildIndexCacheKey(model, result.id);
 
-      const multi = this.client.multi().setEx(cacheKey, ttl, JSON.stringify(result))
-      if ( !Array.isArray(result) ) {
+      const multi = this.client.multi().setEx(cacheKey, ttl, JSON.stringify(result));
+      if (!Array.isArray(result)) {
         multi.sAdd(indexKey, cacheKey).expire(indexKey, ttl);
       }
 

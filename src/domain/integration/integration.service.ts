@@ -32,7 +32,7 @@ export class IntegrationService {
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    @Inject(CONFIG) private readonly config: AppConfigType,
     private readonly redis: RedisService,
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
@@ -74,8 +74,8 @@ export class IntegrationService {
       }
 
       await this.rabbitMq.publishMessage(
-        this.appConfig.RABBITMQ_TRANSFER_EXCHANGE,
-        this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
+        this.config.RABBITMQ_TRANSFER_EXCHANGE,
+        this.config.RABBITMQ_TRANSFER_ROUTING_KEY,
         message
       );
 
@@ -170,22 +170,22 @@ export class IntegrationService {
       channel.ack(originalMessage as any);
 
       this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
-    } catch (exception) {
+    } catch (error) {
       this.logger.error('Ошибка в результате выполнения запроса', {
         labels,
         status: 'FAILED',
         exception: {
-          message: convertExceptionToString(exception),
-          amoType: exception instanceof AmoCrmError ? exception.type : null,
-          preliminary: exception instanceof AmoCrmError ? exception.preliminary : false,
+          message: convertExceptionToString(error),
+          amoType: error instanceof AmoCrmError ? error.type : null,
+          preliminary: error instanceof AmoCrmError ? error.preliminary : false,
         },
       });
 
-      if (exception instanceof AxiosError || exception instanceof AmoCrmError) {
-        const exceptionType = this.amoCrmService.getExceptionType(exception);
+      if (error instanceof AxiosError || error instanceof AmoCrmError) {
+        const exceptionType = this.amoCrmService.getExceptionType(error);
 
         if (exceptionType === AmoCrmExceptionType.TOO_MANY_REQUESTS) {
-          if (!(message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
+          if (!(message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
             this.logger.info('Запрос отменен без блокировки ключей, из-за исчерпания попыток', {
               labels: { requestId: message.payload.requestUuid },
               exception: {
@@ -197,11 +197,11 @@ export class IntegrationService {
             channel.nack(originalMessage as any, false, false);
             return;
           }
-          this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(exception), {
+          this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(error), {
             labels,
             status: 'FAILED',
             exception: {
-              message: convertExceptionToString(exception),
+              message: convertExceptionToString(error),
               type: exceptionType,
             },
           });
@@ -217,7 +217,7 @@ export class IntegrationService {
           this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных', {
             exception: {
               type: exceptionType,
-              message: convertExceptionToString(exception),
+              message: convertExceptionToString(error),
             },
             labels: { requestId: message.payload.requestUuid },
             status: 'CANCELLED',
@@ -249,7 +249,7 @@ export class IntegrationService {
     channel: amqp.Channel,
     originalMessage: AmqpSerializedMessage
   ) {
-    if (message.metadata.delay < this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+    if (message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
       this.logger.info('Сообщение отложено', {
         labels,
         details: 'Сообщение отложено из-за ограничения по количеству запросов',
@@ -272,15 +272,15 @@ export class IntegrationService {
 
     const delay = this.calculateTransferMessageDelay(
       message.metadata.retryNumber,
-      this.appConfig.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
-      this.appConfig.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+      this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
+      this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
 
     message.metadata.delay = delay;
 
     await this.rabbitMq.publishMessage(
-      this.appConfig.RABBITMQ_TRANSFER_DELAYED_EXCHANGE,
-      this.appConfig.RABBITMQ_TRANSFER_ROUTING_KEY,
+      this.config.RABBITMQ_TRANSFER_DELAYED_EXCHANGE,
+      this.config.RABBITMQ_TRANSFER_ROUTING_KEY,
       message,
       delay
     );

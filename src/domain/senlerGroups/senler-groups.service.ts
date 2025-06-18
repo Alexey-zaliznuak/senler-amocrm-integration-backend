@@ -9,6 +9,7 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { SenlerService } from 'src/external/senler/senler.service';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
@@ -22,6 +23,7 @@ import {
 export class SenlerGroupsService {
   constructor(
     private readonly amoCrmService: AmoCrmService,
+    private readonly senlerService: SenlerService,
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType
   ) {}
 
@@ -44,10 +46,13 @@ export class SenlerGroupsService {
     await this.validateCreateSenlerGroupData(data);
 
     try {
-      const amoTokens = await this.amoCrmService.getAccessAndRefreshTokens({
-        amoCrmDomainName: data.amoCrmDomainName,
-        code: data.amoCrmAuthorizationCode,
-      });
+      const [amoTokens, senlerApiAccessToken] = await Promise.all([
+        this.amoCrmService.getAccessAndRefreshTokens({
+          amoCrmDomainName: data.amoCrmDomainName,
+          code: data.amoCrmAuthorizationCode,
+        }),
+        this.senlerService.getAccessToken(data.senlerAuthorizationCode, data.senlerGroupId),
+      ]);
 
       return await this.prisma.senlerGroup.create({
         select: {
@@ -59,29 +64,25 @@ export class SenlerGroupsService {
           senlerGroupId: data.senlerGroupId,
           amoCrmAccessToken: amoTokens.access_token,
           amoCrmRefreshToken: amoTokens.refresh_token,
-          senlerApiAccessToken: data.senlerApiAccessToken,
+          senlerApiAccessToken: senlerApiAccessToken,
         },
       });
-    } catch (exception) {
-      if (exception instanceof AxiosError && exception.status === HttpStatusCode.BadRequest) {
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) {
+        throw error;
+      }
+
+      if (error instanceof AxiosError && error.status === HttpStatusCode.BadRequest) {
         throw new ServiceUnavailableException();
       }
 
-      if (exception instanceof AxiosError && exception.code === 'ENOTFOUND') {
+      if (error instanceof AxiosError && error.code === 'ENOTFOUND') {
         throw new BadRequestException('Invalid amoCRM domain name');
       }
 
-      throw exception;
+      throw error;
     }
   }
-
-  // async setSenlerAccessToken(token: string, senlerGroupId: number) {
-  //   if (await this.prisma.senlerGroup.findUniqueWithCache({ where: { senlerApiAccessToken: token } })) {
-  //     throw new BadRequestException('Group with same token found');
-  //   }
-
-  //   return "1"
-  // }
 
   async deleteByUniqueField(
     identifier: string | number,

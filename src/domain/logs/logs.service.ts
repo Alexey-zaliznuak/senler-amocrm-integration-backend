@@ -10,13 +10,13 @@ export class LogsService {
   private readonly auth: { username: string; password: string };
 
   constructor(
-    @Inject(CONFIG) private readonly appConfig: AppConfigType,
+    @Inject(CONFIG) private readonly config: AppConfigType,
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: CustomAxiosInstance,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger
   ) {
     this.auth = {
-      username: "this.appConfig.LOKI_USERNAME",
-      password: "this.appConfig.LOKI_AUTH_TOKEN",
+      username: 'this.config.LOKI_USERNAME',
+      password: 'this.config.LOKI_AUTH_TOKEN',
     };
   }
 
