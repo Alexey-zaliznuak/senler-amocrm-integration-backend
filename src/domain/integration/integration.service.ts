@@ -304,6 +304,7 @@ export class IntegrationService {
 
   async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, apiToken: string) {
     const client = new SenlerApiClientV2({ apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
+    this.logger.debug('DEBUG CLIENT', { apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
     const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values || {};
 
     const varsValues = this.utils.convertAmoFieldsToSenlerVars(
@@ -311,12 +312,21 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
-    await Promise.all([
-      Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
-      Promise.all(
-        varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
-      ),
-    ]);
+    for (const userVar of varsValues.vars) {
+      this.logger.debug('DEBUG CLIENT, Отправка переменной в Senler', {
+        vk_user_id: body.lead.vkUserId,
+        name: userVar.n,
+        value: userVar.v,
+      });
+      client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v });
+    }
+
+    // await Promise.all([
+    //   Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
+    //   Promise.all(
+    //     varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
+    //   ),
+    // ]);
   }
 
   async getOrCreateLeadIfNotExists({
