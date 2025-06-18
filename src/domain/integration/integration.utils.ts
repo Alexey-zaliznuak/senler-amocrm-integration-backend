@@ -5,13 +5,28 @@ import {
 } from 'src/external/amo-crm/amo-crm.dto';
 
 export class IntegrationUtils {
-  // TODO: docstring, assigner: maxi-q
-  private replaceVariables(str: string, vars: { [x: string]: any }) {
+  /**
+   * Заменяет переменные в строке на соответствующие значения из объекта `vars`.
+   *
+   * @param str - Исходная строка, содержащая переменные.
+   * @param vars - Объект, в котором ключи соответствуют именам переменных, а значения — их значениям.
+   * @returns Строка с подставленными значениями переменных.
+   */
+  private replaceVariables(str: string, vars: { [x: string]: any }): string {
     return str.replace(/(\w+)/g, (match, p1) => {
       return vars[p1] !== undefined ? vars[p1] : match;
     });
   }
 
+  /**
+   * Заменяет числовые идентификаторы в строке (например, %123%) на значения из customFields.
+   *
+   * Если идентификатор окружён знаками `%`, они сохраняются, если замена не найдена.
+   *
+   * @param str - Строка, содержащая идентификаторы.
+   * @param customFields - Объект с кастомными полями amoCRM, где ключ — ID поля.
+   * @returns Строка с заменёнными значениями или оригинальными идентификаторами.
+   */
   private replaceIdsWithValues(str: string, customFields: { [key: string]: AmoCustomField }): string {
     const idRegex = /%?(\d+)%?/g;
 
@@ -23,10 +38,17 @@ export class IntegrationUtils {
         return field.values[0].value;
       }
 
-      return match; // Возвращаем исходное значение, включая %, если не нашли замену
+      return match;
     });
   }
 
+  /**
+   * Преобразует переменные из Senler в значения полей amoCRM, используя сопоставление переменных.
+   *
+   * @param syncableVariables - Объект, где ключи — переменные, а значения содержат `from` и `to` пути.
+   * @param senlerLeadVars - Объект с переменными лида из Senler.
+   * @returns Массив объектов, представляющих значения кастомных полей amoCRM.
+   */
   public convertSenlerVarsToAmoFields(syncableVariables, senlerLeadVars) {
     const customFieldsValues: editLeadsByIdCustomFieldsValueRequest[] = [];
 
@@ -46,6 +68,13 @@ export class IntegrationUtils {
     return customFieldsValues;
   }
 
+  /**
+   * Преобразует кастомные поля amoCRM обратно в переменные Senler по заданному соответствию.
+   *
+   * @param syncableVariables - Объект с сопоставлением переменных.
+   * @param amoLeadCustomFieldValues - Объект с кастомными полями лида из amoCRM.
+   * @returns Объект с переменными и их значениями для передачи в Senler.
+   */
   public convertAmoFieldsToSenlerVars(syncableVariables, amoLeadCustomFieldValues) {
     const customFieldsValues: editLeadsByIdVarsValueRequest = { vars: [], glob_vars: [] };
 

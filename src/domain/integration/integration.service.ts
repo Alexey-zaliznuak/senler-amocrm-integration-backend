@@ -291,7 +291,7 @@ export class IntegrationService {
   async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
     const customFieldsValues = this.utils.convertSenlerVarsToAmoFields(
       body.publicBotStepSettings.syncableVariables,
-      body.lead.personalVars
+      body.lead.personalVars || {}
     );
 
     await this.amoCrmService.editLeadsById({

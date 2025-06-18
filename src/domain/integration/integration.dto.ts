@@ -55,8 +55,7 @@ export class LeadDto {
 
   @ApiProperty({ description: 'Senler lead`s personal vars.' })
   @IsObject()
-  @IsNotEmpty()
-  personalVars: Array<void> | Record<string, string | number | boolean>;
+  personalVars: Array<void> | Record<string, string | number | boolean> | null;
 
   @ApiProperty({ description: 'Lead vk user id.' })
   @IsNotEmpty()
