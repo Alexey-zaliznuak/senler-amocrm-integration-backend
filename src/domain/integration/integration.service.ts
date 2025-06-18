@@ -318,7 +318,7 @@ export class IntegrationService {
         name: userVar.n,
         value: userVar.v,
       });
-      client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v });
+      await client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v });
     }
 
     // await Promise.all([
