@@ -163,7 +163,7 @@ export class IntegrationService {
         await this.sendVarsToAmoCrm(payload, tokens, lead);
       }
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-        await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.amoCrmAccessToken);
+        await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.senlerApiAccessToken);
       }
 
       await this.senlerService.sendCallbackOnWebhookRequest(payload);
@@ -302,9 +302,9 @@ export class IntegrationService {
     });
   }
 
-  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, apiToken: string) {
-    const client = new SenlerApiClientV2({ apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
-    this.logger.debug('DEBUG CLIENT', { apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
+  async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, senlerAccessToken: string) {
+    const client = new SenlerApiClientV2({ apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: senlerAccessToken } });
+    // this.logger.debug('DEBUG CLIENT', { apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: senlerAccessToken } });
     const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values || {};
 
     const varsValues = this.utils.convertAmoFieldsToSenlerVars(
@@ -312,21 +312,21 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
-    for (const userVar of varsValues.vars) {
-      this.logger.debug('DEBUG CLIENT, Отправка переменной в Senler', {
-        vk_user_id: body.lead.vkUserId,
-        name: userVar.n,
-        value: userVar.v,
-      });
-      await client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v });
-    }
+    // for (const userVar of varsValues.vars) {
+    //   this.logger.debug('DEBUG CLIENT, Отправка переменной в Senler', {
+    //     vk_user_id: body.lead.vkUserId,
+    //     name: userVar.n,
+    //     value: userVar.v,
+    //   });
+    //   await client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v });
+    // }
 
-    // await Promise.all([
-    //   Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
-    //   Promise.all(
-    //     varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
-    //   ),
-    // ]);
+    await Promise.all([
+      Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
+      Promise.all(
+        varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
+      ),
+    ]);
   }
 
   async getOrCreateLeadIfNotExists({
