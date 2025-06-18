@@ -304,7 +304,7 @@ export class IntegrationService {
 
   async sendVarsToSenler(body: BotStepWebhookDto, amoCrmLead: AmoCrmLead, apiToken: string) {
     const client = new SenlerApiClientV2({ apiConfig: { vkGroupId: body.senlerVkGroupId, accessToken: apiToken } });
-    const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values;
+    const amoCrmLeadCustomFieldsValues = amoCrmLead.custom_fields_values || {};
 
     const varsValues = this.utils.convertAmoFieldsToSenlerVars(
       body.publicBotStepSettings.syncableVariables,
