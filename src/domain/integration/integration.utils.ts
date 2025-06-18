@@ -13,7 +13,7 @@ export class IntegrationUtils {
    * @returns Строка с подставленными значениями переменных.
    */
   private replaceVariables(str: string, vars: { [x: string]: any }): string {
-    return str.replace(/(\w+)/g, (match, p1) => {
+    return str.replace(/%(\w+)%/g, (match, p1) => {
       return vars[p1] !== undefined ? vars[p1] : match;
     });
   }
