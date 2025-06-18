@@ -3,6 +3,6 @@ import { SenlerService } from './senler.service';
 
 @Module({
   exports: [SenlerService],
-  providers: [SenlerService]
+  providers: [SenlerService],
 })
 export class SenlerModule {}
