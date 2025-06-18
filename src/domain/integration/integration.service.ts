@@ -176,6 +176,7 @@ export class IntegrationService {
         status: 'FAILED',
         exception: {
           message: convertExceptionToString(error),
+          stack: error.stack,
           amoType: error instanceof AmoCrmError ? error.type : null,
           preliminary: error instanceof AmoCrmError ? error.preliminary : false,
         },
