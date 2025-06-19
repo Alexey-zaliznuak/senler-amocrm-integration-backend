@@ -37,7 +37,7 @@ export class IntegrationService {
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService,
-    private readonly rateLimitsService: RateLimitsService
+    readonly rateLimitsService: RateLimitsService
   ) {}
 
   async processBotStepWebhook(body: any) {
