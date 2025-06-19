@@ -146,6 +146,11 @@ export class BotStepWebhookDto {
   @IsString()
   integrationSecret: string;
 
+  @ApiProperty({ description: 'Integration callbackKey', example: 'acde070d-8c4c-4f0d-9d8a-162843c10333' })
+  @IsNotEmpty()
+  @IsString()
+  integrationCallbackKey: string;
+
   @ApiProperty({ description: 'Bot callback.', type: BotCallbackDto })
   @IsNotEmpty()
   @ValidateNested()

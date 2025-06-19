@@ -44,7 +44,9 @@ export class SenlerService {
 
     const stringifiedBody = this.customStringify(bodyToStringify);
 
-    const hash = this.generateHash(body.botCallback, body.integrationSecret);
+    // ! БАГ В СЕНЛЕРЕ ЧТО В СЕКРЕТНОМ КЛЮЧЕ В РЕАЛЬНОСТИ ОТПРАВЛЯЕТСЯ КОЛЛБЕК КЕЙ, ПОЭТОМУ ВОЗМОЖНА ПУТАНИЦА В ИМЕНАХ
+    // ! Нужно в вебхуке для integrationCallbackKey выбрать значение - секретный ключ
+    const hash = this.generateHash(body.botCallback, body.integrationCallbackKey);
 
     await this.sendRequest({
       url: this.callbackUrl,
@@ -52,9 +54,9 @@ export class SenlerService {
     });
   }
 
-  private generateHash(body: BotStepWebhookDto['botCallback'], secret: string) {
+  private generateHash(body: BotStepWebhookDto['botCallback'], callbackKey: string) {
     const { group_id, ...bodyForHash } = body;
-    const forHash = `${body.group_id}${this.customStringify(bodyForHash)}${secret}`;
+    const forHash = `${body.group_id}${this.customStringify(bodyForHash)}${callbackKey}`;
 
     return crypto.createHash('md5').update(forHash).digest('hex');
   }
