@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { plainToInstance, Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 import { parseJson } from 'src/utils';
 
@@ -146,7 +146,10 @@ export class BotStepWebhookDto {
   @IsString()
   integrationSecret: string;
 
-  @ApiProperty({ description: 'Integration callbackKey', example: 'acde070d-8c4c-4f0d-9d8a-162843c10333' })
+  @ApiProperty({
+    description: 'Integration callbackKey(захардкоденное в вебхуке значение для проверки подлинности запроса)',
+    example: 'acde070d-8c4c-4f0d-9d8a-162843c10333',
+  })
   @IsNotEmpty()
   @IsString()
   integrationCallbackKey: string;
