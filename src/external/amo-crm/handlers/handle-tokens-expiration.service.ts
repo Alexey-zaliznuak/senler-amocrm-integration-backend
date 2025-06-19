@@ -16,7 +16,7 @@ export class RefreshTokensService {
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axiosService: CustomAxiosInstance,
     @Inject(CONFIG) private readonly config: AppConfigType,
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
-    @Inject(PRISMA) public readonly rateLimitsService: RateLimitsService // used in UpdateRateLimitAndThrowIfNeed
+    public readonly rateLimitsService: RateLimitsService // used in UpdateRateLimitAndThrowIfNeed
   ) {}
 
   @UpdateRateLimitAndThrowIfNeed()

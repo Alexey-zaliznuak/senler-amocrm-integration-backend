@@ -12,15 +12,6 @@ export function UpdateRateLimitAndThrowIfNeed(increment: number = 1) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const contextName = this?.constructor?.name || 'unknown';
-      const logger = new LoggingService(AppConfig).createLogger();
-      logger.info(`DEBUG [UpdateRateLimit] Called in context: ${contextName}`);
-      logger.info(`DEBUG [UpdateRateLimit] Available keys on 'this':`, Object.keys(this));
-      logger.info(`DEBUG [UpdateRateLimit] typeof this.rateLimitsService: ${typeof this.rateLimitsService}`);
-      logger.info('DEBUG [UpdateRateLimit] Object.keys(rateLimitsService):', Object.keys(this.rateLimitsService));
-      logger.info('DEBUG [UpdateRateLimit] Object.getOwnPropertyNames(rateLimitsService):', Object.getOwnPropertyNames(this.rateLimitsService));
-      logger.info('DEBUG [UpdateRateLimit] Object.getPrototypeOf(rateLimitsService):', Object.getPrototypeOf(this.rateLimitsService));
-      logger.info('DEBUG [UpdateRateLimit] Object.getOwnPropertyNames(proto):', Object.getOwnPropertyNames(Object.getPrototypeOf(this.rateLimitsService)));
       await this.rateLimitsService.updateRateLimitAndThrowIfNeed(args[0].amoCrmDomainName, increment);
       return await originalMethod.apply(this, args);
     };
