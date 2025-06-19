@@ -37,9 +37,8 @@ export class IntegrationService {
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService,
-    readonly rateLimitsService: RateLimitsService
+    public readonly rateLimitsService: RateLimitsService
   ) {}
-
   async processBotStepWebhook(body: any) {
     const message: TransferMessage = {
       payload: body,
