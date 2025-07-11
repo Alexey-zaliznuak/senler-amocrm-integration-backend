@@ -20,7 +20,7 @@ export class IntegrationController {
     return await this.integrationService.processBotStepWebhook(body);
   }
 
-  @Delete('/untieAmoCrmAccount')
+  @Delete('/untieAmoCrmProfile')
   @HttpCode(HttpStatus.NO_CONTENT)
   async unlinkAmoAccount(@Query() query: UnlinkAmoCrmAccountRequestDto): Promise<any> {
     return await this.integrationService.unlinkAmoAccount(query.senlerGroupId);
