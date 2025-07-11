@@ -407,7 +407,7 @@ export class IntegrationService {
   }
 
   async unlinkAmoAccount(senlerGroupId: number) {
-    const senlerGroup = await this.prisma.senlerGroup.deleteWithCacheInvalidate({
+    return await this.prisma.senlerGroup.deleteWithCacheInvalidate({
       where: { senlerGroupId },
     });
   }
