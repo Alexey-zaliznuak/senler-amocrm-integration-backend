@@ -12,7 +12,7 @@ export const AppConfig = {
   NODE_ENV: process.env.NODE_ENV || NodeEnv.local,
   PORT: parseInt(process.env.PORT) || 3000,
 
-  MICROSERVICE_NAME: process.env.MICROSERVICE_NAME || 'senler_amo_crm',
+  MICROSERVICE_NAME: process.env.MICROSERVICE_NAME || 'amocrm',
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 

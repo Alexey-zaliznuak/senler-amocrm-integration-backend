@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Lead, SenlerGroup } from '@prisma/client';
+import { AmoCrmProfile, Lead, SenlerGroup } from '@prisma/client';
 import * as amqp from 'amqplib';
 import { AxiosError } from 'axios';
 import { plainToInstance } from 'class-transformer';
@@ -19,7 +19,7 @@ import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, TransferMessage } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -114,6 +114,7 @@ export class IntegrationService {
 
     const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
       where: { senlerGroupId: payload.senlerGroupId },
+      include: { amoCrmProfile: true },
     });
 
     if (!senlerGroup) {
@@ -126,8 +127,8 @@ export class IntegrationService {
     }
 
     // Проверяем что ключ не в отложенных(при 429 блокируем ключ на секунду) и не заблоченных
-    const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
-    const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmAccessToken);
+    const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmProfile.accessToken);
+    const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmProfile.refreshToken);
 
     if (await this.redis.exists(delayedAmoCrmCacheKey)) {
       await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
@@ -145,8 +146,8 @@ export class IntegrationService {
     }
 
     const tokens = {
-      amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
-      amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
+      accessToken: senlerGroup.amoCrmProfile.accessToken,
+      refreshToken: senlerGroup.amoCrmProfile.refreshToken,
     };
 
     try {
@@ -154,7 +155,7 @@ export class IntegrationService {
         senlerLeadId: payload.lead.id,
         name: payload.lead.name,
         senlerGroupId: payload.senlerGroupId,
-        amoCrmDomainName: senlerGroup.amoCrmDomainName,
+        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
         tokens,
       });
 
@@ -287,14 +288,18 @@ export class IntegrationService {
     return delay;
   }
 
-  async sendVarsToAmoCrm(body: BotStepWebhookDto, tokens: AmoCrmTokens, lead: Lead & { senlerGroup: SenlerGroup }) {
+  async sendVarsToAmoCrm(
+    body: BotStepWebhookDto,
+    tokens: AmoCrmTokens,
+    lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } }
+  ) {
     const customFieldsValues = this.utils.convertSenlerVarsToAmoFields(
       body.publicBotStepSettings.syncableVariables,
       body.lead.personalVars || {}
     );
 
     await this.amoCrmService.editLeadsById({
-      amoCrmDomainName: lead.senlerGroup.amoCrmDomainName,
+      amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
       tokens,
       customFieldsValues,
@@ -331,10 +336,13 @@ export class IntegrationService {
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;
   }): Promise<{
-    lead: Lead & { senlerGroup: SenlerGroup };
+    lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } };
     amoCrmLead: AmoCrmLead;
   }> {
-    let lead = await this.prisma.lead.findUniqueWithCache({ where: { senlerLeadId }, include: { senlerGroup: true } });
+    let lead = await this.prisma.lead.findUniqueWithCache({
+      where: { senlerLeadId },
+      include: { senlerGroup: { include: { amoCrmProfile: true } } },
+    });
 
     if (lead) {
       const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
@@ -347,7 +355,7 @@ export class IntegrationService {
       if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
         lead = await this.prisma.lead.updateWithCacheInvalidate({
           where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
-          include: { senlerGroup: true },
+          include: { senlerGroup: { include: { amoCrmProfile: true } } },
           data: { amoCrmLeadId: actualAmoCrmLead.id },
         });
       }
@@ -361,7 +369,7 @@ export class IntegrationService {
     });
 
     const newLead = await this.prisma.lead.create({
-      include: { senlerGroup: true },
+      include: { senlerGroup: { include: { amoCrmProfile: true } } },
       data: {
         amoCrmLeadId: newAmoCrmLead.id,
         senlerLeadId: senlerLeadId,
@@ -379,22 +387,29 @@ export class IntegrationService {
     };
   }
 
-  async getAmoCrmFields(body: GetSenlerGroupFieldsDto) {
+  async getAmoCrmFields(senlerGroupId: number) {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
-      where: { senlerGroupId: body.senlerGroupId },
+      where: { senlerGroupId },
+      include: { amoCrmProfile: true },
     });
 
     const tokens: AmoCrmTokens = {
-      amoCrmAccessToken: senlerGroup.amoCrmAccessToken,
-      amoCrmRefreshToken: senlerGroup.amoCrmRefreshToken,
+      accessToken: senlerGroup.amoCrmProfile.accessToken,
+      refreshToken: senlerGroup.amoCrmProfile.refreshToken,
     };
 
     const leadFields = await this.amoCrmService.getLeadFields({
-      amoCrmDomainName: senlerGroup.amoCrmDomainName,
+      amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
       tokens,
     });
 
     return leadFields;
+  }
+
+  async unlinkAmoAccount(senlerGroupId: number) {
+    const senlerGroup = await this.prisma.senlerGroup.deleteWithCacheInvalidate({
+      where: { senlerGroupId },
+    });
   }
 
   public buildProcessWebhookTitle(body: any): string {

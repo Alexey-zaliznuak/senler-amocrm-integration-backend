@@ -12,17 +12,28 @@ model SenlerGroup {
   createdAt                          DateTime    @default(now())
   updatedAt                          DateTime    @updatedAt
 
-  amoCrmDomainName                   String      @unique
-
-  amoCrmAccessToken                  String      @unique
-  amoCrmRefreshToken                 String      @unique
-  amoCrmRateLimit                    Int         @default(7)
-
   senlerGroupId                      Int         @unique
   senlerApiAccessToken               String      @unique
 
   leads                              Lead[]
   integrationStepTemplates           IntegrationStepTemplate[]
+
+  amoCrmProfile      AmoCrmProfile    @relation(fields: [amoCrmProfileId], references: [id], onDelete: Cascade)
+  amoCrmProfileId    String
+}
+
+model AmoCrmProfile {
+  id                                 String      @id @default(uuid())
+  createdAt                          DateTime    @default(now())
+  updatedAt                          DateTime    @updatedAt
+
+  domainName                   String      @unique
+
+  accessToken                  String      @unique
+  refreshToken                 String      @unique
+  rateLimit                    Int         @default(7)
+
+  senlerGroups                       SenlerGroup[]
 }
 
 model IntegrationStepTemplate {

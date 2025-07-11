@@ -85,7 +85,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.accessToken}`,
           },
         }
       );
@@ -134,7 +134,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.accessToken}`,
           },
         }
       );
@@ -170,7 +170,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.accessToken}`,
           },
         }
       );
@@ -196,7 +196,7 @@ export class AmoCrmService {
     try {
       const response = await this.axios.get<GetUnsortedResponse>(`https://${amoCrmDomainName}/api/v4/leads/unsorted/${uid}`, {
         headers: {
-          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
       });
 
@@ -224,7 +224,7 @@ export class AmoCrmService {
   }): Promise<GetLeadResponse> {
     const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomainName}/api/v4/leads`, leads, {
       headers: {
-        Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+        Authorization: `Bearer ${tokens.accessToken}`,
       },
     });
     return response.data['_embedded']['leads'][0];
@@ -241,7 +241,7 @@ export class AmoCrmService {
       `https://${data.amoCrmDomainName}/api/v4/leads/${data.leadId}?${params}`,
       {
         headers: {
-          Authorization: `Bearer ${data.tokens.amoCrmAccessToken}`,
+          Authorization: `Bearer ${data.tokens.accessToken}`,
         },
       }
     );
@@ -270,7 +270,7 @@ export class AmoCrmService {
         },
         {
           headers: {
-            Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+            Authorization: `Bearer ${tokens.accessToken}`,
           },
         }
       );
@@ -301,7 +301,7 @@ export class AmoCrmService {
     try {
       const response = await this.axios.post<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, fields, {
         headers: {
-          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
       });
 
@@ -326,7 +326,7 @@ export class AmoCrmService {
     try {
       const response = await this.axios.get<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, {
         headers: {
-          Authorization: `Bearer ${tokens.amoCrmAccessToken}`,
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
       });
 
@@ -390,9 +390,9 @@ export class AmoCrmService {
         case 110:
           return AmoCrmExceptionType.AUTHENTICATION_FAILED;
         // case 111:
-          // return AmoCrmExceptionType.CAPTCHA_REQUIRED;
+        // return AmoCrmExceptionType.CAPTCHA_REQUIRED;
         // case 112:
-          // return AmoCrmExceptionType.USER_DISABLED;
+        // return AmoCrmExceptionType.USER_DISABLED;
         case 101:
           return AmoCrmExceptionType.ACCOUNT_NOT_FOUND;
         default:

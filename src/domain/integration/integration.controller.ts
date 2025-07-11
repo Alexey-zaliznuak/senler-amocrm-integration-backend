@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
@@ -6,18 +6,24 @@ import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secr
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
-import { BotStepWebhookDto, GetSenlerGroupFieldsDto, TransferMessage } from './integration.dto';
+import { BotStepWebhookDto, GetSenlerGroupFieldsRequestDto, TransferMessage, UnlinkAmoCrmAccountRequestDto } from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('/botStepWebhook')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IntegrationSecretGuard)
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
     return await this.integrationService.processBotStepWebhook(body);
+  }
+
+  @Delete('/unlinkAmoAccount')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unlinkAmoAccount(@Query() query: UnlinkAmoCrmAccountRequestDto): Promise<any> {
+    return await this.integrationService.unlinkAmoAccount(query.senlerGroupId);
   }
 
   @AmqpEventPattern(AppConfig.RABBITMQ_TRANSFER_QUEUE)
@@ -26,8 +32,8 @@ export class IntegrationController {
   }
 
   @Get('/getAmoFields')
-  @HttpCode(200)
-  async getAmoFields(@Query() query: GetSenlerGroupFieldsDto): Promise<any> {
-    return await this.integrationService.getAmoCrmFields(query);
+  @HttpCode(HttpStatus.OK)
+  async getAmoFields(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<any> {
+    return await this.integrationService.getAmoCrmFields(query.senlerGroupId);
   }
 }

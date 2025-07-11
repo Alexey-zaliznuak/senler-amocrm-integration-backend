@@ -23,17 +23,17 @@ export class RateLimitsService {
    *
    * Если превышен - выбрасывает исключение.
    */
-  async updateRateLimitAndThrowIfNeed(amoCrmDomainName: string, increment?: number) {
+  async updateRateLimitAndThrowIfNeed(domainName: string, increment?: number) {
     increment = increment ?? 1;
-    const group = await this.prisma.senlerGroup.findUniqueWithCache({ where: { amoCrmDomainName } });
+    const profile = await this.prisma.amoCrmProfile.findUniqueWithCache({ where: { domainName } });
 
-    if (!group) {
+    if (!profile) {
       return;
     }
 
     const { rate, allowed } = await this.redisService.incrementSlidingWindowRate(
-      this.buildWindowKey(amoCrmDomainName),
-      group.amoCrmRateLimit,
+      this.buildWindowKey(domainName),
+      profile.rateLimit,
       AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS,
       increment
     );
@@ -41,13 +41,13 @@ export class RateLimitsService {
     if (!allowed) throw new AmoCrmError(AmoCrmExceptionType.TOO_MANY_REQUESTS, true);
   }
 
-  async getRateInfo(amoCrmDomainName: string): Promise<{ currentRate: number; maxRate: number }> {
-    const [currentRate, group] = await Promise.all([
-      this.redisService.getSlidingWindowRate(this.buildWindowKey(amoCrmDomainName), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS),
-      this.prisma.senlerGroup.findUniqueWithCache({ where: { amoCrmDomainName } }),
+  async getRateInfo(domainName: string): Promise<{ currentRate: number; maxRate: number }> {
+    const [currentRate, profile] = await Promise.all([
+      this.redisService.getSlidingWindowRate(this.buildWindowKey(domainName), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS),
+      this.prisma.amoCrmProfile.findUniqueWithCache({ where: { domainName } }),
     ]);
 
-    return { currentRate, maxRate: group.amoCrmRateLimit };
+    return { currentRate, maxRate: profile.rateLimit };
   }
 
   public buildWindowKey = (amoCrmDomainName: string) => SENLER_GROUP_AMO_CRM_RATE_LIMIT_CACHE_KEY + amoCrmDomainName;

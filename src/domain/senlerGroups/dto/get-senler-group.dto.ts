@@ -15,7 +15,7 @@ export enum SenlerGroupFieldForGetByUniqueFieldEnum {
 }
 
 export class GetSenlerGroupResponseDto
-  extends PickType(BaseSenlerGroupDto, ['id', 'amoCrmDomainName', 'senlerGroupId'] as const)
+  extends PickType(BaseSenlerGroupDto, ['id', 'senlerGroupId'] as const)
 {
   @ApiProperty({
     description: 'Templates',

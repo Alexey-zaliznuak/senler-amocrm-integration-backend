@@ -25,7 +25,7 @@ export class RefreshTokensService {
       client_id: this.config.AMO_CRM_CLIENT_ID,
       client_secret: this.config.AMO_CRM_CLIENT_SECRET,
       grant_type: 'refresh_token',
-      refresh_token: tokens.amoCrmRefreshToken,
+      refresh_token: tokens.refreshToken,
       redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
     });
 
@@ -33,20 +33,20 @@ export class RefreshTokensService {
       throw new ServiceUnavailableException(`Can not refresh token ${response.status} ${response.data}`);
     }
 
-    await this.prisma.senlerGroup.updateWithCacheInvalidate({
+    await this.prisma.amoCrmProfile.updateWithCacheInvalidate({
       where: {
-        amoCrmAccessToken: tokens.amoCrmAccessToken,
-        amoCrmRefreshToken: tokens.amoCrmRefreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       },
       data: {
-        amoCrmAccessToken: response.data.access_token,
-        amoCrmRefreshToken: response.data.refresh_token,
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
       },
     });
 
     return {
-      amoCrmAccessToken: response.data.access_token,
-      amoCrmRefreshToken: response.data.refresh_token,
+      accessToken: response.data.access_token,
+      refreshToken: response.data.refresh_token,
     };
   }
 }

@@ -38,7 +38,7 @@ export class SenlerGroupsService {
 
     return await this.prisma.senlerGroup.findFirstOrThrowWithCache({
       where: { [field]: identifier } as any,
-      select: { id: true, amoCrmDomainName: true, senlerGroupId: true, integrationStepTemplates: true },
+      select: { id: true, senlerGroupId: true, integrationStepTemplates: true, amoCrmProfile: true },
     });
   }
 
@@ -46,13 +46,8 @@ export class SenlerGroupsService {
     await this.validateCreateSenlerGroupData(data);
 
     try {
-      const [amoTokens, senlerApiAccessToken] = await Promise.all([
-        this.amoCrmService.getAccessAndRefreshTokens({
-          amoCrmDomainName: data.amoCrmDomainName,
-          code: data.amoCrmAuthorizationCode,
-        }),
-        this.senlerService.getAccessToken(data.senlerAuthorizationCode, data.senlerGroupId),
-      ]);
+      const amoCrmProfile = await this.getOrCreateAmoCrmProfile(data);
+      const senlerApiAccessToken = await this.senlerService.getAccessToken(data.senlerAuthorizationCode, data.senlerGroupId);
 
       return await this.prisma.senlerGroup.create({
         select: {
@@ -60,11 +55,9 @@ export class SenlerGroupsService {
           senlerGroupId: true,
         },
         data: {
-          amoCrmDomainName: data.amoCrmDomainName,
           senlerGroupId: data.senlerGroupId,
-          amoCrmAccessToken: amoTokens.access_token,
-          amoCrmRefreshToken: amoTokens.refresh_token,
           senlerApiAccessToken: senlerApiAccessToken,
+          amoCrmProfile: { connect: { id: amoCrmProfile.id } },
         },
       });
     } catch (error) {
@@ -82,6 +75,24 @@ export class SenlerGroupsService {
 
       throw error;
     }
+  }
+
+  async getOrCreateAmoCrmProfile(data: CreateSenlerGroupRequestDto) {
+    let profile = await this.prisma.amoCrmProfile.findUniqueWithCache({ where: { domainName: data.amoCrmDomainName } });
+    if (profile) return profile;
+
+    const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
+      amoCrmDomainName: data.amoCrmDomainName,
+      code: data.amoCrmAuthorizationCode,
+    });
+
+    return await this.prisma.amoCrmProfile.create({
+      data: {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        domainName: data.amoCrmDomainName,
+      },
+    });
   }
 
   async deleteByUniqueField(
@@ -102,21 +113,9 @@ export class SenlerGroupsService {
   }
 
   async checkConstraintsOrThrow(
-    constraints: Partial<
-      Pick<
-        SenlerGroup,
-        'id' | 'amoCrmAccessToken' | 'amoCrmDomainName' | 'amoCrmRefreshToken' | 'senlerGroupId' | 'senlerApiAccessToken'
-      >
-    >
+    constraints: Partial<Pick<SenlerGroup, 'id' | 'senlerGroupId' | 'senlerApiAccessToken'>>
   ): Promise<void | never> {
-    const constraintsNames = [
-      'id',
-      'amoCrmAccessToken',
-      'amoCrmDomainName',
-      'amoCrmRefreshToken',
-      'senlerGroupId',
-      'senlerApiAccessToken',
-    ];
+    const constraintsNames = ['id', 'senlerGroupId', 'senlerApiAccessToken'];
     const validConstraints = constraintsNames
       .filter(key => constraints[key] !== undefined && constraints[key] !== null)
       .map(key => ({ [key]: constraints[key] }));

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SenlerGroup } from '@prisma/client';
+import { AmoCrmProfile, SenlerGroup } from '@prisma/client';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { BaseModelDto } from 'src/infrastructure/dto';
 
@@ -8,29 +8,43 @@ export type BaseSenlerGroup = Pick<
   | 'id'
   | 'createdAt'
   | 'updatedAt'
-  | 'amoCrmDomainName'
-  | 'amoCrmAccessToken'
-  | 'amoCrmRefreshToken'
   | 'senlerGroupId'
   | 'senlerApiAccessToken'
 >;
 
-export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
+export type BaseAmoCrmProfile = Pick<
+  AmoCrmProfile,
+  | 'id'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'domainName'
+  | 'accessToken'
+  | 'refreshToken'
+  | 'rateLimit'
+>;
+
+export class BaseAmoCrmProfileDto extends BaseModelDto implements BaseAmoCrmProfile {
   @ApiProperty({ description: 'AmoCRM domain name' })
   @IsString()
   @IsNotEmpty()
-  amoCrmDomainName: string;
+  domainName: string;
 
   @ApiProperty({ description: 'Access token from AmoCRM' })
   @IsString()
   @IsNotEmpty()
-  amoCrmAccessToken: string;
+  accessToken: string;
 
   @ApiProperty({ description: 'Refresh token from AmoCRM' })
   @IsString()
   @IsNotEmpty()
-  amoCrmRefreshToken: string;
+  refreshToken: string;
 
+  @ApiProperty({ description: 'Rate limit from AmoCRM' })
+  @IsNumber()
+  rateLimit: number | null;
+}
+
+export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
   @ApiProperty({ description: 'Senler group Id' })
   @IsNumber()
   @IsNotEmpty()

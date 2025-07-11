@@ -161,7 +161,14 @@ export class BotStepWebhookDto {
   botCallback: BotCallbackDto;
 }
 
-export class GetSenlerGroupFieldsDto {
+export class GetSenlerGroupFieldsRequestDto {
+  @ApiProperty({ description: 'Id of Senler group.' })
+  @IsNotEmpty()
+  @IsNumber()
+  senlerGroupId: number;
+}
+
+export class UnlinkAmoCrmAccountRequestDto {
   @ApiProperty({ description: 'Id of Senler group.' })
   @IsNotEmpty()
   @IsNumber()

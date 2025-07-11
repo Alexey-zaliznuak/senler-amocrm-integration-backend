@@ -45,8 +45,8 @@ export enum AmoCrmExceptionType {
 }
 
 export type AmoCrmTokens = {
-  amoCrmAccessToken: string;
-  amoCrmRefreshToken: string;
+  accessToken: string;
+  refreshToken: string;
 };
 
 export type AmoCrmOAuthTokenResponse = {
