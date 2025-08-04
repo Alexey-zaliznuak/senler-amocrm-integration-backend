@@ -398,12 +398,22 @@ export class IntegrationService {
       refreshToken: senlerGroup.amoCrmProfile.refreshToken,
     };
 
-    const leadFields = await this.amoCrmService.getLeadFields({
-      amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-      tokens,
-    });
-
-    return leadFields;
+    try {
+      return await this.amoCrmService.getLeadFields({
+        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        tokens,
+      });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        return {
+          error: {
+            code: error.code,
+            name: error.name,
+            message: error.message,
+          },
+        };
+      }
+    }
   }
 
   async unlinkAmoAccount(senlerGroupId: number) {

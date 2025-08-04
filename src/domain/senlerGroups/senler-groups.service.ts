@@ -49,6 +49,10 @@ export class SenlerGroupsService {
       const amoCrmProfile = await this.getOrCreateAmoCrmProfile(data);
       const senlerApiAccessToken = await this.senlerService.getAccessToken(data.senlerAuthorizationCode, data.senlerGroupId);
 
+      if (!senlerApiAccessToken) {
+        throw new ServiceUnavailableException("Senler token was not received")
+      }
+
       return await this.prisma.senlerGroup.create({
         select: {
           id: true,

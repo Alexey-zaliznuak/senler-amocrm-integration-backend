@@ -11,8 +11,7 @@ async function bootstrap() {
         ? new ConsoleLogger({
             json: true,
           })
-        : undefined,
-  });
+        : undefined,  });
 
   const config = app.get<AppConfigType>('CONFIG');
 
