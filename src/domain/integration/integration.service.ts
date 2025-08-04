@@ -408,8 +408,8 @@ export class IntegrationService {
         return {
           error: {
             name: "Error during request to AmoCrm",
-            code: error.code,
-            responseData: error.response ? error.response.data : "Отсутствует подробная информация"
+            code: error.status,
+            responseData: error.status === 402 ? "Проверьте оплату тарифа в аккаунте" : "Отсутствует подробная информация"
           },
         };
       }
