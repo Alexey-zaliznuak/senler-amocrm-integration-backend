@@ -407,7 +407,7 @@ export class IntegrationService {
       if (error instanceof AxiosError) {
         return {
           error: {
-            name: "Error to request to AmoCrm",
+            name: "Error during request to AmoCrm",
             code: error.code,
             responseData: error.response ? error.response.data : "Отсутствует подробная информация"
           },
