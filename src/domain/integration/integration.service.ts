@@ -407,9 +407,9 @@ export class IntegrationService {
       if (error instanceof AxiosError) {
         return {
           error: {
+            name: "Error to request to AmoCrm",
             code: error.code,
-            name: error.name,
-            message: error.message,
+            responseData: error.response.data,
           },
         };
       }

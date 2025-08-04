@@ -332,7 +332,7 @@ export class AmoCrmService {
 
       return response.data['_embedded']['custom_fields'];
     } catch (error) {
-      this.logger.error('Error creating lead field', { error });
+      this.logger.error('Error getting lead field', { error });
       throw error;
     }
   }
