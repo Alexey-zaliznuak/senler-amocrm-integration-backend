@@ -409,7 +409,7 @@ export class IntegrationService {
           error: {
             name: "Error to request to AmoCrm",
             code: error.code,
-            responseData: error.response.data,
+            responseData: error.response ? error.response.data : "Отсутствует подробная информация"
           },
         };
       }
