@@ -14,7 +14,9 @@ export class IntegrationUtils {
    */
   private replaceVariables(str: string, vars: { [x: string]: any }): string {
     return str.replace(/%(\w+)%/g, (match, p1) => {
-      return vars[p1] !== undefined ? vars[p1] : match;
+      // если значение определено (в том числе null/false/0), используем его,
+      // иначе — строку "null"
+      return vars[p1] !== undefined ? vars[p1] : 'null';
     });
   }
 
@@ -45,7 +47,7 @@ export class IntegrationUtils {
   /**
    * Преобразует переменные из Senler в значения полей amoCRM, используя сопоставление переменных.
    *
-   * @param syncableVariables - Объект, где ключи — переменные, а значения содержат `from` и `to` пути.
+   * @param syncableVariables - Объект, где ключи — переменные, а значения содержат `from` и `to` id переменных в системах.
    * @param senlerLeadVars - Объект с переменными лида из Senler.
    * @returns Массив объектов, представляющих значения кастомных полей amoCRM.
    */
@@ -61,7 +63,7 @@ export class IntegrationUtils {
 
       customFieldsValues.push({
         field_id: +field_id,
-        values: [{ value: value.toString() || "null" }],
+        values: [{ value: value.toString() || 'null' }],
       });
     }
 
