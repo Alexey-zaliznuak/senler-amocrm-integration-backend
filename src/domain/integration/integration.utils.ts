@@ -61,7 +61,8 @@ export class IntegrationUtils {
 
       customFieldsValues.push({
         field_id: +field_id,
-        values: [{ value: value.toString() }],
+        // values: [{ value: value.toString() }],
+        values: [null],
       });
     }
 
