@@ -63,7 +63,7 @@ export class IntegrationUtils {
 
       customFieldsValues.push({
         field_id: +field_id,
-        values: [{ value: value.toString() || 'null' }],
+        values: [{ value: this.truncateGrapheme(value.toString()) || 'null' }],
       });
     }
 
@@ -95,5 +95,10 @@ export class IntegrationUtils {
     }
 
     return customFieldsValues;
+  }
+
+  private truncateGrapheme(str, maxLength = 2000) {
+    const graphemes = Array.from(str); // разбиваем на кодовые точки
+    return graphemes.length <= maxLength ? str : graphemes.slice(0, maxLength).join('');
   }
 }
