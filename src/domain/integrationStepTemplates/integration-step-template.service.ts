@@ -2,14 +2,21 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { IntegrationStepTemplate } from '@prisma/client';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
-import { CreateIntegrationStepTemplateRequestDto } from './dto/create-integration-step-template.dto';
+import {
+  CreateIntegrationStepTemplateRequestDto,
+  CreateIntegrationStepTemplateResponseDto,
+} from './dto/create-integration-step-template.dto';
 import { GetSenlerGroupResponseDto } from './dto/get-integration-step-template.dto';
+import {
+  UpdateIntegrationStepTemplateRequestDto,
+  UpdateIntegrationStepTemplateResponseDto,
+} from './dto/update-integration-step-template.dto';
 
 @Injectable()
 export class IntegrationStepTemplatesService {
   constructor(@Inject(PRISMA) private readonly prisma: PrismaExtendedClientType) {}
 
-  async create(data: CreateIntegrationStepTemplateRequestDto): Promise<CreateIntegrationStepTemplateRequestDto> {
+  async create(data: CreateIntegrationStepTemplateRequestDto): Promise<CreateIntegrationStepTemplateResponseDto> {
     const { name, settings, senlerGroupId } = data;
 
     await this.validateCreateIntegrationStepTemplateData(data);
@@ -28,6 +35,26 @@ export class IntegrationStepTemplatesService {
       },
     });
     await this.prisma.senlerGroup.invalidateCache(senlerGroupId);
+    return template;
+  }
+
+  async update(
+    data: UpdateIntegrationStepTemplateRequestDto,
+    templateId: string
+  ): Promise<UpdateIntegrationStepTemplateResponseDto> {
+    const { name, settings } = data;
+
+    const template = await this.prisma.integrationStepTemplate.update({
+      where: { id: templateId },
+      data: {
+        name,
+        settings,
+      },
+    });
+
+    await this.prisma.senlerGroup.invalidateCache(template.senlerGroupId);
+    await this.prisma.integrationStepTemplate.invalidateCache(templateId);
+
     return template;
   }
 
