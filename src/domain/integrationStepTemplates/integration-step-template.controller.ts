@@ -53,7 +53,7 @@ export class IntegrationStepTemplatesController {
     type: UpdateIntegrationStepTemplateResponseDto,
   })
   async update(
-    @Body() data: CreateIntegrationStepTemplateRequestDto,
+    @Body() data: UpdateIntegrationStepTemplateRequestDto,
     @Param('identifier') id: string
   ): Promise<UpdateIntegrationStepTemplateResponseDto> {
     return await this.integrationStepTemplatesService.update(data, id);

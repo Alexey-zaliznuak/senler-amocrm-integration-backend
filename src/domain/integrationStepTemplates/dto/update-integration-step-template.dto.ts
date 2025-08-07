@@ -1,15 +1,15 @@
-import { PickType } from '@nestjs/swagger';
+import { PartialType, PickType } from '@nestjs/swagger';
 import { BaseIntegrationStepTemplateDto } from './basic-integration-step-template.dto';
 
-export class UpdateIntegrationStepTemplateRequestDto extends PickType(BaseIntegrationStepTemplateDto, [
+export class UpdateIntegrationStepTemplateRequestDto extends PartialType(PickType(BaseIntegrationStepTemplateDto, [
   'name',
   'settings',
-] as const) {}
+] as const)) {}
 
 
-export class UpdateIntegrationStepTemplateResponseDto extends PickType(BaseIntegrationStepTemplateDto, [
+export class UpdateIntegrationStepTemplateResponseDto extends PartialType( PickType(BaseIntegrationStepTemplateDto, [
   'id',
   'name',
   'settings',
   'senlerGroupId',
-] as const) {}
+] as const)) {}

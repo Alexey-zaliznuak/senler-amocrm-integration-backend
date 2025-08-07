@@ -42,14 +42,11 @@ export class IntegrationStepTemplatesService {
     data: UpdateIntegrationStepTemplateRequestDto,
     templateId: string
   ): Promise<UpdateIntegrationStepTemplateResponseDto> {
-    const { name, settings } = data;
+    const template = await this.prisma.integrationStepTemplate.findUniqueWithCache({ where: { id: templateId } });
 
-    const template = await this.prisma.integrationStepTemplate.update({
+    await this.prisma.integrationStepTemplate.update({
       where: { id: templateId },
-      data: {
-        name,
-        settings,
-      },
+      data: Object.assign(template, data)
     });
 
     await this.prisma.senlerGroup.invalidateCache(template.senlerGroupId);
