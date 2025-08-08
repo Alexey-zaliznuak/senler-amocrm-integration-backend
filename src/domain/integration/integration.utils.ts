@@ -30,17 +30,17 @@ export class IntegrationUtils {
    * @returns Строка с заменёнными значениями или оригинальными идентификаторами.
    */
   private replaceIdsWithValues(str: string, customFields: { [key: string]: AmoCustomField }): string {
-    const idRegex = /%?(\d+)%?/g;
+    const idRegex = /%(\d+)%/g;
 
-    return str.replace(idRegex, (match: string, id: string) => {
+    return str.replace(idRegex, (_match: string, id: string) => {
       const fieldId = parseInt(id, 10);
-      const field = Object.values(customFields).find(field => field.field_id === fieldId);
+      const field = Object.values(customFields).find(f => f.field_id === fieldId);
 
       if (field?.values?.[0]?.value) {
-        return field.values[0].value;
+        return String(field.values[0].value);
       }
 
-      return 'null';
+      return 'null'; // если значения нет
     });
   }
 
