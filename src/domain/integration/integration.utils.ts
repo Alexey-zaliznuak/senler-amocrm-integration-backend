@@ -40,7 +40,7 @@ export class IntegrationUtils {
         return field.values[0].value;
       }
 
-      return match;
+      return 'null';
     });
   }
 
