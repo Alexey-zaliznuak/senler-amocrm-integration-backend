@@ -193,6 +193,8 @@ export class IntegrationService {
               labels: { requestId: message.payload.requestUuid },
               exception: {
                 message: convertExceptionToString(message),
+                delay: message.metadata.delay,
+                max_delay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
                 type: exceptionType,
               },
               status: 'CANCELLED',
@@ -445,7 +447,9 @@ export class IntegrationService {
   ) {
     const delay = 2 ** retryCount * (1 + Math.random()) * base;
 
-    return Math.min(delay, max, base);
+    this.logger.info("DELAY", {delay: Math.min(delay, max)})
+
+    return Math.min(delay, max);
   }
 
   public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
