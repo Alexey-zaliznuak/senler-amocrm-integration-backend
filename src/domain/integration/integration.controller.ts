@@ -28,7 +28,7 @@ export class IntegrationController {
   @Get('/config')
   conf(): any {
     return {
-      injected: this.integrationService.config.DATABASE_URL,
+      injected: this.integrationService.config,
       constant: AppConfig,
       processEnv: process.env
     };

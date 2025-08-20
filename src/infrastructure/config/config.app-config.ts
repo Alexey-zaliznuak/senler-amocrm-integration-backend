@@ -16,7 +16,7 @@ export const AppConfig = {
 
   INTEGRATION_SECRET: process.env.INTEGRATION_SECRET,
 
-  DATABASE_URL: process.env.DEV_SERVER_URL,
+  DATABASE_URL: process.env.DATABASE_URL,
 
   RABBITMQ_URL: process.env.RABBITMQ_URL,
   RABBITMQ_PREFETCH_COUNT: parseInt(process.env.RABBITMQ_PREFETCH_COUNT),

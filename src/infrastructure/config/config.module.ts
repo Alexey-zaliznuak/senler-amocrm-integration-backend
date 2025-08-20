@@ -1,5 +1,7 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggingService } from '../logging/logging.service';
+import { AppConfig } from './config.app-config';
 
 export const CONFIG = 'CONFIG';
 
