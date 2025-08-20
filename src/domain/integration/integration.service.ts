@@ -39,6 +39,7 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
+
   async processBotStepWebhook(body: any) {
     const message: TransferMessage = {
       payload: body,
@@ -461,21 +462,6 @@ export class IntegrationService {
       dayToMilliseconds: timeToMilliseconds({ days: 1 }),
       mx: mx,
     });
-
-//     {
-//   "2": 1,
-//   "3": 1.8437844574415547,
-//   "4": 60000,
-//   "context": "IntegrationDomainLogger",
-//   "datetime": "2025-08-20 13:54:04",
-//   "delay": 8,
-//   "labels": {
-//     "app": "amocrm",
-//     "env": "production"
-//   },
-//   "level": "info",
-//   "message": "DELAY"
-// }
 
     return Math.min(delay, mx);
   }

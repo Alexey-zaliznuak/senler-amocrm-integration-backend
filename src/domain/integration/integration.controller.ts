@@ -1,16 +1,25 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
+import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { CONFIG } from 'src/infrastructure/config/config.module';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
-import { BotStepWebhookDto, GetSenlerGroupFieldsRequestDto, TransferMessage, UnlinkAmoCrmAccountRequestDto } from './integration.dto';
+import {
+  BotStepWebhookDto,
+  GetSenlerGroupFieldsRequestDto,
+  TransferMessage,
+  UnlinkAmoCrmAccountRequestDto,
+} from './integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(private readonly integrationService: IntegrationService) {}
+  constructor(
+    @Inject(CONFIG) private readonly config: AppConfigType,
+    private readonly integrationService: IntegrationService
+  ) {}
 
   @Post('/botStepWebhook')
   @HttpCode(HttpStatus.OK)
@@ -18,6 +27,11 @@ export class IntegrationController {
   @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
     return await this.integrationService.processBotStepWebhook(body);
+  }
+
+  @Get('/config')
+  conf(@Body() body: any): any {
+    return this.config;
   }
 
   @Delete('/untieAmoCrmProfile')
