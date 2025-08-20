@@ -266,6 +266,8 @@ export class IntegrationService {
         labels,
         details: 'Превышено время в течении которого сообщение могло быть отложено',
         status: 'CANCELLED',
+        delay: message.metadata.delay,
+        mxDelay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
       });
     }
     channel.nack(originalMessage as any, false, false);
@@ -447,7 +449,12 @@ export class IntegrationService {
   ) {
     const delay = 2 ** retryCount * (1 + Math.random()) * base;
 
-    this.logger.info("DELAY", {delay: Math.min(delay, max)})
+    this.logger.info("DELAY", {
+      delay: Math.min(delay, max),
+      2: retryCount,
+      3: 1 + Math.random(),
+      4: base
+    })
 
     return Math.min(delay, max);
   }
