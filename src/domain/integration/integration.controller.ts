@@ -33,7 +33,9 @@ export class IntegrationController {
   conf(): any {
     return {
       1: 2,
-      3: this.integrationService.config.DATABASE_URL};
+      3: this.integrationService.config.DATABASE_URL,
+      4: AppConfig,
+    };
   }
 
   @Delete('/untieAmoCrmProfile')
