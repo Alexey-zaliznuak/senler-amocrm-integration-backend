@@ -110,12 +110,12 @@ export class CustomAxiosInstance {
         const logger = this.getRequestLogger((config as CustomAxiosRequestConfig).requestId || config?.data?.requestId);
 
         // TODO убрать
-        logger.info(`Send request ${config.url}`, {
+        logger.info(`SEND REQUEST  ${config.url}`, {
           method: config.method,
           url: config.url,
-          timestamp: Date.now(),
+          tm: Date.now(),
           labels: {
-            debug: "true",
+            debug: "send_request",
           }
         });
 
