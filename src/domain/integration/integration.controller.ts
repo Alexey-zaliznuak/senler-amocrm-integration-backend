@@ -1,10 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
-import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
-import { CONFIG } from 'src/infrastructure/config/config.module';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
 import {
@@ -16,10 +15,7 @@ import {
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(
-    @Inject(CONFIG) private readonly config: AppConfigType,
-    private readonly integrationService: IntegrationService
-  ) {}
+  constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('/botStepWebhook')
   @HttpCode(HttpStatus.OK)
@@ -33,8 +29,9 @@ export class IntegrationController {
   conf(): any {
     return {
       1: 2,
-      3: this.integrationService.config.DATABASE_URL,
-      4: AppConfig,
+      injected: this.integrationService.config.DATABASE_URL,
+      constant: AppConfig,
+      processEnv: process.env
     };
   }
 
