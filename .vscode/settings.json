@@ -3,6 +3,7 @@
     "dbgenerated",
     "retryable",
     "syncable",
+    "zset",
     "Сенлер"
   ],
   "files.exclude": {

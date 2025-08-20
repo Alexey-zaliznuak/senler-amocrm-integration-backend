@@ -45,8 +45,10 @@ export class IntegrationService {
       metadata: { retryNumber: 0, createdAt: new Date().toISOString(), delay: 0 },
     };
 
+    const labels = this.extractLoggingLabelsFromRequest(message.payload)
+
     this.logger.info('Получен запрос', {
-      labels: this.extractLoggingLabelsFromRequest(message.payload),
+      labels,
       requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
       data: message,
       status: 'VALIDATING',
@@ -61,7 +63,7 @@ export class IntegrationService {
         const details = validationErrors.map(v => v.toString()).join('\n');
 
         this.logger.error('Ошибка валидации запроса', {
-          labels: this.extractLoggingLabelsFromRequest(message.payload),
+          labels,
           details,
           status: 'FAILED',
         });
@@ -79,7 +81,7 @@ export class IntegrationService {
       );
 
       this.logger.info('Запрос принят в обработку', {
-        labels: this.extractLoggingLabelsFromRequest(message.payload),
+        labels,
         requestTitle: this.buildProcessWebhookTitle(message.payload),
         status: 'PENDING',
       });
@@ -89,7 +91,7 @@ export class IntegrationService {
       const details = convertExceptionToString(error);
 
       this.logger.error('Ошибка запроса', {
-        labels: this.extractLoggingLabelsFromRequest(message.payload),
+        labels,
         details,
         status: 'FAILED',
       });
@@ -224,7 +226,7 @@ export class IntegrationService {
             status: 'CANCELLED',
           });
         } else {
-          const delay = timeToMilliseconds({ days: 1 });
+          const delay = timeToMilliseconds({ minutes: 1 });
 
           channel.nack(originalMessage as any, false, false);
           await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);

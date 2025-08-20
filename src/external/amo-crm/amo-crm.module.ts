@@ -7,7 +7,10 @@ import { RefreshTokensService } from './handlers/handle-tokens-expiration.servic
 import { RateLimitsService } from './rate-limit.service';
 
 @Module({
-  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME), AxiosModule.forFeature(AXIOS_INJECTABLE_NAME)],
+  imports: [
+    LoggingModule.forFeature(LOGGER_INJECTABLE_NAME),
+    AxiosModule.forFeature(AXIOS_INJECTABLE_NAME, { retryConfig: { retries: 0 } }),
+  ],
   providers: [AmoCrmService, RefreshTokensService, RateLimitsService],
   exports: [AmoCrmService, RateLimitsService],
 })

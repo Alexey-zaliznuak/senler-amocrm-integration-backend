@@ -4,6 +4,20 @@ import { Logger } from 'winston';
 import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
 import { LOGGER_INJECTABLE_NAME } from './redis.config';
+import { GET_SLIDING_WINDOW_RATE_LUA_SCRIPT } from './scripts/get-window-rate';
+import { INCREMENT_SLIDING_WINDOW_RATE_LUA_SCRIPT } from './scripts/increment_sliding_window';
+
+let incrementSlidingWindowScriptHash: string | null = null;
+let getSlidingWindowRateScriptHash: string | null = null;
+
+async function ensureIncrementSlicingWindowScript(client: any) {
+  if (!incrementSlidingWindowScriptHash) {
+    incrementSlidingWindowScriptHash = await client.scriptLoad(INCREMENT_SLIDING_WINDOW_RATE_LUA_SCRIPT);
+  }
+}
+async function ensureGetSlicingWindowScript(client: any) {
+  if (!getSlidingWindowRateScriptHash) getSlidingWindowRateScriptHash = await client.scriptLoad(GET_SLIDING_WINDOW_RATE_LUA_SCRIPT);
+}
 
 @Injectable()
 export class RedisService implements OnModuleInit {
@@ -78,36 +92,100 @@ export class RedisService implements OnModuleInit {
   }
 
   public async incrementSlidingWindowRate(
-    key: string,
+    keyBase: string, // напр. `cache:{userid1234}`
     maxRate: number,
-    windowSeconds: number,
-    increment: number = 1
+    windowSeconds = 1,
+    increment = 1
   ): Promise<{ rate: number; allowed: boolean }> {
-    await this.connectIfNeed();
+    const zsetKey = `${keyBase}`;
+    const seqKey = `${keyBase}:seq`;
 
-    const now = Date.now();
+    const windowMs = Math.max(1, Math.floor(windowSeconds * 1000));
+    const inc = Math.max(1, Math.floor(increment));
 
-    const currentRate = await this.getSlidingWindowRate(key, windowSeconds);
+    await ensureIncrementSlicingWindowScript(this.client);
 
-    if (currentRate + increment <= maxRate) {
-      await this.client.zAdd(key, { score: now, value: now.toString() });
-      await this.client.expire(key, windowSeconds + 1);
-      return { rate: currentRate + increment, allowed: true };
+    try {
+      const res = await this.client.evalSha(incrementSlidingWindowScriptHash!, {
+        keys: [zsetKey, seqKey],
+        arguments: [String(windowMs), String(maxRate), String(inc)],
+      });
+
+      const allowed = res[0] === 1;
+      const rate = Number(res[1]);
+
+      return { rate, allowed };
+    } catch (e: any) {
+      if (e?.message?.includes('NOSCRIPT')) {
+        incrementSlidingWindowScriptHash = await this.client.scriptLoad(INCREMENT_SLIDING_WINDOW_RATE_LUA_SCRIPT);
+
+        const res = await this.client.evalSha(incrementSlidingWindowScriptHash!, {
+          keys: [zsetKey, seqKey],
+          arguments: [String(windowMs), String(maxRate), String(inc)],
+        });
+
+        const allowed = res[0] === 1;
+        const rate = Number(res[1]);
+
+        return { rate, allowed };
+      }
+      throw e;
     }
-
-    return { rate: currentRate, allowed: false };
   }
 
-  public async getSlidingWindowRate(key: string, windowSeconds: number) {
-    await this.connectIfNeed();
-    const multi = this.client.multi();
-    const windowStart = Date.now() - windowSeconds * 1000;
+  // public async incrementSlidingWindowRateOld(
+  //   key: string,
+  //   maxRate: number,
+  //   windowSeconds: number,
+  //   increment: number = 1
+  // ): Promise<{ rate: number; allowed: boolean }> {
+  //   await this.connectIfNeed();
 
-    multi.zRemRangeByScore(key, '-inf', windowStart);
-    multi.zCard(key);
+  //   const now = Date.now();
 
-    const [_, currentRate] = (await multi.exec()) as [unknown, number];
-    return currentRate;
+  //   const currentRate = await this.getSlidingWindowRate(key, windowSeconds);
+
+  //   if (currentRate + increment <= maxRate) {
+  //     await this.client.zAdd(key, { score: now, value: now.toString() });
+  //     await this.client.expire(key, windowSeconds + 1);
+  //     return { rate: currentRate + increment, allowed: true };
+  //   }
+
+  //   return { rate: currentRate, allowed: false };
+  // }
+
+  // public async getSlidingWindowRate(key: string, windowSeconds: number) {
+  //   await this.connectIfNeed();
+  //   const multi = this.client.multi();
+  //   const windowStart = Date.now() - windowSeconds * 1000;
+
+  //   multi.zRemRangeByScore(key, '-inf', windowStart);
+  //   multi.zCard(key);
+
+  //   const [_, currentRate] = (await multi.exec()) as [unknown, number];
+  //   return currentRate;
+  // }
+
+  public async getSlidingWindowRateAtomic(
+    keyBase: string, // напр. `rl:{user:123}`
+    windowSeconds: number
+  ): Promise<number> {
+    const zsetKey = `${keyBase}`;
+    const windowMs = Math.max(1, Math.floor(windowSeconds * 1000));
+
+    await ensureGetSlicingWindowScript(this.client);
+
+    try {
+      const res = await this.client.evalSha(getSlidingWindowRateScriptHash!, { keys: [zsetKey], arguments: [String(windowMs)] });
+      return Number(res[0]); // count
+    } catch (e: any) {
+      if (e?.message?.includes('NOSCRIPT')) {
+        getSlidingWindowRateScriptHash = await this.client.scriptLoad(GET_SLIDING_WINDOW_RATE_LUA_SCRIPT);
+        const res = await this.client.evalSha(getSlidingWindowRateScriptHash!, { keys: [zsetKey], arguments: [String(windowMs)] });
+        return Number(res[0]);
+      }
+      throw e;
+    }
   }
 
   private setupEventHandlers() {
