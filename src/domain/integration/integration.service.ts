@@ -45,7 +45,9 @@ export class IntegrationService {
       metadata: { retryNumber: 0, createdAt: new Date().toISOString(), delay: 0 },
     };
 
-    const labels = this.extractLoggingLabelsFromRequest(message.payload)
+    this.logger.info('КОНФИГ', { config: this.config });
+
+    const labels = this.extractLoggingLabelsFromRequest(message.payload);
 
     this.logger.info('Получен запрос', {
       labels,
@@ -267,7 +269,7 @@ export class IntegrationService {
         details: 'Превышено время в течении которого сообщение могло быть отложено',
         status: 'CANCELLED',
         delay: message.metadata.delay,
-        mxDelay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+        mxDelay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
       });
     }
     channel.nack(originalMessage as any, false, false);
@@ -413,9 +415,9 @@ export class IntegrationService {
       if (error instanceof AxiosError) {
         return {
           error: {
-            name: "Error during request to AmoCrm",
+            name: 'Error during request to AmoCrm',
             code: error.status,
-            message: error.status === 402 ? "Проверьте оплату тарифа в аккаунте" : "Отсутствует подробная информация"
+            message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
           },
         };
       }
@@ -445,18 +447,37 @@ export class IntegrationService {
   private calculateTransferMessageDelay(
     retryCount: number,
     base: number = timeToMilliseconds({ minutes: 1 }),
-    max: number = timeToMilliseconds({ days: 1 })
   ) {
+    const mx = timeToMilliseconds({ days: 1 })
+
     const delay = 2 ** retryCount * (1 + Math.random()) * base;
 
-    this.logger.info("DELAY", {
-      delay: Math.min(delay, max),
+    this.logger.info('DELAY', {
+      delay_calc: delay,
+      delay_in_result: Math.min(delay, mx),
       2: retryCount,
       3: 1 + Math.random(),
-      4: base
-    })
+      4: base,
+      dayToMilliseconds: timeToMilliseconds({ days: 1 }),
+      mx: mx,
+    });
 
-    return Math.min(delay, max);
+//     {
+//   "2": 1,
+//   "3": 1.8437844574415547,
+//   "4": 60000,
+//   "context": "IntegrationDomainLogger",
+//   "datetime": "2025-08-20 13:54:04",
+//   "delay": 8,
+//   "labels": {
+//     "app": "amocrm",
+//     "env": "production"
+//   },
+//   "level": "info",
+//   "message": "DELAY"
+// }
+
+    return Math.min(delay, mx);
   }
 
   public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
