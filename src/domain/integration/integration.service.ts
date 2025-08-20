@@ -282,7 +282,7 @@ export class IntegrationService {
     const delay = this.calculateTransferMessageDelay(
       message.metadata.retryNumber,
       this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
-      this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+      // this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
     );
 
     message.metadata.delay = delay;
