@@ -30,8 +30,10 @@ export class IntegrationController {
   }
 
   @Get('/config')
-  conf(@Body() body: any): any {
-    return this.config;
+  conf(): any {
+    return {
+      1: 2,
+      3: this.integrationService.config.DATABASE_URL};
   }
 
   @Delete('/untieAmoCrmProfile')

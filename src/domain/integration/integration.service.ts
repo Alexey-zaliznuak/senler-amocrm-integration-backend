@@ -32,7 +32,7 @@ export class IntegrationService {
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
-    @Inject(CONFIG) private readonly config: AppConfigType,
+    @Inject(CONFIG) public readonly config: AppConfigType,
     private readonly redis: RedisService,
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
