@@ -205,6 +205,7 @@ export class IntegrationService {
             channel.nack(originalMessage as any, false, false);
             return;
           }
+
           this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(error), {
             labels,
             status: 'FAILED',
