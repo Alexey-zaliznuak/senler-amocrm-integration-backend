@@ -349,7 +349,7 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } };
     amoCrmLead: AmoCrmLead;
   }> {
-    let lead = await this.prisma.lead.findUniqueWithCache({
+    let lead = await this.prisma.lead.findUnique({
       where: { senlerLeadId },
       include: { senlerGroup: { include: { amoCrmProfile: true } } },
     });
@@ -363,7 +363,7 @@ export class IntegrationService {
       });
 
       if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
-        lead = await this.prisma.lead.updateWithCacheInvalidate({
+        lead = await this.prisma.lead.update({
           where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
           include: { senlerGroup: { include: { amoCrmProfile: true } } },
           data: { amoCrmLeadId: actualAmoCrmLead.id },
