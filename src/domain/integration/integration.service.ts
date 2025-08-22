@@ -6,7 +6,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AmoCrmError, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS, RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -191,7 +191,9 @@ export class IntegrationService {
         const humanMessage = exception.humanMessage;
 
         // сохраняем все ошибки в redis
-        await this.saveSenlerGroupErrorMessage(senlerGroup.senlerGroupId, humanMessage);
+        if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+          await this.saveSenlerGroupErrorMessage(senlerGroup.senlerGroupId, humanMessage);
+        }
 
         // если сообщение слишком долго ретраится - отменяем его
         if (!(message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
@@ -290,10 +292,7 @@ export class IntegrationService {
   async publishTransferMessageWithLongerDelay(message: TransferMessage): Promise<number> {
     message.metadata.retryNumber++;
 
-    const delay = this.calculateTransferMessageDelay(
-      message.metadata.retryNumber,
-      this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY
-    );
+    const delay = this.calculateTransferMessageDelay(message.metadata.retryNumber, this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY);
 
     message.metadata.delay = delay;
 
