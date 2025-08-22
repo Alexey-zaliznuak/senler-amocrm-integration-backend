@@ -259,6 +259,10 @@ export class IntegrationService {
         //     }
         //   }
         // }
+      } else {
+        this.logger.error('Не удалось обработать ошибку при выполнении запроса - ошибка не является ошибкой axios или amo crm', {
+          labels,
+        });
       }
     }
   }

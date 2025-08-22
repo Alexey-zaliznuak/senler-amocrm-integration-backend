@@ -308,7 +308,8 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      throw new UnauthorizedException('Failed to create lead field');
+      const type = this.getExceptionType(error);
+      throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
 
@@ -362,8 +363,8 @@ export class AmoCrmService {
 
       return actualLead;
     } catch (error) {
-      this.logger.error('Error creating lead if not exists', { error });
-      throw new UnauthorizedException('Failed to create lead if not exists');
+      const type = this.getExceptionType(error);
+      throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
 
