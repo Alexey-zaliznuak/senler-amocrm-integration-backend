@@ -42,6 +42,8 @@ export class RateLimitsService {
       increment
     );
 
+    this.logger.info('GOT RATE', { rate });
+
     if (!allowed) {
       this.logger.info('CANCEL REQUEST', {
         tm: Date.now(),
