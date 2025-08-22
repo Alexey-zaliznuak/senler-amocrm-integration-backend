@@ -82,7 +82,7 @@ export class SenlerGroupsService {
   }
 
   async getOrCreateAmoCrmProfile(data: CreateSenlerGroupRequestDto) {
-    let profile = await this.prisma.amoCrmProfile.findUniqueWithCache({ where: { domainName: data.amoCrmDomainName } });
+    let profile = await this.prisma.amoCrmProfile.findUnique({ where: { domainName: data.amoCrmDomainName } });
     if (profile) return profile;
 
     const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
