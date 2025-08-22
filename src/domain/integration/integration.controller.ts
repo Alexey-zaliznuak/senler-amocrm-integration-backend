@@ -30,7 +30,7 @@ export class IntegrationController {
     return {
       injected: this.integrationService.config,
       constant: AppConfig,
-      processEnv: process.env
+      processEnv: process.env,
     };
   }
 
@@ -45,9 +45,21 @@ export class IntegrationController {
     await this.integrationService.processTransferMessage(msg.content, channel, msg);
   }
 
-  @Get('/getAmoFields')
+  @Get('getAmoFields')
   @HttpCode(HttpStatus.OK)
   async getAmoFields(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<any> {
     return await this.integrationService.getAmoCrmFields(query.senlerGroupId);
+  }
+
+  @Get('AmoCrmErrors')
+  @HttpCode(HttpStatus.OK)
+  async getAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<string> {
+    return await this.integrationService.getSenlerGroupErrorMessage(query.senlerGroupId);
+  }
+
+  @Delete('AmoCrmErrors')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<void> {
+    await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);
   }
 }

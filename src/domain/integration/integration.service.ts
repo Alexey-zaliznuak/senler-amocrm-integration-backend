@@ -4,9 +4,9 @@ import * as amqp from 'amqplib';
 import { AxiosError } from 'axios';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { SenlerApiClientV2 } from 'senler-sdk';
+import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import { AmoCrmError, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS, RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -16,7 +16,7 @@ import { PrismaExtendedClientType } from 'src/infrastructure/database/database.s
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
-import { convertExceptionToString, timeToMilliseconds } from 'src/utils';
+import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { BotStepType, BotStepWebhookDto, TransferMessage } from './integration.dto';
@@ -45,8 +45,6 @@ export class IntegrationService {
       payload: body,
       metadata: { retryNumber: 0, createdAt: new Date().toISOString(), delay: 0 },
     };
-
-    this.logger.info('КОНФИГ', { config: this.config });
 
     const labels = this.extractLoggingLabelsFromRequest(message.payload);
 
@@ -133,22 +131,22 @@ export class IntegrationService {
 
     // Проверяем что ключ не в отложенных(при 429 блокируем ключ на секунду) и не заблоченных
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmProfile.accessToken);
-    const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmProfile.refreshToken);
+    // const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmProfile.refreshToken);
 
     if (await this.redis.exists(delayedAmoCrmCacheKey)) {
       await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
       return;
     }
 
-    if (await this.redis.exists(cancelledAmoCrmCacheKey)) {
-      this.logger.info('Сообщение отменено', {
-        labels,
-        details: 'AmoCRM токен признан невалидным',
-        status: 'CANCELLED',
-      });
-      channel.nack(originalMessage as any, false, false);
-      return;
-    }
+    // if (await this.redis.exists(cancelledAmoCrmCacheKey)) {
+    //   this.logger.info('Сообщение отменено', {
+    //     labels,
+    //     details: 'AmoCRM токен признан невалидным',
+    //     status: 'CANCELLED',
+    //   });
+    //   channel.nack(originalMessage as any, false, false);
+    //   return;
+    // }
 
     const tokens = {
       accessToken: senlerGroup.amoCrmProfile.accessToken,
@@ -188,66 +186,77 @@ export class IntegrationService {
       });
 
       if (error instanceof AxiosError || error instanceof AmoCrmError) {
-        const exceptionType = this.amoCrmService.getExceptionType(error);
+        const exception = this.amoCrmService.getExceptionType(error);
+        const exceptionType = exception.type;
+        const humanMessage = exception.humanMessage;
 
-        if (exceptionType === AmoCrmExceptionType.TOO_MANY_REQUESTS) {
-          if (!(message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
-            this.logger.info('Запрос отменен без блокировки ключей, из-за исчерпания попыток', {
-              labels: { requestId: message.payload.requestUuid },
-              exception: {
-                message: convertExceptionToString(message),
-                delay: message.metadata.delay,
-                max_delay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
-                type: exceptionType,
-              },
-              status: 'CANCELLED',
-            });
-            channel.nack(originalMessage as any, false, false);
-            return;
-          }
+        // сохраняем все ошибки в redis
+        await this.saveSenlerGroupErrorMessage(senlerGroup.senlerGroupId, humanMessage);
 
-          this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(error), {
-            labels,
-            status: 'FAILED',
-            exception: {
-              message: convertExceptionToString(error),
-              type: exceptionType,
-            },
-          });
-          const delay = await this.publishTransferMessageWithLongerDelay(message);
-
-          channel.nack(originalMessage as any, false, false);
-
-          await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
-
-          this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
-        } else if (exceptionType === AmoCrmExceptionType.INVALID_DATA_STRUCTURE) {
-          channel.nack(originalMessage as any, false, false);
-          this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных', {
-            exception: {
-              type: exceptionType,
-              message: convertExceptionToString(error),
-            },
-            labels: { requestId: message.payload.requestUuid },
-            status: 'CANCELLED',
-          });
-        } else {
-          const delay = timeToMilliseconds({ minutes: 1 });
-
-          channel.nack(originalMessage as any, false, false);
-          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
-
-          await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
-
-          this.logger.info('Запрос отменен с блокировкой ключей', {
+        // если сообщение слишком долго ретраится - отменяем его
+        if (!(message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
+          this.logger.info('Запрос отменен без блокировки ключей, из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
-              message: convertExceptionToString(message),
+              humanMessage,
+              message: convertExceptionToString(error),
+              delay: message.metadata.delay,
+              max_delay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
               type: exceptionType,
             },
             status: 'CANCELLED',
           });
+          channel.nack(originalMessage as any, false, false);
+          return;
         }
+
+        this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(error), {
+          labels,
+          status: 'FAILED',
+          exception: {
+            message: convertExceptionToString(error),
+            type: exceptionType,
+          },
+        });
+
+        const delay = await this.publishTransferMessageWithLongerDelay(message);
+
+        channel.nack(originalMessage as any, false, false);
+
+        // откладываем выполнение запросов для этого аккаунта на секунду
+        // возможно в будущем разделить логику для TOO_MANY_REQUESTS и других
+        await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
+
+        this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
+        //     } else if (exceptionType === AmoCrmExceptionType.INVALID_DATA_STRUCTURE) {
+        //       channel.nack(originalMessage as any, false, false);
+        //       this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных или превышения лимитов по открытым сжелкам', {
+        //         exception: {
+        //           type: exceptionType,
+        //           message: convertExceptionToString(error),
+        //         },
+        //         labels: { requestId: message.payload.requestUuid },
+        //         status: 'CANCELLED',
+        //       });
+        //     } else {
+        //       const delay = timeToMilliseconds({ minutes: 1 });
+
+        //       channel.nack(originalMessage as any, false, false);
+        //       await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+
+        //       await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
+
+        //       this.logger.info('Запрос отменен с блокировкой ключей', {
+        //         labels: { requestId: message.payload.requestUuid },
+        //         exception: {
+        //           message: convertExceptionToString(message),
+        //           type: exceptionType,
+        //         },
+        //         status: 'CANCELLED',
+        //       });
+        //     }
+        //   }
+        // }
       }
     }
   }
@@ -283,8 +292,7 @@ export class IntegrationService {
 
     const delay = this.calculateTransferMessageDelay(
       message.metadata.retryNumber,
-      this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY,
-      // this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+      this.config.TRANSFER_MESSAGE_BASE_RETRY_DELAY
     );
 
     message.metadata.delay = delay;
@@ -325,12 +333,21 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
-    await Promise.all([
-      Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
-      Promise.all(
-        varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
-      ),
-    ]);
+    try {
+      await Promise.all([
+        Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
+        Promise.all(
+          varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
+        ),
+      ]);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        await this.saveSenlerGroupErrorMessage(
+          body.senlerGroupId,
+          `Ошибка Сенлер ${error.errorCode}: ${error.name}, ${error.message}`
+        );
+      }
+    }
   }
 
   async getOrCreateLeadIfNotExists({
@@ -446,11 +463,24 @@ export class IntegrationService {
     };
   }
 
-  private calculateTransferMessageDelay(
-    retryCount: number,
-    base: number = timeToMilliseconds({ minutes: 1 }),
-  ) {
-    const mx = timeToMilliseconds({ days: 1 })
+  public async getSenlerGroupErrorMessage(senlerGroupId: number) {
+    const key = this.buildSenlerGroupErrorMessagesCacheKey(senlerGroupId);
+    return (await this.redis.getSetMembers(key)).join(';');
+  }
+
+  public async saveSenlerGroupErrorMessage(senlerGroupId: number, message: string) {
+    const key = this.buildSenlerGroupErrorMessagesCacheKey(senlerGroupId);
+    const createdNewSet = await this.redis.createSetIfNotExists(key, [message], timeToSeconds({ days: 7 }));
+    if (!createdNewSet) await this.redis.addToSet(key, message);
+  }
+
+  public async deleteSenlerGroupErrorMessages(senlerGroupId: number) {
+    const key = this.buildSenlerGroupErrorMessagesCacheKey(senlerGroupId);
+    await this.redis.deleteSet(key);
+  }
+
+  private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 })) {
+    const mx = timeToMilliseconds({ days: 1 });
 
     const delay = 2 ** retryCount * (1 + Math.random()) * base;
 
@@ -467,6 +497,7 @@ export class IntegrationService {
     return Math.min(delay, mx);
   }
 
-  public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
+  // public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildDelayedAmoCrmCacheKey = (accessToken: string) => this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + accessToken;
+  public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroupErrors:${senlerGroupId}`;
 }

@@ -109,16 +109,6 @@ export class CustomAxiosInstance {
       (config: InternalAxiosRequestConfig<any>) => {
         const logger = this.getRequestLogger((config as CustomAxiosRequestConfig).requestId || config?.data?.requestId);
 
-        // TODO убрать
-        logger.info(`SEND REQUEST  ${config.url}`, {
-          method: config.method,
-          url: config.url,
-          tm: Date.now(),
-          labels: {
-            debug: "send_request",
-          }
-        });
-
         logger.info(`Sending request to ${config.url}`, {
           method: config.method,
           url: config.url,

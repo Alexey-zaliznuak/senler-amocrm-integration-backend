@@ -367,13 +367,13 @@ export class AmoCrmService {
     }
   }
 
-  getExceptionType(exception: AxiosError | AmoCrmError): AmoCrmExceptionType {
+  getExceptionType(exception: AxiosError | AmoCrmError): { type: AmoCrmExceptionType; humanMessage: string } {
     /*
     Return type of amo crm error
     (source)[https://www.amocrm.ru/developers/content/crm_platform/error-codes]
     */
     if (exception instanceof AmoCrmError) {
-      return exception.type;
+      return { type: exception.type, humanMessage: exception.message };
     }
 
     const httpCode = exception.response?.status;
@@ -382,42 +382,57 @@ export class AmoCrmService {
     const errorCode = error.status;
 
     if (message === 'Token has expired') {
-      return AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED;
+      return { type: AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED, humanMessage: 'Непредвиденная ошибка при обновлении токена' };
     }
 
     if (httpCode === 401 || errorCode === 401) {
       switch (errorCode) {
         case 110:
-          return AmoCrmExceptionType.AUTHENTICATION_FAILED;
+          return { type: AmoCrmExceptionType.AUTHENTICATION_FAILED, humanMessage: 'Непредвиденная ошибка при авторизации' };
         // case 111:
         // return AmoCrmExceptionType.CAPTCHA_REQUIRED;
         // case 112:
         // return AmoCrmExceptionType.USER_DISABLED;
         case 101:
-          return AmoCrmExceptionType.ACCOUNT_NOT_FOUND;
+          return { type: AmoCrmExceptionType.ACCOUNT_NOT_FOUND, humanMessage: 'Аккаунт AmoCrm не найден' };
         default:
-          return AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED;
+          return {
+            type: AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED,
+            humanMessage: 'Неизвестная ошибка, возможно истек срок токена',
+          };
       }
     }
 
     if (httpCode === 403) {
       switch (errorCode) {
         case 113:
-          return AmoCrmExceptionType.IP_ACCESS_DENIED;
+          return {
+            type: AmoCrmExceptionType.IP_ACCESS_DENIED,
+            humanMessage: 'Запросы были заблокированы для текущего IP системы',
+          };
         case 403:
-          return AmoCrmExceptionType.ACCOUNT_BLOCKED;
+          return { type: AmoCrmExceptionType.ACCOUNT_BLOCKED, humanMessage: 'Аккаунт AmoCrm заблокирован' };
         default:
-          // return AmoCrmExceptionType.FORBIDDEN;
-          return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
+          return {
+            type: AmoCrmExceptionType.INTEGRATION_DEACTIVATED,
+            humanMessage: 'Неизвестная ошибка, проверьте наличие доступа интеграции к вашему аккаунту в AmoCrm',
+          };
       }
     }
 
     if (httpCode === 402 || errorCode === 402) {
-      return AmoCrmExceptionType.PAYMENT_REQUIRED;
+      return {
+        type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+        humanMessage:
+          'Аккаунт не оплачен или был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+      };
     }
 
     if (httpCode === 429) {
-      return AmoCrmExceptionType.TOO_MANY_REQUESTS;
+      return {
+        type: AmoCrmExceptionType.TOO_MANY_REQUESTS,
+        humanMessage: 'Превышен лимит запросов в секунду',
+      };
     }
 
     // switch (errorCode) {
@@ -498,16 +513,35 @@ export class AmoCrmService {
 
     switch (errorCode) {
       case 400:
-        return AmoCrmExceptionType.INVALID_DATA_STRUCTURE;
+        if (error.detail == 'Payment Required') {
+          return {
+            type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+            humanMessage:
+              'Аккаунт не оплачен или был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+          };
+        }
+        return {
+          type: AmoCrmExceptionType.INVALID_DATA_STRUCTURE,
+          humanMessage:
+            'Неизвестная ошибка, проверьте корректность переданных данных и оплату аккаунта, также возможно был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+        };
       case 422:
-        return AmoCrmExceptionType.DATA_PROCESSING_FAILED;
+        return {
+          type: AmoCrmExceptionType.DATA_PROCESSING_FAILED,
+          humanMessage: 'Неизвестная ошибка 422',
+        };
       case 405:
-        return AmoCrmExceptionType.METHOD_NOT_SUPPORTED;
+        return {
+          type: AmoCrmExceptionType.METHOD_NOT_SUPPORTED,
+          humanMessage: 'Неизвестная ошибка 405',
+        };
       case 2002:
-        return AmoCrmExceptionType.NO_CONTENT_FOUND;
+        return {
+          type: AmoCrmExceptionType.NO_CONTENT_FOUND,
+          humanMessage: 'Неизвестная ошибка 2002',
+        };
     }
 
-    // return AmoCrmExceptionType.UNKNOWN_ERROR;
-    return AmoCrmExceptionType.INTEGRATION_DEACTIVATED;
+    return { type: AmoCrmExceptionType.UNKNOWN_ERROR, humanMessage: 'Неизвестная ошибка, обратитесь в техподдержку AmoCrm' };
   }
 }

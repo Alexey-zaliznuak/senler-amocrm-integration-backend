@@ -29,3 +29,7 @@ export function timeToMilliseconds(options: TimeOptions): number {
     years * MILLISECONDS_PER_YEAR
   );
 }
+
+export function timeToSeconds(options: TimeOptions): number {
+  return timeToMilliseconds(options) / 1000;
+}
