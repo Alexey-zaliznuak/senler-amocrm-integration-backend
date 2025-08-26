@@ -344,11 +344,13 @@ export class AmoCrmService {
     amoCrmLeadId,
     name,
     tokens,
+    senlerLeadId,
   }: {
     amoCrmDomainName: string;
     amoCrmLeadId: number;
     name: string;
     tokens: AmoCrmTokens;
+    senlerLeadId?: string; // TODO убрать после релиза
   }) {
     try {
       const lead = await this.getLeadById({
@@ -359,6 +361,7 @@ export class AmoCrmService {
 
       if (lead) return lead;
 
+      this.logger.info('Создаю лид, причина: нету лида с таким amoCrmLeadId в самом AMO', { labels: { senlerLeadId } });
       const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
 
       return actualLead;

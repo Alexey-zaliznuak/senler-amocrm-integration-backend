@@ -393,6 +393,7 @@ export class IntegrationService {
       return { lead, amoCrmLead: actualAmoCrmLead };
     }
 
+    this.logger.info('Создаю лид, причина: нету лида с таким senlerLeadId в базе', { labels: { senlerLeadId } });
     const newAmoCrmLead = await this.amoCrmService.createLead({
       amoCrmDomainName,
       leads: [{ name }],
