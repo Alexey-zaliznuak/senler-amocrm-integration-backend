@@ -209,10 +209,11 @@ export class IntegrationService {
             status: 'CANCELLED',
           });
           channel.nack(originalMessage as any, false, false);
+          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
           return;
         }
 
-        this.logger.info('Сообщение отложено из-за ошибки: ' + convertExceptionToString(error), {
+        this.logger.info('Сообщение не получилось выполнить из-за ошибки: ' + convertExceptionToString(error), {
           labels,
           status: 'FAILED',
           exception: {
