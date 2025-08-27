@@ -40,6 +40,10 @@ export class IntegrationService {
     public readonly rateLimitsService: RateLimitsService
   ) {}
 
+  // async t() {
+  //   return await this.prisma.lead.deleteMany({ where: { id: {not: '1'} } });
+  // }
+
   async processBotStepWebhook(body: any) {
     const message: TransferMessage = {
       payload: body,
@@ -393,13 +397,14 @@ export class IntegrationService {
       return { lead, amoCrmLead: actualAmoCrmLead };
     }
 
-    this.logger.info('Создаю лид, причина: нету лида с таким senlerLeadId в базе', { labels: { senlerLeadId } });
     const newAmoCrmLead = await this.amoCrmService.createLead({
       amoCrmDomainName,
       leads: [{ name }],
       tokens,
     });
-
+    this.logger.info('Создан лид, причина: нету лида с таким senlerLeadId в базе', { labels: { senlerLeadId, newAmoCrmLead: newAmoCrmLead.id } });
+    await this.redis.createSetIfNotExists(senlerLeadId, [newAmoCrmLead.id.toString()], timeToSeconds({days: 1}));
+    await this.redis.addToSet(senlerLeadId, newAmoCrmLead.id.toString());
     const newLead = await this.prisma.lead.create({
       include: { senlerGroup: { include: { amoCrmProfile: true } } },
       data: {

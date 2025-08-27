@@ -24,6 +24,8 @@ import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator'
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
 import { RateLimitsService } from './rate-limit.service';
+import { timeToSeconds } from 'src/utils';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
 
 @Injectable()
 export class AmoCrmService {
@@ -31,6 +33,7 @@ export class AmoCrmService {
     @Inject(AXIOS_INJECTABLE_NAME) private readonly axios: CustomAxiosInstance,
     @Inject(LOGGER_INJECTABLE_NAME) private readonly logger: Logger,
     @Inject(CONFIG) private readonly config: AppConfigType,
+    private readonly redis: RedisService,
     public readonly refreshTokensService: RefreshTokensService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
@@ -361,8 +364,12 @@ export class AmoCrmService {
 
       if (lead) return lead;
 
-      this.logger.info('Создаю лид, причина: нету лида с таким amoCrmLeadId в самом AMO', { labels: { senlerLeadId } });
       const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
+      this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
+        labels: { senlerLeadId, newAmoCrmLead: actualLead.id },
+      });
+      await this.redis.createSetIfNotExists(senlerLeadId, [actualLead.id.toString()], timeToSeconds({ days: 1 }));
+      await this.redis.addToSet(senlerLeadId, actualLead.id.toString());
 
       return actualLead;
     } catch (error) {

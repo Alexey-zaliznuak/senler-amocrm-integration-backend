@@ -46,7 +46,7 @@ export class IntegrationStepTemplatesService {
 
     await this.prisma.integrationStepTemplate.update({
       where: { id: templateId },
-      data: Object.assign(template, data)
+      data: Object.assign(template, data),
     });
 
     await this.prisma.senlerGroup.invalidateCache(template.senlerGroupId);
