@@ -382,8 +382,8 @@ export class AmoCrmService {
 
     const httpCode = exception.response?.status;
     const error: any = exception.response?.data;
-    const message = error.title;
-    const errorCode = error.status;
+    const message = error?.title;
+    const errorCode = error?.status;
 
     if (message === 'Token has expired') {
       return { type: AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED, humanMessage: 'Непредвиденная ошибка при обновлении токена' };
