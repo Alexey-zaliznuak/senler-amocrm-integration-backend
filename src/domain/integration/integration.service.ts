@@ -374,33 +374,12 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } };
     amoCrmLead: AmoCrmLead;
   }> {
-    const lockKey = `lead:create:${senlerLeadId}`;
+    const lockKey = `senlerGroups:${senlerGroupId}:locks:createLead:${senlerLeadId}`;
     const lockTtl = timeToMilliseconds({ seconds: 10 });
 
     let lockAcquired = await this.redis.acquireLock(lockKey, lockTtl);
     while (!lockAcquired) {
       await new Promise(resolve => setTimeout(resolve, 100));
-      const existingLead = await this.prisma.lead.findUnique({
-        where: { senlerLeadId },
-        include: { senlerGroup: { include: { amoCrmProfile: true } } },
-      });
-      if (existingLead) {
-        const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
-          amoCrmDomainName,
-          amoCrmLeadId: existingLead.amoCrmLeadId,
-          name,
-          tokens,
-        });
-        if (existingLead.amoCrmLeadId != actualAmoCrmLead.id) {
-          const updatedLead = await this.prisma.lead.update({
-            where: { amoCrmLeadId: existingLead.amoCrmLeadId, senlerLeadId },
-            include: { senlerGroup: { include: { amoCrmProfile: true } } },
-            data: { amoCrmLeadId: actualAmoCrmLead.id },
-          });
-          return { lead: updatedLead, amoCrmLead: actualAmoCrmLead };
-        }
-        return { lead: existingLead, amoCrmLead: actualAmoCrmLead };
-      }
       lockAcquired = await this.redis.acquireLock(lockKey, lockTtl);
     }
 
@@ -543,5 +522,5 @@ export class IntegrationService {
 
   // public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildDelayedAmoCrmCacheKey = (accessToken: string) => this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + accessToken;
-  public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroupErrors:${senlerGroupId}`;
+  public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroups:${senlerGroupId}:errors`;
 }
