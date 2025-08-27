@@ -375,7 +375,7 @@ export class IntegrationService {
     amoCrmLead: AmoCrmLead;
   }> {
     const lockKey = `senlerGroups:${senlerGroupId}:locks:createLead:${senlerLeadId}`;
-    const lockTtl = timeToMilliseconds({ seconds: 10 });
+    const lockTtl = timeToSeconds({ seconds: 10 });
 
     let lockAcquired = await this.redis.acquireLock(lockKey, lockTtl);
     while (!lockAcquired) {

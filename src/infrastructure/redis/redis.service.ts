@@ -77,10 +77,20 @@ export class RedisService implements OnModuleInit {
    * Acquire a distributed lock.
    * @returns true if lock was acquired
    */
-  public async acquireLock(key: string, ttlMs: number): Promise<boolean> {
+  public async acquireLock(key: string, ttl: number): Promise<boolean> {
     await this.connectIfNeed();
-    const result = await this.client.set(key, '1', { NX: true, PX: ttlMs });
+    const result = await this.client.set(key, '1', { NX: true, EX: ttl });
     return result === 'OK';
+  }
+
+  /**
+   * Acquire a distributed lock.
+   * @returns true if lock was acquired
+   */
+  public async checkLockExists(key: string): Promise<boolean> {
+    await this.connectIfNeed();
+    const result = await this.client.get(key);
+    return result != null;
   }
 
   /**
