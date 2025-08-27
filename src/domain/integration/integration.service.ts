@@ -374,54 +374,88 @@ export class IntegrationService {
     lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } };
     amoCrmLead: AmoCrmLead;
   }> {
-    let lead = await this.prisma.lead.findUnique({
-      where: { senlerLeadId },
-      include: { senlerGroup: { include: { amoCrmProfile: true } } },
-    });
+    const lockKey = `lead:create:${senlerLeadId}`;
+    const lockTtl = timeToMilliseconds({ seconds: 10 });
 
-    if (lead) {
-      const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
-        amoCrmDomainName,
-        amoCrmLeadId: lead.amoCrmLeadId,
-        name,
-        tokens,
+    let lockAcquired = await this.redis.acquireLock(lockKey, lockTtl);
+    while (!lockAcquired) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const existingLead = await this.prisma.lead.findUnique({
+        where: { senlerLeadId },
+        include: { senlerGroup: { include: { amoCrmProfile: true } } },
       });
-
-      if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
-        lead = await this.prisma.lead.update({
-          where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
-          include: { senlerGroup: { include: { amoCrmProfile: true } } },
-          data: { amoCrmLeadId: actualAmoCrmLead.id },
+      if (existingLead) {
+        const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
+          amoCrmDomainName,
+          amoCrmLeadId: existingLead.amoCrmLeadId,
+          name,
+          tokens,
         });
+        if (existingLead.amoCrmLeadId != actualAmoCrmLead.id) {
+          const updatedLead = await this.prisma.lead.update({
+            where: { amoCrmLeadId: existingLead.amoCrmLeadId, senlerLeadId },
+            include: { senlerGroup: { include: { amoCrmProfile: true } } },
+            data: { amoCrmLeadId: actualAmoCrmLead.id },
+          });
+          return { lead: updatedLead, amoCrmLead: actualAmoCrmLead };
+        }
+        return { lead: existingLead, amoCrmLead: actualAmoCrmLead };
       }
-      return { lead, amoCrmLead: actualAmoCrmLead };
+      lockAcquired = await this.redis.acquireLock(lockKey, lockTtl);
     }
 
-    const newAmoCrmLead = await this.amoCrmService.createLead({
-      amoCrmDomainName,
-      leads: [{ name }],
-      tokens,
-    });
-    this.logger.info('Создан лид, причина: нету лида с таким senlerLeadId в базе', { labels: { senlerLeadId, newAmoCrmLead: newAmoCrmLead.id } });
-    await this.redis.createSetIfNotExists(senlerLeadId, [newAmoCrmLead.id.toString()], timeToSeconds({days: 1}));
-    await this.redis.addToSet(senlerLeadId, newAmoCrmLead.id.toString());
-    const newLead = await this.prisma.lead.create({
-      include: { senlerGroup: { include: { amoCrmProfile: true } } },
-      data: {
-        amoCrmLeadId: newAmoCrmLead.id,
-        senlerLeadId: senlerLeadId,
-        senlerGroup: {
-          connect: {
-            senlerGroupId,
+    try {
+      let lead = await this.prisma.lead.findUnique({
+        where: { senlerLeadId },
+        include: { senlerGroup: { include: { amoCrmProfile: true } } },
+      });
+
+      if (lead) {
+        const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
+          amoCrmDomainName,
+          amoCrmLeadId: lead.amoCrmLeadId,
+          name,
+          tokens,
+        });
+
+        if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
+          lead = await this.prisma.lead.update({
+            where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
+            include: { senlerGroup: { include: { amoCrmProfile: true } } },
+            data: { amoCrmLeadId: actualAmoCrmLead.id },
+          });
+        }
+        return { lead, amoCrmLead: actualAmoCrmLead };
+      }
+
+      const newAmoCrmLead = await this.amoCrmService.createLead({
+        amoCrmDomainName,
+        leads: [{ name }],
+        tokens,
+      });
+      this.logger.info('Создан лид, причина: нету лида с таким senlerLeadId в базе', {
+        labels: { senlerLeadId, newAmoCrmLead: newAmoCrmLead.id },
+      });
+      const newLead = await this.prisma.lead.create({
+        include: { senlerGroup: { include: { amoCrmProfile: true } } },
+        data: {
+          amoCrmLeadId: newAmoCrmLead.id,
+          senlerLeadId: senlerLeadId,
+          senlerGroup: {
+            connect: {
+              senlerGroupId,
+            },
           },
         },
-      },
-    });
+      });
 
-    return {
-      lead: newLead,
-      amoCrmLead: newAmoCrmLead,
-    };
+      return {
+        lead: newLead,
+        amoCrmLead: newAmoCrmLead,
+      };
+    } finally {
+      await this.redis.releaseLock(lockKey);
+    }
   }
 
   async getAmoCrmFields(senlerGroupId: number) {
