@@ -73,6 +73,24 @@ export class RedisService implements OnModuleInit {
     await this.client.del(key);
   }
 
+  /**
+   * Acquire a distributed lock.
+   * @returns true if lock was acquired
+   */
+  public async acquireLock(key: string, ttlMs: number): Promise<boolean> {
+    await this.connectIfNeed();
+    const result = await this.client.set(key, '1', { NX: true, PX: ttlMs });
+    return result === 'OK';
+  }
+
+  /**
+   * Release a distributed lock.
+   */
+  public async releaseLock(key: string): Promise<void> {
+    await this.connectIfNeed();
+    await this.client.del(key);
+  }
+
   public async getSetInfo(key: string): Promise<{ exists: boolean; length: number }> {
     await this.connectIfNeed();
 
