@@ -1,4 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
+import { AppConfig } from 'src/infrastructure/config/config.app-config';
+import { LoggingService } from 'src/infrastructure/logging/logging.service';
+import { convertExceptionToString } from 'src/utils';
 import { AmoCrmTokens } from '../amo-crm.dto';
 import { RefreshTokensService } from './handle-tokens-expiration.service';
 
@@ -20,12 +23,19 @@ export function HandleAccessTokenExpiration() {
         const tokens: AmoCrmTokens = originalMethodProperty.tokens;
         const amoCrmDomainName: string = originalMethodProperty.amoCrmDomainName;
 
-        const newTokens = await refreshTokensService.refresh({
-          tokens,
-          amoCrmDomainName,
-        });
+        const logger = new LoggingService(AppConfig).createLogger();
 
-        args[0].tokens = newTokens;
+        try {
+          const newTokens = await refreshTokensService.refresh({
+            tokens,
+            amoCrmDomainName,
+          });
+          logger.info(tokens.accessToken === newTokens.accessToken ? 'ТОКЕНЫ НЕ ОБНОВИЛИСЬ' : 'ТОКЕНЫ ОБНОВИЛИСЬ');
+
+          args[0].tokens = newTokens;
+        } catch (error) {
+          logger.error('ОШИБКА ОБНОВЛЕНИЯ ТОКЕНОВ', { error: convertExceptionToString(error) });
+        }
 
         return await originalMethod.apply(this, args);
       }
