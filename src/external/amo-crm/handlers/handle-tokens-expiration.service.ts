@@ -27,18 +27,12 @@ export class RefreshTokensService {
   ) {}
 
   @UpdateRateLimitAndThrowIfNeed()
-  async refresh({
-    amoCrmDomainName,
-    tokens,
-  }: {
-    tokens: AmoCrmTokens;
-    amoCrmDomainName: string;
-  }): Promise<AmoCrmTokens> {
+  async refresh({ amoCrmDomainName, tokens }: { tokens: AmoCrmTokens; amoCrmDomainName: string }): Promise<AmoCrmTokens> {
     const lockKey = `amoCrmProfiles:${amoCrmDomainName}:locks:refreshTokens`;
     const lockTtlSec = timeToSeconds({ seconds: 10 });
     const started = Date.now();
 
-    const MAX_WAIT_MS = timeToMilliseconds({seconds: 60});
+    const MAX_WAIT_MS = timeToMilliseconds({ seconds: 60 });
     const MAX_ATTEMPTS = 8;
     let attempt = 0;
 
@@ -47,21 +41,16 @@ export class RefreshTokensService {
       let acquired = await this.redis.acquireLock(lockKey, lockTtlSec);
       if (acquired) {
         try {
-          const response: AxiosResponse = await this.axiosService.post(
-            `https://${amoCrmDomainName}/oauth2/access_token`,
-            {
-              client_id: this.config.AMO_CRM_CLIENT_ID,
-              client_secret: this.config.AMO_CRM_CLIENT_SECRET,
-              grant_type: 'refresh_token',
-              refresh_token: tokens.refreshToken,
-              redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
-            }
-          );
+          const response: AxiosResponse = await this.axiosService.post(`https://${amoCrmDomainName}/oauth2/access_token`, {
+            client_id: this.config.AMO_CRM_CLIENT_ID,
+            client_secret: this.config.AMO_CRM_CLIENT_SECRET,
+            grant_type: 'refresh_token',
+            refresh_token: tokens.refreshToken,
+            redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
+          });
 
           if (response.status !== HttpStatus.OK) {
-            throw new ServiceUnavailableException(
-              `Can not refresh token ${response.status} ${JSON.stringify(response.data)}`
-            );
+            throw new ServiceUnavailableException(`Can not refresh token ${response.status} ${JSON.stringify(response.data)}`);
           }
 
           const newAccess = response.data?.access_token;
@@ -87,10 +76,7 @@ export class RefreshTokensService {
           where: { domainName: amoCrmDomainName },
         });
 
-        if (profile && (
-            profile.accessToken !== tokens.accessToken ||
-            profile.refreshToken !== tokens.refreshToken
-          )) {
+        if (profile && (profile.accessToken !== tokens.accessToken || profile.refreshToken !== tokens.refreshToken)) {
           // Чужой процесс успел обновить — возвращаем актуальные токены
           return {
             accessToken: profile.accessToken,
@@ -122,10 +108,10 @@ export class RefreshTokensService {
         where: { domainName: amoCrmDomainName },
       });
 
-      if (profileAfter && (
-          profileAfter.accessToken !== tokens.accessToken ||
-          profileAfter.refreshToken !== tokens.refreshToken
-        )) {
+      if (
+        profileAfter &&
+        (profileAfter.accessToken !== tokens.accessToken || profileAfter.refreshToken !== tokens.refreshToken)
+      ) {
         return {
           accessToken: profileAfter.accessToken,
           refreshToken: profileAfter.refreshToken,
