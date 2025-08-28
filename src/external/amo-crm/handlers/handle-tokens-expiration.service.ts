@@ -39,7 +39,7 @@ export class RefreshTokensService {
     const started = Date.now();
 
     const MAX_WAIT_MS = timeToMilliseconds({seconds: 60});
-    const MAX_ATTEMPTS = 8;             // попытки опроса + acquire
+    const MAX_ATTEMPTS = 8;
     let attempt = 0;
 
     while (true) {
