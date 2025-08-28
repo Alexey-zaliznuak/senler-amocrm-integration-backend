@@ -217,6 +217,22 @@ export class IntegrationService {
           return;
         }
 
+        // отменяем обработку
+        if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+          this.logger.info('Сообщение отменено из-за ошибки: ' + convertExceptionToString(error), {
+            labels,
+            status: 'CANCELLED',
+            exception: {
+              message: convertExceptionToString(error),
+              type: exceptionType,
+            },
+          });
+
+          channel.nack(originalMessage as any, false, false);
+          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+          return;
+        }
+
         this.logger.info('Сообщение не получилось выполнить из-за ошибки: ' + convertExceptionToString(error), {
           labels,
           status: 'FAILED',
