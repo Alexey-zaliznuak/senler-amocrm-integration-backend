@@ -40,10 +40,6 @@ export class IntegrationService {
     public readonly rateLimitsService: RateLimitsService
   ) {}
 
-  // async t() {
-  //   return await this.prisma.lead.deleteMany({ where: { id: {not: '1'} } });
-  // }
-
   async processBotStepWebhook(body: any) {
     const message: TransferMessage = {
       payload: body,
@@ -200,8 +196,8 @@ export class IntegrationService {
         }
 
         // если сообщение слишком долго ретраится - отменяем его
-        if (!(message.metadata.delay < this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY)) {
-          this.logger.info('Запрос отменен без блокировки ключей, из-за исчерпания попыток', {
+        if (message.metadata.delay > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+          this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
               humanMessage,
@@ -212,38 +208,28 @@ export class IntegrationService {
             },
             status: 'CANCELLED',
           });
-          channel.nack(originalMessage as any, false, false);
           await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+          channel.nack(originalMessage as any, false, false);
           return;
         }
 
         // отменяем обработку
-        if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
-          this.logger.info('Сообщение отменено из-за ошибки: ' + convertExceptionToString(error), {
-            labels,
-            status: 'CANCELLED',
-            exception: {
-              message: convertExceptionToString(error),
-              type: exceptionType,
-            },
-          });
+        // if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+        //   this.logger.info('Сообщение отменено из-за ошибки: ' + convertExceptionToString(error), {
+        //     labels,
+        //     status: 'CANCELLED',
+        //     exception: {
+        //       message: convertExceptionToString(error),
+        //       type: exceptionType,
+        //     },
+        //   });
 
-          channel.nack(originalMessage as any, false, false);
-          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
-          return;
-        }
-
-        this.logger.info('Сообщение не получилось выполнить из-за ошибки: ' + convertExceptionToString(error), {
-          labels,
-          status: 'FAILED',
-          exception: {
-            message: convertExceptionToString(error),
-            type: exceptionType,
-          },
-        });
+        //   channel.nack(originalMessage as any, false, false);
+        //   await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+        //   return;
+        // }
 
         const delay = await this.publishTransferMessageWithLongerDelay(message);
-
         channel.nack(originalMessage as any, false, false);
 
         // откладываем выполнение запросов для этого аккаунта на секунду
@@ -281,9 +267,9 @@ export class IntegrationService {
         //   }
         // }
       } else {
-        this.logger.error('Не удалось обработать ошибку при выполнении запроса - ошибка не является ошибкой axios или amo crm', {
+        this.logger.error('Не удалось обработать ошибку при выполнении запроса', {
           labels,
-          status: 'FAILED',
+          status: 'CANCELLED',
           exception: {
             message: convertExceptionToString(error),
             stack: error.stack,
@@ -292,6 +278,7 @@ export class IntegrationService {
           },
         });
         await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+        channel.nack(originalMessage as any, false, false);
       }
     }
   }
