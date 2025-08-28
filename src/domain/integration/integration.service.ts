@@ -267,7 +267,15 @@ export class IntegrationService {
       } else {
         this.logger.error('Не удалось обработать ошибку при выполнении запроса - ошибка не является ошибкой axios или amo crm', {
           labels,
+          status: 'FAILED',
+          exception: {
+            message: convertExceptionToString(error),
+            stack: error.stack,
+            amoType: error instanceof AmoCrmError ? error.type : null,
+            preliminary: error instanceof AmoCrmError ? error.preliminary : false,
+          },
         });
+        await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
       }
     }
   }
