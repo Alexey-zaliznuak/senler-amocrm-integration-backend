@@ -318,6 +318,7 @@ export class IntegrationService {
       body.lead.personalVars || {}
     );
 
+    this.logger.info("Отправка переменных")
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
