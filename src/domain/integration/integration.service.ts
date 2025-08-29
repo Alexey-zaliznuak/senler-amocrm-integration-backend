@@ -185,7 +185,35 @@ export class IntegrationService {
         },
       });
 
-      if (error instanceof AxiosError || error instanceof AmoCrmError) {
+      // отдельная обработка для ошибок сенлер
+      if (error instanceof ApiError) {
+        const humanMessage = `Ошибка Сенлер ${error.errorCode}: ${error.name}, ${error.message}`;
+
+        await this.saveSenlerGroupErrorMessage(message.payload.senlerGroupId, humanMessage);
+
+        // если долго ретраится - отменяем
+        if (message.metadata.delay > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+          this.logger.info('Запрос отменен из-за исчерпания попыток', {
+            labels: { requestId: message.payload.requestUuid },
+            exception: {
+              humanMessage,
+              message: convertExceptionToString(error),
+              delay: message.metadata.delay,
+              max_delay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
+              type: 'SenlerApiError',
+            },
+            status: 'CANCELLED',
+          });
+          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+          channel.nack(originalMessage as any, false, false);
+          return;
+        }
+
+        await this.publishTransferMessageWithLongerDelay(message);
+        channel.nack(originalMessage as any, false, false);
+
+        this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
+      } else if (error instanceof AxiosError || error instanceof AmoCrmError) {
         const exception = this.amoCrmService.getExceptionType(error);
         const exceptionType = exception.type;
         const humanMessage = exception.humanMessage;
@@ -213,22 +241,6 @@ export class IntegrationService {
           return;
         }
 
-        // отменяем обработку
-        // if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
-        //   this.logger.info('Сообщение отменено из-за ошибки: ' + convertExceptionToString(error), {
-        //     labels,
-        //     status: 'CANCELLED',
-        //     exception: {
-        //       message: convertExceptionToString(error),
-        //       type: exceptionType,
-        //     },
-        //   });
-
-        //   channel.nack(originalMessage as any, false, false);
-        //   await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
-        //   return;
-        // }
-
         const delay = await this.publishTransferMessageWithLongerDelay(message);
         channel.nack(originalMessage as any, false, false);
 
@@ -237,35 +249,6 @@ export class IntegrationService {
         await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
 
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
-        //     } else if (exceptionType === AmoCrmExceptionType.INVALID_DATA_STRUCTURE) {
-        //       channel.nack(originalMessage as any, false, false);
-        //       this.logger.info('Запрос отменен без блокировки ключей, из-за некорректных данных или превышения лимитов по открытым сжелкам', {
-        //         exception: {
-        //           type: exceptionType,
-        //           message: convertExceptionToString(error),
-        //         },
-        //         labels: { requestId: message.payload.requestUuid },
-        //         status: 'CANCELLED',
-        //       });
-        //     } else {
-        //       const delay = timeToMilliseconds({ minutes: 1 });
-
-        //       channel.nack(originalMessage as any, false, false);
-        //       await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
-
-        //       await this.redis.set(cancelledAmoCrmCacheKey, delay.toString(), delay / 1000);
-
-        //       this.logger.info('Запрос отменен с блокировкой ключей', {
-        //         labels: { requestId: message.payload.requestUuid },
-        //         exception: {
-        //           message: convertExceptionToString(message),
-        //           type: exceptionType,
-        //         },
-        //         status: 'CANCELLED',
-        //       });
-        //     }
-        //   }
-        // }
       } else {
         this.logger.error('Не удалось обработать ошибку при выполнении запроса', {
           labels,
@@ -352,21 +335,12 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
-    try {
-      await Promise.all([
-        Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
-        Promise.all(
-          varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
-        ),
-      ]);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        await this.saveSenlerGroupErrorMessage(
-          body.senlerGroupId,
-          `Ошибка Сенлер ${error.errorCode}: ${error.name}, ${error.message}`
-        );
-      }
-    }
+    await Promise.all([
+      Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
+      Promise.all(
+        varsValues.vars.map(userVar => client.vars.set({ vk_user_id: body.lead.vkUserId, name: userVar.n, value: userVar.v }))
+      ),
+    ]);
   }
 
   async getOrCreateLeadIfNotExists({
@@ -517,16 +491,6 @@ export class IntegrationService {
     const mx = timeToMilliseconds({ days: 1 });
 
     const delay = 2 ** retryCount * (1 + Math.random()) * base;
-
-    this.logger.info('DELAY', {
-      delay_calc: delay,
-      delay_in_result: Math.min(delay, mx),
-      2: retryCount,
-      3: 1 + Math.random(),
-      4: base,
-      dayToMilliseconds: timeToMilliseconds({ days: 1 }),
-      mx: mx,
-    });
 
     return Math.min(delay, mx);
   }
