@@ -279,7 +279,7 @@ export class AmoCrmService {
     } catch (error) {
       this.logger.error('Error editing lead', { error });
 
-      throw new UnauthorizedException('Error editing lead');
+      throw error;
     }
   }
 
