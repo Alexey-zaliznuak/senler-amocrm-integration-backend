@@ -29,12 +29,6 @@ export class IntegrationController {
     return await this.integrationService.processBotStepWebhook(body);
   }
 
-  // @Post('/t')
-  // @HttpCode(HttpStatus.OK)
-  // async t(@Body() body: any): Promise<any> {
-  //   return await this.integrationService.t()
-  // }
-
   @Get('/config')
   conf(): any {
     return {
