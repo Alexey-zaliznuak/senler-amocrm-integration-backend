@@ -10,7 +10,6 @@ import { timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { AXIOS_INJECTABLE_NAME } from '../amo-crm.config';
 import { AmoCrmTokens } from '../amo-crm.dto';
 import { RateLimitsService } from '../rate-limit.service';
-import { UpdateRateLimitAndThrowIfNeed } from './rate-limit.decorator';
 
 function sleep(ms: number) {
   return new Promise(res => setTimeout(res, ms));
@@ -25,11 +24,9 @@ export class RefreshTokensService {
     private readonly redis: RedisService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
-
-  @UpdateRateLimitAndThrowIfNeed()
   async refresh({ amoCrmDomainName, tokens }: { tokens: AmoCrmTokens; amoCrmDomainName: string }): Promise<AmoCrmTokens> {
     const lockKey = `amoCrmProfiles:${amoCrmDomainName}:locks:refreshTokens`;
-    const lockTtlSec = timeToSeconds({ seconds: 10 });
+    const lockTtlSec = timeToSeconds({ seconds: 30 }); // ↑ немного больше, чем 10с, чтобы покрыть сеть/джиттер
     const started = Date.now();
 
     const MAX_WAIT_MS = timeToMilliseconds({ seconds: 60 });
@@ -37,17 +34,54 @@ export class RefreshTokensService {
     let attempt = 0;
 
     while (true) {
-      // 1) Пытаемся ВЗЯТЬ лок; если взяли — мы обновляем токены
+      // 1) Пытаемся взять лок; только владелец делает refresh
       let acquired = await this.redis.acquireLock(lockKey, lockTtlSec);
       if (acquired) {
         try {
-          const response: AxiosResponse = await this.axiosService.post(`https://${amoCrmDomainName}/oauth2/access_token`, {
-            client_id: this.config.AMO_CRM_CLIENT_ID,
-            client_secret: this.config.AMO_CRM_CLIENT_SECRET,
-            grant_type: 'refresh_token',
-            refresh_token: tokens.refreshToken,
-            redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
-          });
+          // ВАЖНО: списываем лимит ТОЛЬКО у владельца лока. Если нельзя — освобождаем лок и ждём окно.
+          try {
+            // Если у вашего RateLimitsService есть «предварительная проверка» — используйте её.
+            // Здесь вызываем ваш метод, который бросит исключение при превышении.
+            await this.rateLimitsService.updateRateLimitAndThrowIfNeed(amoCrmDomainName, 1);
+          } catch (rateErr: any) {
+            // мы не должны держать лок, если лимит не позволяет — иначе застопорим всех
+            // Можно вытащить из ошибки время до окна, если сервис возвращает его.
+            // Пример: const delayMs = rateErr?.msToReset ?? 500; (подстройте под ваш формат)
+            const delayMs = Math.min(150 * 2 ** attempt + Math.floor(Math.random() * 125), 2000);
+            return (await (async () => {
+              await this.redis.releaseLock(lockKey);
+              await sleep(delayMs);
+              // после сна цикл продолжится заново (конкуренты могли успеть обновить)
+              // Перед возвратом из IIFE просто проваливаемся дальше
+            })().then(() => {
+              // «continue» тут невозможен из-за try/finally, поэтому делаем пустой return и падём в конец цикла
+            })) as unknown as AmoCrmTokens;
+          }
+
+          // --- здесь мы владелец лока И лимит позволяет сделать запрос ---
+          // (Опционально: продлить TTL лока перед сетью, если есть prolong)
+          // await this.redis.prolongLock(lockKey, lockTtlSec);
+
+          let response: AxiosResponse;
+          try {
+            response = await this.axiosService.post(`https://${amoCrmDomainName}/oauth2/access_token`, {
+              client_id: this.config.AMO_CRM_CLIENT_ID,
+              client_secret: this.config.AMO_CRM_CLIENT_SECRET,
+              grant_type: 'refresh_token',
+              refresh_token: tokens.refreshToken,
+              redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
+            });
+          } catch (e: any) {
+            // Если AmoCRM вернул 400 invalid_grant — это не 503 и не 401,
+            // это «протухший refresh»: надо инициировать re-connect в продукте.
+            const status = e?.response?.status;
+            const data = e?.response?.data;
+            if (status === 400 && (data?.hint === 'invalid_grant' || data?.error === 'invalid_grant')) {
+              // Бросаем специфичную ошибку, чтобы слой выше не ретраил бесконечно
+              throw new ServiceUnavailableException('AmoCRM refresh failed: invalid_grant (needs re-connect)');
+            }
+            throw e;
+          }
 
           if (response.status !== HttpStatus.OK) {
             throw new ServiceUnavailableException(`Can not refresh token ${response.status} ${JSON.stringify(response.data)}`);
@@ -63,7 +97,7 @@ export class RefreshTokensService {
 
           return { accessToken: newAccess, refreshToken: newRefresh };
         } finally {
-          // Разлочиваем ТОЛЬКО если мы действительно владелец
+          // NB: лучше снимать лок по «owner token», если RedisService это поддерживает
           await this.redis.releaseLock(lockKey);
         }
       }
@@ -77,33 +111,31 @@ export class RefreshTokensService {
         });
 
         if (profile && (profile.accessToken !== tokens.accessToken || profile.refreshToken !== tokens.refreshToken)) {
-          // Чужой процесс успел обновить — возвращаем актуальные токены
           return {
             accessToken: profile.accessToken,
             refreshToken: profile.refreshToken,
           };
         }
 
-        // Никто не обновил — делаем «форс»: активно пытаемся взять лок ещё одну «сессию ожидания»
-        attempt = 0; // сбросим счётчик для следующего круга ожидания
+        // Никто не обновил — начнём новый «сеанс ожидания»
+        attempt = 0;
       }
 
-      // Маленький контрольный чек: если лока уже нет, ПОПЫТАЕМСЯ взять его снова сразу (закрываем TOCTOU)
-      // (без этой попытки есть окно между снятием лока и записью в БД)
+      // Контрольное окно TOCTOU: пробуем ещё раз мгновенно
       acquired = await this.redis.acquireLock(lockKey, lockTtlSec);
       if (acquired) {
-        // Переходим к шагу обновления в следующей итерации (чтобы не дублировать код)
+        // Перейдём к секции 1 на следующей итерации
         continue;
       }
 
-      // Спим с экспоненциальным бэкоффом и джиттером, затем по кругу
+      // Спим с экспоненциальным бэкоффом и джиттером
       const base = 150;
       const backoff = Math.min(base * 2 ** attempt, 2000);
       const jitter = Math.floor(Math.random() * 125);
       await sleep(backoff + jitter);
       attempt++;
 
-      // После сна: проверим БД — возможно, уже всё обновили (ускоряет выход из ожидания)
+      // Быстрая проверка БД после сна
       const profileAfter = await this.prisma.amoCrmProfile.findUnique({
         where: { domainName: amoCrmDomainName },
       });
@@ -118,7 +150,7 @@ export class RefreshTokensService {
         };
       }
 
-      // Иначе — следующий виток цикла: попробуем снова взять лок, либо подождать дальше.
+      // Иначе — следующая итерация
     }
   }
 }

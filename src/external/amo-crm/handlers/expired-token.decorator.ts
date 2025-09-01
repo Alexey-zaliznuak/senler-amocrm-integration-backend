@@ -13,31 +13,46 @@ export function HandleAccessTokenExpiration() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        if (error.status !== HttpStatus.UNAUTHORIZED) {
+        if (error?.status !== HttpStatus.UNAUTHORIZED) {
           throw error;
         }
 
         const refreshTokensService: RefreshTokensService = this.refreshTokensService;
-
-        const originalMethodProperty = args[0];
-        const tokens: AmoCrmTokens = originalMethodProperty.tokens;
-        const amoCrmDomainName: string = originalMethodProperty.amoCrmDomainName;
+        const originalOptions = args[0];
+        const tokens: AmoCrmTokens = originalOptions.tokens;
+        const amoCrmDomainName: string = originalOptions.amoCrmDomainName;
 
         const logger = new LoggingService(AppConfig).createLogger();
 
+        let refreshed = false;
         try {
-          const newTokens = await refreshTokensService.refresh({
-            tokens,
-            amoCrmDomainName,
-          });
-          logger.info(tokens.accessToken === newTokens.accessToken ? 'ТОКЕНЫ НЕ ОБНОВИЛИСЬ' : 'ТОКЕНЫ ОБНОВИЛИСЬ');
+          const newTokens = await refreshTokensService.refresh({ tokens, amoCrmDomainName });
 
-          args[0].tokens = newTokens;
-        } catch (error) {
-          logger.error('ОШИБКА ОБНОВЛЕНИЯ ТОКЕНОВ', { error: convertExceptionToString(error) });
+          // Если реально новые – подменяем в аргументах:
+          if (newTokens?.accessToken && newTokens?.refreshToken) {
+            refreshed =
+              newTokens.accessToken !== tokens.accessToken ||
+              newTokens.refreshToken !== tokens.refreshToken;
+
+            originalOptions.tokens = newTokens;
+            logger.info(refreshed ? 'ТОКЕНЫ ОБНОВИЛИСЬ' : 'ТОКЕНЫ УЖЕ АКТУАЛЬНЫ (обновлять не потребовалось)');
+          }
+        } catch (e) {
+          logger.error('ОШИБКА ОБНОВЛЕНИЯ ТОКЕНОВ', { error: convertExceptionToString(e) });
         }
 
-        return await originalMethod.apply(this, args);
+        // Повторяем запрос ТОЛЬКО если токены обновились/актуализировались.
+        if (refreshed) {
+          try {
+            return await originalMethod.apply(this, args);
+          } catch (e2) {
+            // Вторая попытка не удалась — отдадим наружу, не зацикливаемся.
+            throw e2;
+          }
+        }
+
+        // Не удалось обновить — отдаём исходную 401, чтобы не уходить в бесконечный цикл
+        throw error;
       }
     };
 
