@@ -1,13 +1,59 @@
 import { AxiosError } from 'axios';
-import { AppConfig } from 'src/infrastructure/config/config.app-config';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
+
+function safePlain<T>(value: T): unknown {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return '[Unserializable]';
+  }
+}
+
+
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet();
+  return JSON.stringify(
+    value,
+    (_k, v) => {
+      if (typeof v === 'object' && v !== null) {
+        if (seen.has(v)) return '[Circular]';
+        seen.add(v);
+      }
+
+      if (v && typeof v === 'object' && (v as any).isAxiosError) {
+        const e = v as any;
+        return {
+          isAxiosError: true,
+          message: e.message,
+          code: e.code,
+          method: e.config?.method,
+          url: e.config?.url,
+          status: e.response?.status,
+          statusText: e.response?.statusText,
+          data: e.response?.data,
+        };
+      }
+      return v;
+    },
+  );
+}
+
 
 export function convertExceptionToString(exception: unknown): string {
   if (exception instanceof AxiosError) {
-    new LoggingService(AppConfig).createLogger().info('DEBUG', { response: exception.response, message: exception.message });
+    const { message, code, config, response } = exception;
+    return safeStringify({
+      message,
+      code,
+      method: config?.method,
+      url: config?.url,
+      status: response?.status,
+      statusText: response?.statusText,
+      data: safePlain(response?.data),
+    });
+  }
 
-    const data = exception.response?.data ?? {};
-    return JSON.stringify(data, Object.getOwnPropertyNames(data));
+  if (exception instanceof Error) {
+    return exception.stack ?? exception.message;
   }
 
   if (typeof exception === 'string') {
@@ -16,14 +62,10 @@ export function convertExceptionToString(exception: unknown): string {
 
   if (typeof exception === 'object' && exception !== null) {
     try {
-      return JSON.stringify(exception, Object.getOwnPropertyNames(exception));
+      return safeStringify(exception); // был JSON.stringify(...)
     } catch {
       return `Not serializable exception: ${Object.prototype.toString.call(exception)}`;
     }
-  }
-
-  if (exception instanceof Error) {
-    return exception.message;
   }
 
   return String(exception);
