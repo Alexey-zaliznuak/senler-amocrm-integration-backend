@@ -126,6 +126,7 @@ export class IntegrationService {
         details: 'Не найдена Сенлер группа в базе данных',
         status: 'FAILED',
       });
+      channel.nack(originalMessage as any, false, false);
       return;
     }
 
@@ -318,7 +319,7 @@ export class IntegrationService {
       body.lead.personalVars || {}
     );
 
-    this.logger.info("Отправка переменных")
+    this.logger.info('Отправка переменных');
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
