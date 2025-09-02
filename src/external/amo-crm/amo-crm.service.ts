@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.instance';
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
@@ -245,6 +245,11 @@ export class AmoCrmService {
         },
       }
     );
+
+    if (response.status === HttpStatus.NO_CONTENT) {
+      throw new AxiosError('Lead not found', HttpStatus.NO_CONTENT.toString());
+    }
+
     return response.data;
   }
 
@@ -359,7 +364,7 @@ export class AmoCrmService {
 
       return lead;
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 404) {
+      if (error instanceof AxiosError && (error.response?.status === 404 || error.response?.status === 204)) {
         const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
           labels: { newAmoCrmLead: actualLead.id },
