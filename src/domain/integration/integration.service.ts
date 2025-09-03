@@ -193,7 +193,7 @@ export class IntegrationService {
         await this.saveSenlerGroupErrorMessage(message.payload.senlerGroupId, humanMessage);
 
         // если долго ретраится - отменяем
-        if (message.metadata.delay > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+        if (Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
           this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
