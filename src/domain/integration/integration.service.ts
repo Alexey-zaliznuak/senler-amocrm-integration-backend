@@ -490,9 +490,9 @@ export class IntegrationService {
   }
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 })) {
-    const mx = timeToMilliseconds({ days: 1 });
+    const mx = timeToMilliseconds({ hours: 1 }); // TODO УБРАТЬ ПОСЛЕ ТЕСТА
 
-    const delay = 2 ** retryCount * (1 + Math.random()) * base;
+    const delay = 1.5 ** retryCount * (1 + Math.random()) * base;
 
     return Math.min(delay, mx);
   }
