@@ -247,6 +247,7 @@ export class AmoCrmService {
     );
 
     if (response.status === HttpStatus.NO_CONTENT) {
+      this.logger.error("Lead not found")
       throw new AxiosError('Lead not found', HttpStatus.NO_CONTENT.toString());
     }
 
