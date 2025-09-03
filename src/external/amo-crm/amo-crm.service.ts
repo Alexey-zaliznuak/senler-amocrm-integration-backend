@@ -366,7 +366,7 @@ export class AmoCrmService {
 
       return lead;
     } catch (error) {
-      this.logger.error("ОШИБКА ГЕТА ЛИДА", {e: convertExceptionToString(error)})
+      this.logger.error("ОШИБКА ГЕТА ЛИДА", {e: convertExceptionToString(error), 1: error instanceof AxiosError, 2: error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString()})
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
         const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
