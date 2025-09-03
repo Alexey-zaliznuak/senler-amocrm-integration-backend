@@ -24,6 +24,7 @@ import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator'
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
 import { RateLimitsService } from './rate-limit.service';
+import { convertExceptionToString } from 'src/utils';
 
 @Injectable()
 export class AmoCrmService {
@@ -365,6 +366,7 @@ export class AmoCrmService {
 
       return lead;
     } catch (error) {
+      this.logger.error("ОШИБКА ГЕТА ЛИДА", {e: convertExceptionToString(error)})
       if (error instanceof AxiosError && (error.response?.status === 404 || error.response?.status === 204)) {
         const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
