@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { AmoCrmProfile, Lead, SenlerGroup } from '@prisma/client';
 import * as amqp from 'amqplib';
 import { AxiosError } from 'axios';
@@ -27,7 +27,6 @@ export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
-  private readonly CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:cancelled:';
 
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
@@ -61,7 +60,10 @@ export class IntegrationService {
       message.payload = instance;
 
       if (validationErrors.length) {
-        const details = validationErrors.map(v => v.toString()).join('\n');
+        const details = validationErrors.map(e => ({
+          field: e.property,
+          errors: Object.values(e.constraints ?? {}),
+        }));
 
         this.logger.error('Ошибка валидации запроса', {
           labels,
@@ -69,10 +71,11 @@ export class IntegrationService {
           status: 'FAILED',
         });
 
-        return {
-          error: 'Validation failed',
-          message: details,
-        };
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid webhook payload',
+          details,
+        });
       }
 
       await this.rabbitMq.publishMessage(
@@ -89,6 +92,10 @@ export class IntegrationService {
 
       return { success: true };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       const details = convertExceptionToString(error);
 
       this.logger.error('Ошибка запроса', {
@@ -97,7 +104,7 @@ export class IntegrationService {
         status: 'FAILED',
       });
 
-      return { error: 'internal', message: details };
+      throw new InternalServerErrorException('INTERNAL_SERVER_ERROR', details);
     }
   }
 
@@ -132,22 +139,10 @@ export class IntegrationService {
 
     // Проверяем что ключ не в отложенных(при 429 блокируем ключ на секунду) и не заблоченных
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmProfile.accessToken);
-    // const cancelledAmoCrmCacheKey = this.buildCancelledAmoCrmCacheKey(senlerGroup.amoCrmProfile.refreshToken);
-
     if (await this.redis.exists(delayedAmoCrmCacheKey)) {
       await this.republishTransferMessageWithLongerDelay(message, labels, channel, originalMessage);
       return;
     }
-
-    // if (await this.redis.exists(cancelledAmoCrmCacheKey)) {
-    //   this.logger.info('Сообщение отменено', {
-    //     labels,
-    //     details: 'AmoCRM токен признан невалидным',
-    //     status: 'CANCELLED',
-    //   });
-    //   channel.nack(originalMessage as any, false, false);
-    //   return;
-    // }
 
     const tokens = {
       accessToken: senlerGroup.amoCrmProfile.accessToken,
