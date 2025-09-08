@@ -188,6 +188,7 @@ export class IntegrationService {
         await this.saveSenlerGroupErrorMessage(message.payload.senlerGroupId, humanMessage);
 
         // если долго ретраится - отменяем
+        this.logger.info("TIME DEBUG", {1: Date.now(), 2: new Date(message.metadata.createdAt).getTime(), 3: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY, 4: Date.now() - new Date(message.metadata.createdAt).getTime(), 5: Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY})
         if (Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
           this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
