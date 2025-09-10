@@ -181,6 +181,14 @@ export class IntegrationService {
         },
       });
 
+      this.logger.info('TIME DEBUG', {
+        1: Date.now(),
+        2: new Date(message.metadata.createdAt).getTime(),
+        3: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
+        4: Date.now() - new Date(message.metadata.createdAt).getTime(),
+        5: Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
+      });
+
       // отдельная обработка для ошибок сенлер
       if (error instanceof ApiError) {
         const humanMessage = `Ошибка Сенлер ${error.errorCode}: ${error.name}, ${error.message}`;
@@ -188,8 +196,7 @@ export class IntegrationService {
         await this.saveSenlerGroupErrorMessage(message.payload.senlerGroupId, humanMessage);
 
         // если долго ретраится - отменяем
-        this.logger.info("TIME DEBUG", {1: Date.now(), 2: new Date(message.metadata.createdAt).getTime(), 3: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY, 4: Date.now() - new Date(message.metadata.createdAt).getTime(), 5: Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY})
-        if (Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+        if (this.checkMessageExpired(message)) {
           this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
@@ -221,7 +228,7 @@ export class IntegrationService {
         }
 
         // если сообщение слишком долго ретраится - отменяем его
-        if (message.metadata.delay > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY) {
+        if (this.checkMessageExpired(message)) {
           this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
@@ -491,6 +498,10 @@ export class IntegrationService {
     const delay = 1.5 ** retryCount * (1 + Math.random()) * base;
 
     return Math.min(delay, mx);
+  }
+
+  public checkMessageExpired(message: TransferMessage): boolean {
+    return Date.now() - new Date(message.metadata.createdAt).getTime() > this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY;
   }
 
   // public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
