@@ -291,9 +291,9 @@ export class IntegrationService {
         delay: message.metadata.delay,
         mxDelay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
       });
+      await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
     }
     channel.nack(originalMessage as any, false, false);
-    await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
   }
 
   async publishTransferMessageWithLongerDelay(message: TransferMessage): Promise<number> {
