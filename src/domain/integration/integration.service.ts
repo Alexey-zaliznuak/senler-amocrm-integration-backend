@@ -150,23 +150,23 @@ export class IntegrationService {
     };
 
     try {
-      // const { lead, amoCrmLead } = await this.getOrCreateLeadIfNotExists({
-      //   senlerLeadId: payload.lead.id,
-      //   name: payload.lead.name,
-      //   senlerGroupId: payload.senlerGroupId,
-      //   amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-      //   tokens,
-      // });
+      const { lead, amoCrmLead } = await this.getOrCreateLeadIfNotExists({
+        senlerLeadId: payload.lead.id,
+        name: payload.lead.name,
+        senlerGroupId: payload.senlerGroupId,
+        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        tokens,
+      });
 
-      // if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-      //   await this.sendVarsToAmoCrm(payload, tokens, lead);
-      // }
-      // if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
-      //   await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.senlerApiAccessToken);
-      // }
+      if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
+        await this.sendVarsToAmoCrm(payload, tokens, lead);
+      }
+      if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
+        await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.senlerApiAccessToken);
+      }
 
-      // await this.senlerService.sendCallbackOnWebhookRequest(payload);
-      // channel.ack(originalMessage as any);
+      await this.senlerService.sendCallbackOnWebhookRequest(payload);
+      channel.ack(originalMessage as any);
 
       this.logger.info('Запрос выполнен успешно', { labels, status: 'SUCCESS' });
     } catch (error) {
