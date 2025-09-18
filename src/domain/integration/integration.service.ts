@@ -156,6 +156,7 @@ export class IntegrationService {
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
         tokens,
+        labels
       });
 
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
@@ -357,12 +358,14 @@ export class IntegrationService {
     name,
     tokens,
     amoCrmDomainName,
+    labels,
   }: {
     senlerLeadId: string;
     senlerGroupId: number;
     name: string;
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;
+    labels: { requestId: string };
   }): Promise<{
     lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } };
     amoCrmLead: AmoCrmLead;
@@ -390,6 +393,8 @@ export class IntegrationService {
           tokens,
         });
 
+        this.logger.info("Лид был проверен и создан(если требовалось)", labels)
+
         if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
           lead = await this.prisma.lead.update({
             where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
@@ -406,7 +411,7 @@ export class IntegrationService {
         tokens,
       });
       this.logger.info('Создан лид, причина: нету лида с таким senlerLeadId в базе', {
-        labels: { senlerLeadId, newAmoCrmLead: newAmoCrmLead.id },
+        labels: { senlerLeadId, newAmoCrmLead: newAmoCrmLead.id, ...labels },
       });
       const newLead = await this.prisma.lead.create({
         include: { senlerGroup: { include: { amoCrmProfile: true } } },
