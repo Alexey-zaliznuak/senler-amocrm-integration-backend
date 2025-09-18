@@ -159,7 +159,7 @@ export class IntegrationService {
       });
 
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-        await this.sendVarsToAmoCrm(payload, tokens, lead);
+        await this.sendVarsToAmoCrm(payload, tokens, lead, labels);
       }
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
         await this.sendVarsToSenler(payload, amoCrmLead, senlerGroup.senlerApiAccessToken);
@@ -315,19 +315,22 @@ export class IntegrationService {
   async sendVarsToAmoCrm(
     body: BotStepWebhookDto,
     tokens: AmoCrmTokens,
-    lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } }
+    lead: Lead & { senlerGroup: SenlerGroup & { amoCrmProfile: AmoCrmProfile } },
+    labels: { requestId: string }
   ) {
     const customFieldsValues = this.utils.convertSenlerVarsToAmoFields(
       body.publicBotStepSettings.syncableVariables,
       body.lead.personalVars || {}
     );
 
-    this.logger.info('Отправка переменных');
+    this.logger.info('Отправка переменных', { labels });
+
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
       tokens,
       customFieldsValues,
+      labels,
     });
   }
 

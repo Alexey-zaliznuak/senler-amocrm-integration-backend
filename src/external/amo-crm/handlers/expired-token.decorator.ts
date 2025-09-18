@@ -30,9 +30,7 @@ export function HandleAccessTokenExpiration() {
 
           // Если реально новые – подменяем в аргументах:
           if (newTokens?.accessToken && newTokens?.refreshToken) {
-            refreshed =
-              newTokens.accessToken !== tokens.accessToken ||
-              newTokens.refreshToken !== tokens.refreshToken;
+            refreshed = newTokens.accessToken !== tokens.accessToken || newTokens.refreshToken !== tokens.refreshToken;
 
             originalOptions.tokens = newTokens;
             logger.info(refreshed ? 'ТОКЕНЫ ОБНОВИЛИСЬ' : 'ТОКЕНЫ УЖЕ АКТУАЛЬНЫ (обновлять не потребовалось)');

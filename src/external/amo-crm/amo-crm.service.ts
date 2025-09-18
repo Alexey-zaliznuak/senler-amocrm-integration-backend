@@ -24,7 +24,6 @@ import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator'
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
 import { RateLimitsService } from './rate-limit.service';
-import { convertExceptionToString } from 'src/utils';
 
 @Injectable()
 export class AmoCrmService {
@@ -248,7 +247,7 @@ export class AmoCrmService {
     );
 
     if (response.status === HttpStatus.NO_CONTENT) {
-      this.logger.error("Lead not found")
+      this.logger.error('Lead not found');
       throw new AxiosError('Lead not found', HttpStatus.NO_CONTENT.toString());
     }
 
@@ -265,8 +264,10 @@ export class AmoCrmService {
     pipeline_id,
     tokens,
     customFieldsValues,
-  }: editLeadsByIdRequest): Promise<UpdateLeadResponse> {
+    labels,
+  }: editLeadsByIdRequest & { labels: { requestId: string } }): Promise<UpdateLeadResponse> {
     try {
+      this.logger.info('Editing lead', { labels });
       const response = await this.axios.patch<UpdateLeadResponse>(
         `https://${amoCrmDomainName}/api/v4/leads/${AmoCRMLeadId}`,
         {
@@ -282,9 +283,16 @@ export class AmoCrmService {
         }
       );
 
+      this.logger.info('Success editing lead', {
+        labels,
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+      });
+
       return response.data;
     } catch (error) {
-      this.logger.error('Error editing lead', { error });
+      this.logger.error('Error editing lead', { error, labels });
 
       throw error;
     }
