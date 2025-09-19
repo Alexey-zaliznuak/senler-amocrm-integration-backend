@@ -7,7 +7,7 @@ import { validate } from 'class-validator';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
-import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS, RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
+import { RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
@@ -156,7 +156,7 @@ export class IntegrationService {
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
         tokens,
-        labels
+        labels,
       });
 
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
@@ -251,7 +251,7 @@ export class IntegrationService {
 
         // откладываем выполнение запросов для этого аккаунта на секунду
         // возможно в будущем разделить логику для TOO_MANY_REQUESTS и других
-        await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS);
+        await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), timeToSeconds({ seconds: 3 }));
 
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
       } else {
@@ -393,7 +393,7 @@ export class IntegrationService {
           tokens,
         });
 
-        this.logger.info("Лид был проверен и создан(если требовалось)", labels)
+        this.logger.info('Лид был проверен и создан(если требовалось)', labels);
 
         if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
           lead = await this.prisma.lead.update({
