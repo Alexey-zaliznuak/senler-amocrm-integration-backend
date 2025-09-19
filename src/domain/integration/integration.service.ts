@@ -251,7 +251,7 @@ export class IntegrationService {
 
         // откладываем выполнение запросов для этого аккаунта на секунду
         // возможно в будущем разделить логику для TOO_MANY_REQUESTS и других
-        await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), timeToSeconds({ seconds: 3 }));
+        await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), timeToSeconds({ seconds: 1 }));
 
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
       } else {
