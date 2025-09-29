@@ -1,11 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
-import { PRISMA } from 'src/infrastructure/database/database.config';
-import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
 import {
@@ -17,9 +15,7 @@ import {
 
 @Controller('integration')
 export class IntegrationController {
-  constructor(
-    private readonly integrationService: IntegrationService,
-  ) {}
+  constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('/botStepWebhook')
   @HttpCode(HttpStatus.OK)
