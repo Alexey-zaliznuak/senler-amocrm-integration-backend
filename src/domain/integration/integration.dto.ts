@@ -3,6 +3,7 @@ import { plainToInstance, Transform, Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 import { parseJson } from 'src/utils';
+import { BaseAmoCrmProfileDto } from '../senlerGroups/dto/basic-senler-group.dto';
 
 export enum BotStepType {
   SendDataToAmoCrm = 'SEND_DATA_TO_AMO_CRM',
@@ -199,4 +200,21 @@ export class TransferMessage {
   @ValidateNested()
   @Type(() => BotStepWebhookDto)
   metadata: TransferMessageMetadata;
+}
+
+export class ChangeAmoCrmAccountRequestDto {
+  @ApiProperty({ description: 'AmoCRM domain name' })
+  @IsString()
+  @IsNotEmpty()
+  amoCrmDomainName: string;
+
+  @ApiProperty({ description: 'Auth code from amoCRM' })
+  @IsString()
+  @IsNotEmpty()
+  amoCrmAuthorizationCode: string;
+
+  @ApiProperty({ description: 'Id of Senler group.' })
+  @IsNotEmpty()
+  @IsNumber()
+  senlerGroupId: number;
 }

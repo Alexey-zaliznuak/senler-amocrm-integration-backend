@@ -3,7 +3,7 @@ import { AmoCrmProfile, SenlerGroup } from '@prisma/client';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { BaseModelDto } from 'src/infrastructure/dto';
 
-export type BaseSenlerGroup = Pick<
+export type SenlerGroupDto = Pick<
   SenlerGroup,
   | 'id'
   | 'createdAt'
@@ -44,7 +44,7 @@ export class BaseAmoCrmProfileDto extends BaseModelDto implements BaseAmoCrmProf
   rateLimit: number | null;
 }
 
-export class BaseSenlerGroupDto extends BaseModelDto implements BaseSenlerGroup {
+export class BaseSenlerGroupDto extends BaseModelDto implements SenlerGroupDto {
   @ApiProperty({ description: 'Senler group Id' })
   @IsNumber()
   @IsNotEmpty()

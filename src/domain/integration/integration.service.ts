@@ -1,7 +1,14 @@
-import { BadRequestException, HttpException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AmoCrmProfile, Lead, SenlerGroup } from '@prisma/client';
 import * as amqp from 'amqplib';
-import { AxiosError } from 'axios';
+import { AxiosError, HttpStatusCode } from 'axios';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
@@ -19,7 +26,7 @@ import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, TransferMessage } from './integration.dto';
+import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -38,6 +45,55 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
+
+  async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
+      where: { senlerGroupId: body.senlerGroupId },
+    });
+
+    try {
+      const amoCrmProfile = await this.getOrCreateAmoCrmProfile(body);
+
+      await this.prisma.senlerGroup.update({
+        where: { id: senlerGroup.id },
+        data: {
+          amoCrmProfile: { connect: { id: amoCrmProfile.id } },
+        },
+      });
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) {
+        throw error;
+      }
+
+      if (error instanceof AxiosError && error.status === HttpStatusCode.BadRequest) {
+        throw new ServiceUnavailableException();
+      }
+
+      if (error instanceof AxiosError && error.code === 'ENOTFOUND') {
+        throw new BadRequestException('Некорректное доменное имя аккаунта amoCRM');
+      }
+
+      throw error;
+    }
+  }
+
+  async getOrCreateAmoCrmProfile(data: { amoCrmDomainName: string; amoCrmAuthorizationCode: string }) {
+    let profile = await this.prisma.amoCrmProfile.findUnique({ where: { domainName: data.amoCrmDomainName } });
+    if (profile) return profile;
+
+    const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
+      amoCrmDomainName: data.amoCrmDomainName,
+      code: data.amoCrmAuthorizationCode,
+    });
+
+    return await this.prisma.amoCrmProfile.create({
+      data: {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        domainName: data.amoCrmDomainName,
+      },
+    });
+  }
 
   async processBotStepWebhook(body: any) {
     const message: TransferMessage = {
@@ -462,12 +518,6 @@ export class IntegrationService {
         };
       }
     }
-  }
-
-  async unlinkAmoAccount(senlerGroupId: number) {
-    return await this.prisma.senlerGroup.deleteWithCacheInvalidate({
-      where: { senlerGroupId },
-    });
   }
 
   public buildProcessWebhookTitle(body: any): string {

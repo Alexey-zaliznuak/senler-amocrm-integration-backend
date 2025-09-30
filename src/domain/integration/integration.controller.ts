@@ -8,9 +8,9 @@ import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.s
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
 import {
   BotStepWebhookDto,
+  ChangeAmoCrmAccountRequestDto,
   GetSenlerGroupFieldsRequestDto,
   TransferMessage,
-  UnlinkAmoCrmAccountRequestDto,
 } from './integration.dto';
 
 @Controller('integration')
@@ -34,10 +34,11 @@ export class IntegrationController {
     };
   }
 
-  @Delete('/untieAmoCrmProfile')
+  @Delete('/change-amocrm-account')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async unlinkAmoAccount(@Query() query: UnlinkAmoCrmAccountRequestDto): Promise<any> {
-    return await this.integrationService.unlinkAmoAccount(query.senlerGroupId);
+  @ApiBody({ type: ChangeAmoCrmAccountRequestDto })
+  async changeAmoCrmAccount(@Body() body: ChangeAmoCrmAccountRequestDto) {
+    await this.integrationService.changeAmoCrmAccount(body);
   }
 
   @AmqpEventPattern(AppConfig.RABBITMQ_TRANSFER_QUEUE)
