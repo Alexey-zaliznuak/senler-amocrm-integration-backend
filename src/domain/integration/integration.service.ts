@@ -60,6 +60,7 @@ export class IntegrationService {
           amoCrmProfile: { connect: { id: amoCrmProfile.id } },
         },
       });
+      await this.prisma.amoCrmProfile.invalidateCache(senlerGroup.id);
     } catch (error) {
       if (error instanceof ServiceUnavailableException) {
         throw error;
