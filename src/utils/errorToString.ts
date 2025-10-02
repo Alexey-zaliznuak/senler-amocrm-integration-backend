@@ -8,35 +8,30 @@ function safePlain<T>(value: T): unknown {
   }
 }
 
-
 function safeStringify(value: unknown): string {
   const seen = new WeakSet();
-  return JSON.stringify(
-    value,
-    (_k, v) => {
-      if (typeof v === 'object' && v !== null) {
-        if (seen.has(v)) return '[Circular]';
-        seen.add(v);
-      }
+  return JSON.stringify(value, (_k, v) => {
+    if (typeof v === 'object' && v !== null) {
+      if (seen.has(v)) return '[Circular]';
+      seen.add(v);
+    }
 
-      if (v && typeof v === 'object' && (v as any).isAxiosError) {
-        const e = v as any;
-        return {
-          isAxiosError: true,
-          message: e.message,
-          code: e.code,
-          method: e.config?.method,
-          url: e.config?.url,
-          status: e.response?.status,
-          statusText: e.response?.statusText,
-          data: e.response?.data,
-        };
-      }
-      return v;
-    },
-  );
+    if (v && typeof v === 'object' && (v as any).isAxiosError) {
+      const e = v as any;
+      return {
+        isAxiosError: true,
+        message: e.message,
+        code: e.code,
+        method: e.config?.method,
+        url: e.config?.url,
+        status: e.response?.status,
+        statusText: e.response?.statusText,
+        data: e.response?.data,
+      };
+    }
+    return v;
+  });
 }
-
 
 export function convertExceptionToString(exception: unknown): string {
   if (exception instanceof AxiosError) {

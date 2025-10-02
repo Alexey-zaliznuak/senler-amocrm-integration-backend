@@ -5,6 +5,7 @@ import { AXIOS, CustomAxiosInstance } from 'src/infrastructure/axios/instance';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { LOGGER } from 'src/infrastructure/logging/logging.config';
+import { convertExceptionToString, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
 
 @Injectable()
@@ -62,11 +63,40 @@ export class SenlerService {
   }
 
   private async sendRequest(request: { url: string; params: any }): Promise<void> {
-    try {
-      await this.axios.postForm(request.url, request.params);
-    } catch (error) {
-      this.logger.error('Request failed after max attempts', { exception: error });
-      throw new ServiceUnavailableException('Max attempts reached');
+    let attempt = 0;
+
+    while (true) {
+      try {
+        const response = await this.axios.postForm(request.url, request.params);
+
+        // Проверяем, что сервер вернул именно такую ошибку
+        if (
+          response.data?.error_code === 0 &&
+          response.data?.error_message === 'Internal Error' &&
+          response.data?.success === false
+        ) {
+          attempt++;
+          const delay = Math.min(1000 * Math.pow(2, attempt), timeToSeconds({ minutes: 1 })); // экспоненциальный рост до минуты
+          this.logger.warn(`Ошибка подтверждения вебхука Сенлер - подсистема недоступна`, {
+            nextDelay: delay,
+            attempt,
+            response: response.data,
+          });
+          await new Promise(res => setTimeout(res, delay));
+          continue;
+        }
+
+        return;
+      } catch (error) {
+        attempt++;
+        const delay = Math.min(1000 * Math.pow(2, attempt), timeToSeconds({ minutes: 1 })); // экспоненциальный рост до минуты
+        this.logger.warn(`Ошибка подтверждения вебхука Сенлер - возникла непредвиденная ошибка`, {
+          nextDelay: delay,
+          attempt,
+          error: convertExceptionToString(error),
+        });
+        await new Promise(res => setTimeout(res, delay));
+      }
     }
   }
 
