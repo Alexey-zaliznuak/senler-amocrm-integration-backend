@@ -43,9 +43,6 @@ export class RateLimitsService {
       increment
     );
 
-    // TODO: удалить после релиза
-    this.logger.info('GOT RATE', { rate });
-
     if (!allowed) {
       this.logger.info('CANCEL REQUEST', {
         tm: Date.now(),

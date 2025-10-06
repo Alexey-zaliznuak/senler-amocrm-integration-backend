@@ -552,7 +552,7 @@ export class IntegrationService {
   }
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 })) {
-    const mx = timeToMilliseconds({ hours: 1 }); // TODO УБРАТЬ ПОСЛЕ ТЕСТА
+    const mx = this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
 
     const delay = 1.5 ** retryCount * (1 + Math.random()) * base;
 
