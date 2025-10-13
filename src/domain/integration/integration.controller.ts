@@ -17,17 +17,12 @@ import {
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
-  // @Post('/botStepWebhook')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(IntegrationSecretGuard)
-  // @ApiBody({ type: BotStepWebhookDto })
-  // async botStepWebhook(@Body() body: any): Promise<any> {
-  //   return await this.integrationService.processBotStepWebhook(body);
-  // }
-
   @Post('/botStepWebhook')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(IntegrationSecretGuard)
+  @ApiBody({ type: BotStepWebhookDto })
   async botStepWebhook(@Body() body: any): Promise<any> {
-    return ""
+    return await this.integrationService.processBotStepWebhook(body);
   }
 
   @Delete('/change-amocrm-account')
