@@ -11,9 +11,16 @@ async function bootstrap() {
         ? new ConsoleLogger({
             json: true,
           })
-        : undefined,  });
+        : undefined,
+  });
 
   const config = app.get<AppConfigType>('CONFIG');
+
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: false,
+  });
 
   app.setGlobalPrefix('/api');
 
