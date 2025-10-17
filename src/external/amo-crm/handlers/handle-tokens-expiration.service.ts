@@ -6,13 +6,12 @@ import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
 import { LOGGER } from 'src/infrastructure/logging/logging.config';
-import { LoggingService } from 'src/infrastructure/logging/logging.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { timeToMilliseconds, timeToSeconds } from 'src/utils';
+import { Logger } from 'winston';
 import { AXIOS_INJECTABLE_NAME } from '../amo-crm.config';
 import { AmoCrmTokens } from '../amo-crm.dto';
 import { RateLimitsService } from '../rate-limit.service';
-import { Logger } from 'winston';
 
 function sleep(ms: number) {
   return new Promise(res => setTimeout(res, ms));
@@ -75,7 +74,7 @@ export class RefreshTokensService {
               refresh_token: tokens.refreshToken,
               redirect_uri: this.config.AMO_CRM_REDIRECT_URI,
             });
-            this.logger.info("Токен единолично обновлен")
+            this.logger.info('Токен единолично обновлен');
           } catch (e: any) {
             // Если AmoCRM вернул 400 invalid_grant — это не 503 и не 401,
             // это «протухший refresh»: надо инициировать re-connect в продукте.
@@ -98,6 +97,7 @@ export class RefreshTokensService {
           await this.prisma.amoCrmProfile.updateWithCacheInvalidate({
             where: { domainName: amoCrmDomainName },
             data: { accessToken: newAccess, refreshToken: newRefresh },
+            select: { id: true },
           });
 
           return { accessToken: newAccess, refreshToken: newRefresh };
