@@ -401,6 +401,8 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
+    this.logger.info('Отправка переменных в сенлер', { labels: this.extractLoggingLabelsFromRequest(body), vars: varsValues });
+
     await Promise.all([
       Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
       Promise.all(
@@ -552,7 +554,7 @@ export class IntegrationService {
   }
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 })) {
-    const mx = this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+    const mx = this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY;
 
     const delay = 1.5 ** retryCount * (1 + Math.random()) * base;
 
