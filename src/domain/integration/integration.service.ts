@@ -46,6 +46,11 @@ export class IntegrationService {
     public readonly rateLimitsService: RateLimitsService
   ) {}
 
+  // TODO удалить
+  public getConfig() {
+    return this.config;
+  }
+
   async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
       where: { senlerGroupId: body.senlerGroupId },

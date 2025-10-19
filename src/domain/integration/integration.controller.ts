@@ -25,6 +25,12 @@ export class IntegrationController {
     return await this.integrationService.processBotStepWebhook(body);
   }
 
+  @Get('/config')
+  @HttpCode(HttpStatus.OK)
+  public getConf(): any {
+    return this.integrationService.getConfig();
+  }
+
   @Delete('/change-amocrm-account')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBody({ type: ChangeAmoCrmAccountRequestDto })
