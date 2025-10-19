@@ -48,6 +48,7 @@ export class IntegrationService {
 
   // TODO удалить
   public getConfig() {
+    // для дебага
     return AppConfig;
   }
 
