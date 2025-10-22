@@ -40,6 +40,10 @@ export class SenlerService {
   }
 
   async sendCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
+    if (!body.botCallback) {
+      return
+    }
+
     const { group_id, ...bodyToStringify } = body.botCallback;
     bodyToStringify.result.error_code = sendError ? 1 : 0;
 
