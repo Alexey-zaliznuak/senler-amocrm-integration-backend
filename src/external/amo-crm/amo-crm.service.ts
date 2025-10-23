@@ -219,6 +219,7 @@ export class AmoCrmService {
       name: string;
       price?: number;
       status_id?: number;
+      pipeline_id?: number;
     }>;
     tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {

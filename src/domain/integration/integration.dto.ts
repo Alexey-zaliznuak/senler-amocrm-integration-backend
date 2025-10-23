@@ -21,6 +21,23 @@ export class TransferPairDto {
   to: string | number;
 }
 
+export class AmoCrmTransferringSettingsDto {
+  @ApiProperty({ description: 'Айди воронки' })
+  @ValidateIf(obj => obj.statusId !== null)
+  @IsNumber()
+  pipelineId: number | null;
+
+  @ApiProperty({ description: 'Айди статуса в воронке' })
+  @ValidateIf(obj => obj.statusId !== null)
+  @IsNumber()
+  statusId: number | null;
+
+  @ApiProperty({ description: 'Цена сделки' })
+  @ValidateIf(obj => obj.price !== null)
+  @IsNumber()
+  price: number | null;
+}
+
 export class PublicBotStepSettingsDto {
   @ApiProperty({ description: 'bot step type', enum: BotStepType })
   @IsNotEmpty()
@@ -35,6 +52,14 @@ export class PublicBotStepSettingsDto {
   @ValidateNested({ each: true })
   @Type(() => TransferPairDto)
   syncableVariables: Array<TransferPairDto>;
+
+  // @ApiProperty({
+  //   description: 'Специфичные для амо настройки.',
+  // })
+  // @ValidateIf(obj => obj.amoCrmTransferringSettings !== null)
+  // @ValidateNested()
+  // @Type(() => AmoCrmTransferringSettingsDto)
+  // amoCrmTransferringSettings: AmoCrmTransferringSettingsDto;
 }
 
 export class LeadDto {
