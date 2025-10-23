@@ -53,13 +53,13 @@ export class PublicBotStepSettingsDto {
   @Type(() => TransferPairDto)
   syncableVariables: Array<TransferPairDto>;
 
-  // @ApiProperty({
-  //   description: 'Специфичные для амо настройки.',
-  // })
-  // @ValidateIf(obj => obj.amoCrmTransferringSettings !== null)
-  // @ValidateNested()
-  // @Type(() => AmoCrmTransferringSettingsDto)
-  // amoCrmTransferringSettings: AmoCrmTransferringSettingsDto;
+  @ApiProperty({
+    description: 'Специфичные для амо настройки.',
+  })
+  @ValidateIf(obj => obj.amoCrmTransferringSettings !== null)
+  @ValidateNested()
+  @Type(() => AmoCrmTransferringSettingsDto)
+  amoCrmTransferringSettings: AmoCrmTransferringSettingsDto;
 }
 
 export class LeadDto {

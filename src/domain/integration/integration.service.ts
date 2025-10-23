@@ -16,7 +16,7 @@ import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
-import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
@@ -45,12 +45,6 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
-
-  // TODO удалить
-  public getConfig() {
-    // для
-    return AppConfig;
-  }
 
   async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
@@ -392,7 +386,9 @@ export class IntegrationService {
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
-      // status_id: body.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
+      status_id: body.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
+      pipeline_id: body.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
+      price: body.publicBotStepSettings.amoCrmTransferringSettings?.price ?? undefined,
       tokens,
       customFieldsValues,
       labels,
