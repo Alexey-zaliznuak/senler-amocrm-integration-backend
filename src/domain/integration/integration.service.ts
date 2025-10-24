@@ -47,7 +47,7 @@ export class IntegrationService {
   ) {}
 
   public getConf() {
-    return AppConfig
+    return {conf: AppConfig, env: process.env}
   }
 
   async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
