@@ -216,10 +216,11 @@ export class AmoCrmService {
   }: {
     amoCrmDomainName: string;
     leads: Array<{
-      name: string;
       price?: number;
-      status_id?: number;
-      pipeline_id?: number;
+      name?: string;
+      statusId?: number;
+      pipelineId?: number;
+      responsibleUserId?: number;
     }>;
     tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {

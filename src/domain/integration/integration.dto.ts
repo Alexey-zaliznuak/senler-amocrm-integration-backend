@@ -43,9 +43,9 @@ export class AmoCrmTransferringSettingsDto {
   name: string | null
 
   @ApiProperty({ description: 'Ответственный за сделку' })
-  @ValidateIf(obj => obj.name !== null)
+  @ValidateIf(obj => obj.responsibleUserId !== null)
   @IsString()
-  responsibleUserId: string | null
+  responsibleUserId: number | null
 }
 
 export class PublicBotStepSettingsDto {
