@@ -36,6 +36,16 @@ export class AmoCrmTransferringSettingsDto {
   @ValidateIf(obj => obj.price !== null)
   @IsNumber()
   price: number | null;
+
+  @ApiProperty({ description: 'Наименование сделки' })
+  @ValidateIf(obj => obj.name !== null)
+  @IsString()
+  name: string | null
+
+  @ApiProperty({ description: 'Ответственный за сделку' })
+  @ValidateIf(obj => obj.name !== null)
+  @IsString()
+  responsibleUserId: string | null
 }
 
 export class PublicBotStepSettingsDto {

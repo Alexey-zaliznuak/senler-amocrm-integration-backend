@@ -386,9 +386,11 @@ export class IntegrationService {
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
-      status_id: body.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
-      pipeline_id: body.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
+      statusId: body.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
+      pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
       price: body.publicBotStepSettings.amoCrmTransferringSettings?.price ?? undefined,
+      // name: body.publicBotStepSettings.amoCrmTransferringSettings?.name ?? undefined,
+      // name: body.publicBotStepSettings.amoCrmTransferringSettings?.name ?? undefined,
       tokens,
       customFieldsValues,
       labels,

@@ -259,10 +259,12 @@ export class AmoCrmService {
   @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomainName,
-    amoCrmLeadId: AmoCRMLeadId,
+    amoCrmLeadId,
     price,
-    status_id,
-    pipeline_id,
+    name,
+    statusId,
+    pipelineId,
+    responsibleUserId,
     tokens,
     customFieldsValues,
     labels,
@@ -270,11 +272,13 @@ export class AmoCrmService {
     try {
       this.logger.info('Editing lead', { labels });
       const response = await this.axios.patch<UpdateLeadResponse>(
-        `https://${amoCrmDomainName}/api/v4/leads/${AmoCRMLeadId}`,
+        `https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}`,
         {
+          name,
           price,
-          status_id,
-          pipeline_id,
+          status_id: statusId,
+          pipeline_id: pipelineId,
+          responsible_user_id: responsibleUserId,
           custom_fields_values: customFieldsValues,
         },
         {

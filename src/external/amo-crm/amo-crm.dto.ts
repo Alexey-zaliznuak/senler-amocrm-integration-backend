@@ -190,8 +190,10 @@ export type editLeadsByIdRequest = {
   amoCrmDomainName: string;
   amoCrmLeadId: number;
   price?: number;
-  status_id?: number;
-  pipeline_id?: number;
+  name?: string;
+  statusId?: number;
+  pipelineId?: number;
+  responsibleUserId?: number;
   tokens: AmoCrmTokens;
   customFieldsValues?: editLeadsByIdCustomFieldsValueRequest[];
 };
