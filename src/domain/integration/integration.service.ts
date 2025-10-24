@@ -16,7 +16,7 @@ import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
-import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
@@ -45,6 +45,10 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
+
+  public getConf() {
+    return AppConfig
+  }
 
   async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({

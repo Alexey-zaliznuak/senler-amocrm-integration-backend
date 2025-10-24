@@ -54,4 +54,9 @@ export class IntegrationController {
   async deleteAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<void> {
     await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);
   }
+  @Get('conf')
+  @HttpCode(HttpStatus.OK)
+  public getConf(): any {
+    return this.integrationService.getConf();
+  }
 }
