@@ -213,9 +213,13 @@ export class IntegrationService {
     try {
       const { lead, amoCrmLead } = await this.getOrCreateLeadIfNotExists({
         senlerLeadId: payload.lead.id,
-        name: payload.lead.name,
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        name: payload.lead.name,
+        price: payload.publicBotStepSettings.amoCrmTransferringSettings?.price ?? undefined,
+        statusId: payload.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
+        pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
+        responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings?.responsibleUserId ?? undefined,
         tokens,
         labels,
       });
@@ -424,13 +428,21 @@ export class IntegrationService {
     senlerLeadId,
     senlerGroupId,
     name,
+    price,
+    statusId,
+    pipelineId,
+    responsibleUserId,
     tokens,
     amoCrmDomainName,
     labels,
   }: {
     senlerLeadId: string;
     senlerGroupId: number;
-    name: string;
+    name?: string;
+    price?: number;
+    statusId?: number;
+    pipelineId?: number;
+    responsibleUserId?: number;
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;
     labels: { requestId: string };
@@ -457,8 +469,12 @@ export class IntegrationService {
         const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
           amoCrmDomainName,
           amoCrmLeadId: lead.amoCrmLeadId,
-          name,
           tokens,
+          name,
+          price,
+          statusId,
+          pipelineId,
+          responsibleUserId,
         });
 
         this.logger.info('Лид был проверен и создан(если требовалось)', labels);

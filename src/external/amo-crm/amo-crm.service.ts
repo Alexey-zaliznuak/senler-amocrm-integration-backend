@@ -216,11 +216,11 @@ export class AmoCrmService {
   }: {
     amoCrmDomainName: string;
     leads: Array<{
-      price?: number;
       name?: string;
-      statusId?: number;
-      pipelineId?: number;
-      responsibleUserId?: number;
+      price?: number;
+      status_id?: number;
+      pipeline_id?: number;
+      responsible_user_id?: number;
     }>;
     tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {
@@ -261,8 +261,8 @@ export class AmoCrmService {
   async editLeadsById({
     amoCrmDomainName,
     amoCrmLeadId,
-    price,
     name,
+    price,
     statusId,
     pipelineId,
     responsibleUserId,
@@ -364,11 +364,19 @@ export class AmoCrmService {
     amoCrmDomainName,
     amoCrmLeadId,
     name,
+    price,
+    statusId,
+    pipelineId,
+    responsibleUserId,
     tokens,
   }: {
     amoCrmDomainName: string;
     amoCrmLeadId: number;
     name: string;
+    price?: number;
+    statusId?: number;
+    pipelineId?: number;
+    responsibleUserId?: number;
     tokens: AmoCrmTokens;
   }) {
     try {
@@ -381,7 +389,11 @@ export class AmoCrmService {
       return lead;
     } catch (error) {
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
-        const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
+        const actualLead = await this.createLead({
+          amoCrmDomainName,
+          leads: [{ name, price, status_id: statusId, pipeline_id: pipelineId, responsible_user_id: responsibleUserId }],
+          tokens,
+        });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
           labels: { newAmoCrmLead: actualLead.id },
         });
