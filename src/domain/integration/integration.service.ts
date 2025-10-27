@@ -527,6 +527,16 @@ export class IntegrationService {
       include: { amoCrmProfile: true },
     });
 
+    if (senlerGroupId == 0) {
+      throw new HttpException(
+          {
+            message: "msg",
+            errorCode: "unknown",
+          },
+          HttpStatus.BAD_REQUEST
+        );
+    }
+
     const tokens: AmoCrmTokens = {
       accessToken: senlerGroup.amoCrmProfile.accessToken,
       refreshToken: senlerGroup.amoCrmProfile.refreshToken,
