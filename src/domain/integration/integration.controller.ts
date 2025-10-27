@@ -10,7 +10,7 @@ import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import {
   BotStepWebhookDto,
   ChangeAmoCrmAccountRequestDto,
-  GetSenlerGroupFieldsRequestDto,
+  SenlerGroupIdQueryDto,
   TransferMessage,
 } from './dto/integration.dto';
 
@@ -41,19 +41,19 @@ export class IntegrationController {
   @Get('amocrm-workspace-info')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ type: AmoCrmWorkspaceInfoDto })
-  async getAmoFields(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<AmoCrmWorkspaceInfoDto> {
-    return await this.integrationService.getAmoCrmFields(query.senlerGroupId);
+  async getAmoCrmWorkspaceInfo(@Query() query: SenlerGroupIdQueryDto): Promise<AmoCrmWorkspaceInfoDto> {
+    return await this.integrationService.getAmoCrmWorkspaceInfo(query.senlerGroupId);
   }
 
   @Get('AmoCrmErrors')
   @HttpCode(HttpStatus.OK)
-  async getAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<string> {
+  async getAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<string> {
     return await this.integrationService.getSenlerGroupErrorMessage(query.senlerGroupId);
   }
 
   @Delete('AmoCrmErrors')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<void> {
+  async deleteAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<void> {
     await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);
   }
   @Get('conf')

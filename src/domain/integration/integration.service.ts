@@ -521,12 +521,7 @@ export class IntegrationService {
     }
   }
 
-  async getAmoCrmFields(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
-      where: { senlerGroupId },
-      include: { amoCrmProfile: true },
-    });
-
+  async getAmoCrmWorkspaceInfo(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
     if (senlerGroupId == 0) {
       throw new HttpException(
         {
@@ -536,6 +531,10 @@ export class IntegrationService {
         HttpStatus.SERVICE_UNAVAILABLE
       );
     }
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
+      where: { senlerGroupId },
+      include: { amoCrmProfile: true },
+    });
 
     const tokens: AmoCrmTokens = {
       accessToken: senlerGroup.amoCrmProfile.accessToken,

@@ -40,12 +40,12 @@ export class AmoCrmTransferringSettingsDto {
   @ApiProperty({ description: 'Наименование сделки' })
   @ValidateIf(obj => obj.name !== null)
   @IsString()
-  name: string | null
+  name: string | null;
 
   @ApiProperty({ description: 'Ответственный за сделку' })
   @ValidateIf(obj => obj.responsibleUserId !== null)
   @IsString()
-  responsibleUserId: number | null
+  responsibleUserId: number | null;
 }
 
 export class PublicBotStepSettingsDto {
@@ -197,7 +197,7 @@ export class BotStepWebhookDto {
   botCallback: BotCallbackDto | null;
 }
 
-export class GetSenlerGroupFieldsRequestDto {
+export class SenlerGroupIdQueryDto {
   @ApiProperty({ description: 'Id of Senler group.' })
   @IsNotEmpty()
   @IsNumber()
@@ -253,4 +253,3 @@ export class ChangeAmoCrmAccountRequestDto {
   @IsNumber()
   senlerGroupId: number;
 }
-
