@@ -25,7 +25,7 @@ import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
-import { AmoCrmWorkspaceInfoDto } from './dto/get-worspace-info.dto';
+import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { IntegrationUtils } from './integration.utils';

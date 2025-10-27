@@ -6,7 +6,7 @@ import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secr
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
-import { AmoCrmWorkspaceInfoDto } from './dto/get-worspace-info.dto';
+import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import {
   BotStepWebhookDto,
   ChangeAmoCrmAccountRequestDto,
