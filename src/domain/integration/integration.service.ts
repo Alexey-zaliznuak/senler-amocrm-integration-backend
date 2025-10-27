@@ -522,15 +522,6 @@ export class IntegrationService {
   }
 
   async getAmoCrmWorkspaceInfo(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
-    if (senlerGroupId == 0) {
-      throw new HttpException(
-        {
-          message: 'msg',
-          errorCode: 'unknown',
-        },
-        HttpStatus.SERVICE_UNAVAILABLE
-      );
-    }
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
       where: { senlerGroupId },
       include: { amoCrmProfile: true },
