@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -554,7 +555,13 @@ export class IntegrationService {
             message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
           },
         });
-        throw new BadRequestException('Ошибка получения сведений от AmoCrm');
+        throw new HttpException(
+          {
+            message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
+            errorCode: error.status,
+          },
+          HttpStatus.BAD_REQUEST
+        );
       }
     }
   }
