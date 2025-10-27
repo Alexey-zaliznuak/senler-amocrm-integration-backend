@@ -529,12 +529,12 @@ export class IntegrationService {
 
     if (senlerGroupId == 0) {
       throw new HttpException(
-          {
-            message: "msg",
-            errorCode: "unknown",
-          },
-          HttpStatus.BAD_REQUEST
-        );
+        {
+          message: 'msg',
+          errorCode: 'unknown',
+        },
+        HttpStatus.SERVICE_UNAVAILABLE
+      );
     }
 
     const tokens: AmoCrmTokens = {
