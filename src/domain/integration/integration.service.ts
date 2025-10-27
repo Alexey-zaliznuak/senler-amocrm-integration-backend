@@ -531,10 +531,19 @@ export class IntegrationService {
     };
 
     try {
-      return await this.amoCrmService.getLeadFields({
+      const fields = await this.amoCrmService.getLeadFields({
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
         tokens,
       });
+      const pipelines = await this.amoCrmService.getPipelinesWithStatuses({
+        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        tokens,
+      });
+      const users = await this.amoCrmService.getUsers({
+        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        tokens,
+      });
+      return { fields, pipelines, users };
     } catch (error) {
       if (error instanceof AxiosError) {
         return {

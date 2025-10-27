@@ -17,8 +17,12 @@ import {
   editLeadsByIdRequest,
   GetLeadRequest,
   GetLeadResponse,
+  GetPipelinesResponse,
   GetUnsortedResponse,
+  GetUsersResponse,
+  PipelineWithStatuses,
   UpdateLeadResponse,
+  UserSimple,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
@@ -355,6 +359,82 @@ export class AmoCrmService {
       return response.data['_embedded']['custom_fields'];
     } catch (error) {
       this.logger.error('Error getting lead field', { error });
+      throw error;
+    }
+  }
+
+  @UpdateRateLimitAndThrowIfNeed()
+  @HandleAccessTokenExpiration()
+  async getPipelinesWithStatuses({
+    amoCrmDomainName,
+    tokens,
+  }: {
+    amoCrmDomainName: string;
+    tokens: AmoCrmTokens;
+  }): Promise<PipelineWithStatuses[]> {
+    try {
+      const response = await this.axios.get<GetPipelinesResponse>(`https://${amoCrmDomainName}/api/v4/leads/pipelines`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+
+      // Преобразуем ответ в нужный формат
+      const pipelines = response.data._embedded.pipelines.map(pipeline => ({
+        id: pipeline.id,
+        name: pipeline.name,
+        statuses: pipeline._embedded.statuses.map(status => ({
+          id: status.id,
+          name: status.name,
+        })),
+      }));
+
+      this.logger.info('Successfully fetched pipelines with statuses', {
+        amoCrmDomainName,
+        pipelinesCount: pipelines.length,
+      });
+
+      return pipelines;
+    } catch (error) {
+      this.logger.error('Error getting pipelines with statuses', { error });
+
+      if (error instanceof AxiosError) {
+        throw new UnauthorizedException('Failed to get pipelines');
+      }
+
+      throw error;
+    }
+  }
+
+  @UpdateRateLimitAndThrowIfNeed()
+  @HandleAccessTokenExpiration()
+  async getUsers({ amoCrmDomainName, tokens }: { amoCrmDomainName: string; tokens: AmoCrmTokens }): Promise<UserSimple[]> {
+    try {
+      const response = await this.axios.get<GetUsersResponse>(`https://${amoCrmDomainName}/api/v4/users`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+
+      // Преобразуем ответ в упрощенный формат
+      const users = response.data._embedded.users.map(user => ({
+        id: user.id,
+        name: user.name,
+      }));
+
+      this.logger.info('Successfully fetched users', {
+        amoCrmDomainName,
+        usersCount: users.length,
+      });
+
+      return users;
+    } catch (error) {
+      this.logger.error('Error getting users', { error });
+
+      if (error instanceof AxiosError) {
+        throw new UnauthorizedException('Failed to get users');
+      }
+
       throw error;
     }
   }
