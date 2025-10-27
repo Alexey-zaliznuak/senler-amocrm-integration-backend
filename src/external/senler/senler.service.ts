@@ -1,6 +1,6 @@
 import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { BotStepWebhookDto } from 'src/domain/integration/integration.dto';
+import { BotStepWebhookDto } from 'src/domain/integration/dto/integration.dto';
 import { AXIOS, CustomAxiosInstance } from 'src/infrastructure/axios/instance';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
@@ -41,7 +41,7 @@ export class SenlerService {
 
   async sendCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
     if (!body.botCallback) {
-      return
+      return;
     }
 
     const { group_id, ...bodyToStringify } = body.botCallback;

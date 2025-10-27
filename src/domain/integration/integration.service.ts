@@ -25,8 +25,9 @@ import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
+import { AmoCrmWorkspaceInfoDto } from './dto/get-worspace-info.dto';
+import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -519,7 +520,7 @@ export class IntegrationService {
     }
   }
 
-  async getAmoCrmFields(senlerGroupId: number) {
+  async getAmoCrmFields(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
       where: { senlerGroupId },
       include: { amoCrmProfile: true },
@@ -546,13 +547,14 @@ export class IntegrationService {
       return { fields, pipelines, users };
     } catch (error) {
       if (error instanceof AxiosError) {
-        return {
+        this.logger.error('Ошибка получения сведений от AmoCrm', {
           error: {
-            name: 'Error during request to AmoCrm',
+            senlerGroupId,
             code: error.status,
             message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
           },
-        };
+        });
+        throw new BadRequestException('Ошибка получения сведений от AmoCrm');
       }
     }
   }
