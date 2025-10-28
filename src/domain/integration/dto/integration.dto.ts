@@ -44,7 +44,7 @@ export class AmoCrmTransferringSettingsDto {
 
   @ApiProperty({ description: 'Ответственный за сделку' })
   @ValidateIf(obj => obj.responsibleUserId != null)
-  @IsString()
+  @IsNumber()
   responsibleUserId: number | null;
 }
 
