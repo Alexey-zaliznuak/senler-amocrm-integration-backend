@@ -23,27 +23,27 @@ export class TransferPairDto {
 
 export class AmoCrmTransferringSettingsDto {
   @ApiProperty({ description: 'Айди воронки' })
-  @ValidateIf(obj => obj.statusId !== null)
+  @ValidateIf(obj => obj.statusId != null)
   @IsNumber()
   pipelineId: number | null;
 
   @ApiProperty({ description: 'Айди статуса в воронке' })
-  @ValidateIf(obj => obj.statusId !== null)
+  @ValidateIf(obj => obj.statusId != null)
   @IsNumber()
   statusId: number | null;
 
   @ApiProperty({ description: 'Цена сделки' })
-  @ValidateIf(obj => obj.price !== null)
+  @ValidateIf(obj => obj.price != null)
   @IsNumber()
   price: number | null;
 
   @ApiProperty({ description: 'Наименование сделки' })
-  @ValidateIf(obj => obj.name !== null)
+  @ValidateIf(obj => obj.name != null)
   @IsString()
   name: string | null;
 
   @ApiProperty({ description: 'Ответственный за сделку' })
-  @ValidateIf(obj => obj.responsibleUserId !== null)
+  @ValidateIf(obj => obj.responsibleUserId != null)
   @IsString()
   responsibleUserId: number | null;
 }
@@ -65,7 +65,7 @@ export class PublicBotStepSettingsDto {
   @ApiProperty({
     description: 'Специфичные для амо настройки.',
   })
-  @ValidateIf(obj => obj.amoCrmTransferringSettings !== null)
+  @ValidateIf(obj => obj.amoCrmTransferringSettings != null)
   @ValidateNested()
   @Type(() => AmoCrmTransferringSettingsDto)
   amoCrmTransferringSettings: AmoCrmTransferringSettingsDto;
@@ -189,7 +189,7 @@ export class BotStepWebhookDto {
   integrationCallbackKey: string;
 
   @ApiProperty({ description: 'Bot callback.', type: BotCallbackDto })
-  @ValidateIf(obj => obj.botCallback !== null)
+  @ValidateIf(obj => obj.botCallback != null)
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => BotCallbackDto)
