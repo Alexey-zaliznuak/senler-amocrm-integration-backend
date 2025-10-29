@@ -65,7 +65,7 @@ export class PublicBotStepSettingsDto {
   @ApiProperty({
     description: 'Специфичные для амо настройки.',
   })
-  @ValidateIf(obj => obj.amoCrmTransferringSettings != null)
+  @Transform(({ value }) => value ?? {}, { toClassOnly: true })
   @ValidateNested()
   @Type(() => AmoCrmTransferringSettingsDto)
   amoCrmTransferringSettings: AmoCrmTransferringSettingsDto;

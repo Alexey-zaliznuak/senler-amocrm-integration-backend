@@ -218,11 +218,11 @@ export class IntegrationService {
         senlerLeadId: payload.lead.id,
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-        name: payload.lead.name,
-        price: payload.publicBotStepSettings.amoCrmTransferringSettings?.price ?? undefined,
-        statusId: payload.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
-        pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
-        responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings?.responsibleUserId ?? undefined,
+        name: payload.publicBotStepSettings.amoCrmTransferringSettings.name,
+        price: payload.publicBotStepSettings.amoCrmTransferringSettings.price ?? undefined,
+        statusId: payload.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
+        pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
+        responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
         tokens,
         labels,
       });
@@ -397,11 +397,11 @@ export class IntegrationService {
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
-      name: body.publicBotStepSettings.amoCrmTransferringSettings?.name ?? undefined,
-      price: body.publicBotStepSettings.amoCrmTransferringSettings?.price ?? undefined,
-      statusId: body.publicBotStepSettings.amoCrmTransferringSettings?.statusId ?? undefined,
-      pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings?.pipelineId ?? undefined,
-      responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings?.responsibleUserId ?? undefined,
+      name: body.publicBotStepSettings.amoCrmTransferringSettings.name ?? undefined,
+      price: body.publicBotStepSettings.amoCrmTransferringSettings.price ?? undefined,
+      statusId: body.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
+      pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
+      responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
       tokens,
       customFieldsValues,
       labels,
@@ -614,7 +614,10 @@ export class IntegrationService {
   public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroups:${senlerGroupId}:errors`;
   public withSenlerVarsFormatting(body: BotStepWebhookDto): BotStepWebhookDto {
     const s = body.publicBotStepSettings.amoCrmTransferringSettings;
-    if (s && s.name) {
+
+    if (!s.name) {
+      body.publicBotStepSettings.amoCrmTransferringSettings.name = `${body.lead.name} ${body.lead.surname}`.trim();
+    } else {
       body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(
         s.name,
         body.lead.personalVars
