@@ -228,13 +228,6 @@ export class IntegrationService {
       });
 
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToAmoCrm) {
-        if (
-          amoCrmLead.pipeline_id === payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId &&
-          amoCrmLead.status_id === payload.publicBotStepSettings.amoCrmTransferringSettings.statusId
-        ) {
-          payload.publicBotStepSettings.amoCrmTransferringSettings.statusId = null;
-          payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId = null;
-        }
         await this.sendVarsToAmoCrm(payload, tokens, lead, labels);
       }
       if (payload.publicBotStepSettings.type == BotStepType.SendDataToSenler) {
