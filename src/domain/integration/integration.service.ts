@@ -120,7 +120,6 @@ export class IntegrationService {
     try {
       const instance = plainToInstance(BotStepWebhookDto, message.payload ?? {});
       const validationErrors = await validate(instance);
-      message.payload = instance;
 
       if (validationErrors.length) {
         const details = validationErrors.map(e => ({
@@ -140,6 +139,8 @@ export class IntegrationService {
           details,
         });
       }
+
+      message.payload = this.withSenlerVarsFormatting(instance);
 
       await this.rabbitMq.publishMessage(
         this.config.RABBITMQ_TRANSFER_EXCHANGE,
@@ -611,4 +612,14 @@ export class IntegrationService {
   // public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildDelayedAmoCrmCacheKey = (accessToken: string) => this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroups:${senlerGroupId}:errors`;
+  public withSenlerVarsFormatting(body: BotStepWebhookDto): BotStepWebhookDto {
+    const s = body.publicBotStepSettings.amoCrmTransferringSettings;
+    if (s && s.name) {
+      body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(
+        s.name,
+        body.lead.personalVars
+      );
+    }
+    return body;
+  }
 }

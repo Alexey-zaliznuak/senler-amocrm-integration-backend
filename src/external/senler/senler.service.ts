@@ -107,4 +107,17 @@ export class SenlerService {
   private customStringify(data: any): string {
     return JSON.stringify(data).replace(/:/g, ': ').replace(/,/g, ', ');
   }
+
+  public formatWithSenlerVars(statement: string, vars: BotStepWebhookDto['lead']['personalVars']): string {
+    if (!vars || Array.isArray(vars) || Object.keys(vars).length === 0) {
+      return statement;
+    }
+
+    for (const [key, val] of Object.entries(vars)) {
+      const regex = new RegExp(`%${key}%`, 'g');
+      statement = statement.replace(regex, String(val));
+    }
+
+    return statement;
+  }
 }
