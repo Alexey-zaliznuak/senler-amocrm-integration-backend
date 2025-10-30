@@ -94,6 +94,22 @@ export class LeadDto {
   @IsNotEmpty()
   @IsNumber()
   vkUserId: number;
+
+  @ApiProperty({ description: 'Страна лида' })
+  @IsString()
+  country: string;
+
+  @ApiProperty({ description: 'Город лида' })
+  @IsString()
+  city: string;
+
+  @ApiProperty({ description: 'TG username лида' })
+  @IsString()
+  username: string;
+
+  @ApiProperty({ description: 'Семейное положение лида' })
+  @IsString()
+  maritalStatus: string;
 }
 
 class ResultDto {

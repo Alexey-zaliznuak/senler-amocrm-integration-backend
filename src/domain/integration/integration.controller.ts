@@ -56,9 +56,17 @@ export class IntegrationController {
   async deleteAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<void> {
     await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);
   }
-  @Get('conf')
+
+  // Для отладки/статистики Михаилу
+  // @Get('conf')
+  // @HttpCode(HttpStatus.OK)
+  // public getConf(): any {
+  //   return this.integrationService.getConf();
+  // }
+
+  @Get('stat')
   @HttpCode(HttpStatus.OK)
-  public getConf(): any {
-    return this.integrationService.getConf();
+  public getStat(): any {
+    return this.integrationService.getStat();
   }
 }

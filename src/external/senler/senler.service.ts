@@ -108,10 +108,17 @@ export class SenlerService {
     return JSON.stringify(data).replace(/:/g, ': ').replace(/,/g, ', ');
   }
 
-  public formatWithSenlerVars(statement: string, vars: BotStepWebhookDto['lead']['personalVars']): string {
-    if (!vars || Array.isArray(vars) || Object.keys(vars).length === 0) {
+  public formatWithSenlerVars(statement: string, body: BotStepWebhookDto): string {
+    if (!body.lead.personalVars || Array.isArray(body.lead.personalVars) || Object.keys(body.lead.personalVars).length === 0) {
       return statement;
     }
+
+    const vars = { ...body.lead.personalVars };
+    vars['username'] = body.lead.name;
+    vars['fullname'] = `${body.lead.name} ${body.lead.surname}`;
+    vars['userid'] = body.lead.vkUserId;
+    vars['city'] = body.lead.city;
+    vars['relation'] = body.lead.maritalStatus;
 
     for (const [key, val] of Object.entries(vars)) {
       const regex = new RegExp(`%${key}%`, 'g');
@@ -120,4 +127,6 @@ export class SenlerService {
 
     return statement;
   }
+
+  public async getStat() {}
 }

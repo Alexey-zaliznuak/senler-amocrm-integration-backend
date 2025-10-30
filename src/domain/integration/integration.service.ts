@@ -618,11 +618,21 @@ export class IntegrationService {
     if (!s.name) {
       body.publicBotStepSettings.amoCrmTransferringSettings.name = `${body.lead.name} ${body.lead.surname}`.trim();
     } else {
-      body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(
-        s.name,
-        body.lead.personalVars
-      );
+      body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(s.name, body);
     }
     return body;
+  }
+
+  public async getStat(): Promise<any> {
+    let groups = await this.prisma.senlerGroup.findMany({ select: { senlerGroupId: true, _count: { select: { leads: true } } } });
+    groups = groups.sort((a, b) => -(a._count.leads - b._count.leads));
+
+    let res = '';
+
+    for (let index = 0; index < groups.length; index++) {
+      res = res.concat(`Айди группы: ${groups[index].senlerGroupId}, лидов: ${groups[index]._count.leads}\n`);
+    }
+
+    return res;
   }
 }
