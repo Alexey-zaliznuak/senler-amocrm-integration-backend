@@ -118,6 +118,7 @@ export class SenlerService {
     vars['fullname'] = `${body.lead.name} ${body.lead.surname}`;
     vars['userid'] = body.lead.vkUserId;
     vars['city'] = body.lead.city;
+    vars['country'] = body.lead.country;
     vars['relation'] = body.lead.maritalStatus;
 
     for (const [key, val] of Object.entries(vars)) {
