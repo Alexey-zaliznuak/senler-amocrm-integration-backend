@@ -219,7 +219,9 @@ export class IntegrationService {
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
         name: payload.publicBotStepSettings.amoCrmTransferringSettings.name,
-        price: payload.publicBotStepSettings.amoCrmTransferringSettings.price ?? undefined,
+        price: payload.publicBotStepSettings.amoCrmTransferringSettings.price
+          ? +payload.publicBotStepSettings.amoCrmTransferringSettings.price
+          : undefined,
         statusId: payload.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
         pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
         responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
@@ -398,7 +400,9 @@ export class IntegrationService {
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
       name: body.publicBotStepSettings.amoCrmTransferringSettings.name ?? undefined,
-      price: body.publicBotStepSettings.amoCrmTransferringSettings.price ?? undefined,
+      price: body.publicBotStepSettings.amoCrmTransferringSettings.price
+        ? +body.publicBotStepSettings.amoCrmTransferringSettings.price
+        : undefined,
       statusId: body.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
       pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
       responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
@@ -619,6 +623,10 @@ export class IntegrationService {
       body.publicBotStepSettings.amoCrmTransferringSettings.name = `${body.lead.name} ${body.lead.surname}`.trim();
     } else {
       body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(s.name, body);
+    }
+
+    if (s.price) {
+      body.publicBotStepSettings.amoCrmTransferringSettings.price = this.senlerService.formatWithSenlerVars(s.price, body);
     }
     return body;
   }
