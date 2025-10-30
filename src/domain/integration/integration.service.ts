@@ -109,9 +109,9 @@ export class IntegrationService {
     };
 
     const labels = this.extractLoggingLabelsFromRequest(message.payload);
+    const logger = this.logger.child({ labels });
 
-    this.logger.info('Получен запрос', {
-      labels,
+    logger.info('Получен запрос', {
       requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
       data: message,
       status: 'VALIDATING',
@@ -120,6 +120,7 @@ export class IntegrationService {
     try {
       const instance = plainToInstance(BotStepWebhookDto, message.payload ?? {});
       const validationErrors = await validate(instance);
+      logger.info('Ошибка валидации', { instance, validationErrors });
 
       if (validationErrors.length) {
         const details = validationErrors.map(e => ({
@@ -148,8 +149,7 @@ export class IntegrationService {
         message
       );
 
-      this.logger.info('Запрос принят в обработку', {
-        labels,
+      logger.info('Запрос принят в обработку', {
         requestTitle: this.buildProcessWebhookTitle(message.payload),
         status: 'PENDING',
       });
@@ -162,7 +162,7 @@ export class IntegrationService {
 
       const details = convertExceptionToString(error);
 
-      this.logger.error('Ошибка запроса', {
+      logger.error('Ошибка запроса', {
         labels,
         details,
         status: 'FAILED',
