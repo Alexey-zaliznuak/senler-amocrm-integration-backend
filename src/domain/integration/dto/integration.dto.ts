@@ -33,6 +33,7 @@ export class AmoCrmTransferringSettingsDto {
   statusId: number | null;
 
   @ApiProperty({ description: 'Цена сделки' })
+  @Transform(({ value }) => value != null ? String(value) : value)
   @ValidateIf(obj => obj.price != null)
   @IsString()
   price: string | null;
