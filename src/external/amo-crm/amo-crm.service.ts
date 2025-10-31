@@ -545,6 +545,7 @@ export class AmoCrmService {
               for (let field of leadFields) {
                 if (failedField.field_id === field.id) {
                   variableName = `поле: «${field.name}»` || `переменной с ID ${failedField.field_id}`;
+                  break
                 }
               }
             } catch (e) {}
