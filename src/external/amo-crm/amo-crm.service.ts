@@ -546,7 +546,7 @@ export class AmoCrmService {
               for (let field of leadFields) {
                 this.logger.info('DEBUG2', { 1: failedField.field_id, 2: field.id });
                 if (failedField.field_id === field.id) {
-                  variableName = failedField.name || `переменной с ID ${failedField.field_id}`;
+                  variableName = field.name || `переменной с ID ${failedField.field_id}`;
                 }
               }
             } catch (e) {}
