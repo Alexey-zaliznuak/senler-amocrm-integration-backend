@@ -97,22 +97,22 @@ export class LeadDto {
   vkUserId: number;
 
   @ApiProperty({ description: 'Страна лида' })
-  @Transform(({ value }) => value ?? "", { toClassOnly: true })
+  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
   @IsString()
   country: string;
 
   @ApiProperty({ description: 'Город лида' })
-  @Transform(({ value }) => value ?? "", { toClassOnly: true })
+  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
   @IsString()
   city: string;
 
   @ApiProperty({ description: 'TG username лида' })
-  @Transform(({ value }) => value ?? "", { toClassOnly: true })
+  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
   @IsString()
   username: string;
 
   @ApiProperty({ description: 'Семейное положение лида' })
-  @Transform(({ value }) => value ?? "", { toClassOnly: true })
+  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
   @IsString()
   maritalStatus: string;
 }
