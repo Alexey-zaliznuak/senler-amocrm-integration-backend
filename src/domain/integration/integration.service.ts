@@ -639,8 +639,8 @@ export class IntegrationService {
 
     let res = '';
 
-    for (let index = 0; index < groups.length; index++) {
-      res = res.concat(`Айди группы: ${groups[index].senlerGroupId}, лидов: ${groups[index]._count.leads}\n`);
+    for (const group of groups) {
+      res = res.concat(`Айди группы: ${group.senlerGroupId}, лидов: ${group._count.leads}\n`);
     }
 
     return res;

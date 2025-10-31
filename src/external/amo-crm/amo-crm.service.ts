@@ -542,7 +542,7 @@ export class AmoCrmService {
               const fieldIndex = parseInt(customFieldMatch[1], 10);
               const failedField = requestData?.custom_fields_values?.[fieldIndex];
 
-              for (let field of leadFields) {
+              for (const field of leadFields) {
                 if (failedField.field_id === field.id) {
                   variableName = `поле: «${field.name}»` || `переменной с ID ${failedField.field_id}`;
                   break
