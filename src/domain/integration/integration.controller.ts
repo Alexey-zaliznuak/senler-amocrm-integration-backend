@@ -64,9 +64,9 @@ export class IntegrationController {
   //   return this.integrationService.getConf();
   // }
 
-  @Get('stat')
-  @HttpCode(HttpStatus.OK)
-  public getStat(): any {
-    return this.integrationService.getStat();
-  }
+  // @Get('stat')
+  // @HttpCode(HttpStatus.OK)
+  // public getStat(): any {
+  //   return this.integrationService.getStat();
+  // }
 }
