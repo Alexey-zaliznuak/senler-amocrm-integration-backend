@@ -20,10 +20,9 @@ import {
   GetPipelinesResponse,
   GetUnsortedResponse,
   GetUsersResponse,
-  PipelineWithStatuses,
   UpdateLeadResponse,
-  UserSimple,
 } from './amo-crm.dto';
+import { FieldDto, PipelineDto, UserDto } from './get-workspace-info.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
@@ -343,7 +342,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      const type = this.getExceptionType(error);
+      const type = this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
@@ -358,7 +357,7 @@ export class AmoCrmService {
     tokens: AmoCrmTokens;
     page?: number;
     limit?: number;
-  }): Promise<any> {
+  }): Promise<FieldDto[]> {
     try {
       const response = await this.axios.get<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, {
         headers: {
@@ -381,7 +380,7 @@ export class AmoCrmService {
   }: {
     amoCrmDomainName: string;
     tokens: AmoCrmTokens;
-  }): Promise<PipelineWithStatuses[]> {
+  }): Promise<PipelineDto[]> {
     try {
       const response = await this.axios.get<GetPipelinesResponse>(`https://${amoCrmDomainName}/api/v4/leads/pipelines`, {
         headers: {
@@ -418,7 +417,7 @@ export class AmoCrmService {
 
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
-  async getUsers({ amoCrmDomainName, tokens }: { amoCrmDomainName: string; tokens: AmoCrmTokens }): Promise<UserSimple[]> {
+  async getUsers({ amoCrmDomainName, tokens }: { amoCrmDomainName: string; tokens: AmoCrmTokens }): Promise<UserDto[]> {
     try {
       const response = await this.axios.get<GetUsersResponse>(`https://${amoCrmDomainName}/api/v4/users`, {
         headers: {
@@ -489,12 +488,16 @@ export class AmoCrmService {
         });
         return actualLead;
       }
-      const type = this.getExceptionType(error);
+      const type = this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
 
-  getExceptionType(exception: AxiosError | AmoCrmError): { type: AmoCrmExceptionType; humanMessage: string } {
+  getExceptionType(
+    exception: AxiosError | AmoCrmError,
+    domain: string,
+    tokens: AmoCrmTokens
+  ): { type: AmoCrmExceptionType; humanMessage: string } {
     /*
     Return type of amo crm error
     (source)[https://www.amocrm.ru/developers/content/crm_platform/error-codes]
@@ -539,6 +542,8 @@ export class AmoCrmService {
 
               const fieldIndex = parseInt(customFieldMatch[1], 10);
               const customField = requestData?.custom_fields_values?.[fieldIndex];
+
+              this.logger.info('DEBUG', { customField, requestData });
 
               if (customField) {
                 variableName = customField.name || `переменной с ID ${customField.field_id}`;

@@ -289,7 +289,7 @@ export class IntegrationService {
 
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
       } else if (error instanceof AxiosError || error instanceof AmoCrmError) {
-        const exception = this.amoCrmService.getExceptionType(error);
+        const exception = this.amoCrmService.getExceptionType(error, senlerGroup.amoCrmProfile.domainName, tokens);
         const exceptionType = exception.type;
         const humanMessage = exception.humanMessage;
 
