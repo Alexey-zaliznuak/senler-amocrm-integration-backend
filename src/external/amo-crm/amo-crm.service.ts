@@ -17,12 +17,10 @@ import {
   editLeadsByIdRequest,
   GetLeadRequest,
   GetLeadResponse,
-  GetPipelinesResponse,
   GetUnsortedResponse,
-  GetUsersResponse,
   UpdateLeadResponse,
 } from './amo-crm.dto';
-import { FieldDto, PipelineDto, UserDto } from './get-workspace-info.dto';
+import { FieldDto, GetPipelinesResponse, GetUsersResponse, PipelineDto, UserDto } from './get-workspace-info.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
@@ -543,9 +541,10 @@ export class AmoCrmService {
               const fieldIndex = parseInt(customFieldMatch[1], 10);
               const customField = requestData?.custom_fields_values?.[fieldIndex];
 
-              this.logger.info('DEBUG', { customField, requestData });
+              this.logger.info('DEBUG1', { customField, requestData });
 
               if (customField) {
+                this.logger.info('DEBUG2', { customField, requestData });
                 variableName = customField.name || `переменной с ID ${customField.field_id}`;
               }
             } catch (e) {}
