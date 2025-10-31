@@ -518,9 +518,38 @@ export class AmoCrmService {
       );
 
       if (hasInvalidType) {
+        // Получаем первую ошибку с типом InvalidType
+        const firstInvalidTypeError = validationErrors
+          .flatMap((ve: any) => ve.errors || [])
+          .find((err: any) => err.code === 'InvalidType');
+
+        let variableName = 'переменной';
+
+        if (firstInvalidTypeError?.path) {
+          const path = firstInvalidTypeError.path as string;
+
+          // Проверяем, относится ли ошибка к custom_fields_values
+          // Пример пути: "custom_fields_values.0.values.0.value"
+          const customFieldMatch = path.match(/^custom_fields_values\.(\d+)\./);
+
+          if (customFieldMatch) {
+            try {
+              const requestConfig = exception.config;
+              const requestData = typeof requestConfig?.data === 'string' ? JSON.parse(requestConfig.data) : requestConfig?.data;
+
+              const fieldIndex = parseInt(customFieldMatch[1], 10);
+              const customField = requestData?.custom_fields_values?.[fieldIndex];
+
+              if (customField) {
+                variableName = customField.name || `переменной с ID ${customField.field_id}`;
+              }
+            } catch (e) {}
+          }
+        }
+
         return {
           type: AmoCrmExceptionType.INVALID_DATA_STRUCTURE,
-          humanMessage: AmoCrmApiErrorHumanMessages.VARIABLE_TYPE_ERROR,
+          humanMessage: `${AmoCrmApiErrorHumanMessages.VARIABLE_TYPE_ERROR} (${variableName})`,
         };
       }
     }
