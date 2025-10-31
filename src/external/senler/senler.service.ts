@@ -114,24 +114,26 @@ export class SenlerService {
     }
 
     const userProperties = {};
-    userProperties['username'] = body.lead.name;
+    userProperties['username'] = body.lead.vkDomain !== 'null' ? body.lead.vkDomain : body.lead.tgUsername;
     userProperties['fullname'] = `${body.lead.name} ${body.lead.surname}`;
     userProperties['userid'] = body.lead.vkUserId;
     userProperties['city'] = body.lead.city;
     userProperties['country'] = body.lead.country;
     userProperties['relation'] = body.lead.maritalStatus;
 
-    for (const [key, val] of Object.entries(userProperties)) {
+    for (const [key, val] of Object.entries(body.lead.personalVars)) {
       const escapedKey = this.escapeRegExp(key);
-      const regex = new RegExp(`%${escapedKey}%`, 'g');
+      const regex = new RegExp(`\\{%${escapedKey}%\\}`, 'g');
 
       const escapedValue = this.escapeHtml(String(val));
       statement = statement.replace(regex, escapedValue);
     }
 
-    for (const [key, val] of Object.entries(body.lead.personalVars)) {
+    statement = statement.replace(/\{%.*?%\}/g, 'null');
+
+    for (const [key, val] of Object.entries(userProperties)) {
       const escapedKey = this.escapeRegExp(key);
-      const regex = new RegExp(`\\{%${escapedKey}%\\}`, 'g');
+      const regex = new RegExp(`%${escapedKey}%`, 'g');
 
       const escapedValue = this.escapeHtml(String(val));
       statement = statement.replace(regex, escapedValue);

@@ -33,7 +33,7 @@ export class AmoCrmTransferringSettingsDto {
   statusId: number | null;
 
   @ApiProperty({ description: 'Цена сделки' })
-  @Transform(({ value }) => value != null ? String(value) : value)
+  @Transform(({ value }) => (value != null ? String(value) : value))
   @ValidateIf(obj => obj.price != null)
   @IsString()
   price: string | null;
@@ -97,22 +97,27 @@ export class LeadDto {
   vkUserId: number;
 
   @ApiProperty({ description: 'Страна лида' })
-  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
+  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
   @IsString()
   country: string;
 
   @ApiProperty({ description: 'Город лида' })
-  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
+  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
   @IsString()
   city: string;
 
   @ApiProperty({ description: 'TG username лида' })
-  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
+  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
   @IsString()
-  username: string;
+  tgUsername: string;
+
+  @ApiProperty({ description: 'Доменная страница в ВК' })
+  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
+  @IsString()
+  vkDomain: string;
 
   @ApiProperty({ description: 'Семейное положение лида' })
-  @Transform(({ value }) => value ?? "null", { toClassOnly: true })
+  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
   @IsString()
   maritalStatus: string;
 }
