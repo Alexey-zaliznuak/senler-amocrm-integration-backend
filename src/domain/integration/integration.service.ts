@@ -538,18 +538,20 @@ export class IntegrationService {
     };
 
     try {
-      const fields = await this.amoCrmService.getLeadFields({
-        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-        tokens,
-      });
-      const pipelines = await this.amoCrmService.getPipelinesWithStatuses({
-        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-        tokens,
-      });
-      const users = await this.amoCrmService.getUsers({
-        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-        tokens,
-      });
+      const [fields, pipelines, users] = await Promise.all([
+        this.amoCrmService.getLeadFields({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+        this.amoCrmService.getPipelinesWithStatuses({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+        this.amoCrmService.getUsers({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+      ]);
       return { fields, pipelines, users };
     } catch (error) {
       if (error instanceof AxiosError) {
