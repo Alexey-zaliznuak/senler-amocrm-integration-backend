@@ -340,7 +340,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      const type = this.getExceptionType(error, amoCrmDomainName, tokens);
+      const type = await this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
@@ -486,16 +486,16 @@ export class AmoCrmService {
         });
         return actualLead;
       }
-      const type = this.getExceptionType(error, amoCrmDomainName, tokens);
+      const type = await this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
 
-  getExceptionType(
+  async getExceptionType(
     exception: AxiosError | AmoCrmError,
-    domain: string,
+    amoCrmDomainName: string,
     tokens: AmoCrmTokens
-  ): { type: AmoCrmExceptionType; humanMessage: string } {
+  ): Promise<{ type: AmoCrmExceptionType; humanMessage: string }> {
     /*
     Return type of amo crm error
     (source)[https://www.amocrm.ru/developers/content/crm_platform/error-codes]
@@ -519,6 +519,7 @@ export class AmoCrmService {
       );
 
       if (hasInvalidType) {
+        const leadFields = await this.getLeadFields({ amoCrmDomainName, tokens });
         // Получаем первую ошибку с типом InvalidType
         const firstInvalidTypeError = validationErrors
           .flatMap((ve: any) => ve.errors || [])
@@ -539,13 +540,13 @@ export class AmoCrmService {
               const requestData = typeof requestConfig?.data === 'string' ? JSON.parse(requestConfig.data) : requestConfig?.data;
 
               const fieldIndex = parseInt(customFieldMatch[1], 10);
-              const customField = requestData?.custom_fields_values?.[fieldIndex];
+              const failedField = requestData?.custom_fields_values?.[fieldIndex];
 
-              this.logger.info('DEBUG1', { customField, requestData });
-
-              if (customField) {
-                this.logger.info('DEBUG2', { customField, requestData });
-                variableName = customField.name || `переменной с ID ${customField.field_id}`;
+              this.logger.info('DEBUG', { failedField, leadFields });
+              for (let field of leadFields) {
+                if (failedField.field_id === field.id) {
+                  variableName = failedField.name || `переменной с ID ${failedField.field_id}`;
+                }
               }
             } catch (e) {}
           }
