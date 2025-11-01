@@ -23,7 +23,7 @@ export class TransferPairDto {
 
 export class AmoCrmTransferringSettingsDto {
   @ApiProperty({ description: 'Айди воронки' })
-  @ValidateIf(obj => obj.statusId != null)
+  @ValidateIf(obj => obj.pipelineId != null)
   @IsNumber()
   pipelineId: number | null;
 
@@ -117,7 +117,7 @@ export class LeadDto {
   vkDomain: string;
 
   @ApiProperty({ description: 'Семейное положение лида' })
-  @Transform(({ value }) => value ?? 'null', { toClassOnly: true })
+  @Transform(({ value }) => (value != null ? String(value) : 'null'), { toClassOnly: true })
   @IsString()
   maritalStatus: string;
 }
@@ -258,7 +258,7 @@ export class TransferMessage {
 
   @IsNotEmpty()
   @ValidateNested()
-  @Type(() => BotStepWebhookDto)
+  @Type(() => TransferMessageMetadata)
   metadata: TransferMessageMetadata;
 }
 
