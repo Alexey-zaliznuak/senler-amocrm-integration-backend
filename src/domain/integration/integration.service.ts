@@ -316,6 +316,15 @@ export class IntegrationService {
           return;
         }
 
+        if (error instanceof AmoCrmError) {
+          // если передалось невалидное значение переменной - не ретраим
+          if (error.type === AmoCrmExceptionType.VARIABLE_TYPE_ERROR) {
+            await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+            channel.nack(originalMessage as any, false, false);
+            return;
+          }
+        }
+
         const delay = await this.publishTransferMessageWithLongerDelay(message);
         channel.nack(originalMessage as any, false, false);
 

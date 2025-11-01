@@ -553,7 +553,7 @@ export class AmoCrmService {
         }
 
         return {
-          type: AmoCrmExceptionType.INVALID_DATA_STRUCTURE,
+          type: AmoCrmExceptionType.VARIABLE_TYPE_ERROR,
           humanMessage: `${AmoCrmApiErrorHumanMessages.VARIABLE_TYPE_ERROR} (${variableName})`,
         };
       }
