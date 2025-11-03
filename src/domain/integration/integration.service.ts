@@ -319,6 +319,16 @@ export class IntegrationService {
         if (error instanceof AmoCrmError) {
           // если передалось невалидное значение переменной - не ретраим
           if (error.type === AmoCrmExceptionType.VARIABLE_TYPE_ERROR) {
+            this.logger.info('Запрос отменен из-за не валидных данных', {
+              labels: { requestId: message.payload.requestUuid },
+              exception: {
+                humanMessage,
+                message: convertExceptionToString(error),
+                type: exceptionType,
+                webhook: payload,
+              },
+              status: 'CANCELLED',
+            });
             await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
             channel.nack(originalMessage as any, false, false);
             return;
