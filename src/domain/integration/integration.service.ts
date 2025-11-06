@@ -298,7 +298,7 @@ export class IntegrationService {
 
         // если передалось невалидное значение переменной - не ретраим
         if (AmoCrmException.type === AmoCrmExceptionType.VARIABLE_TYPE_ERROR) {
-          this.logger.info('Запрос отменен из-за не валидных данных', {
+          this.logger.info('Запрос отменен из-за не валидных данных переменных', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
               amoCrmException: AmoCrmException,
