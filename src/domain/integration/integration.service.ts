@@ -310,17 +310,6 @@ export class IntegrationService {
           await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
           channel.nack(originalMessage as any, false, false);
           return;
-        } else {
-          // TODO: удалить после теста
-          this.logger.info('DEBUG', {
-            labels: { requestId: message.payload.requestUuid },
-            exception: {
-              amoCrmException: AmoCrmException,
-              message: convertExceptionToString(error),
-              webhook: payload,
-            },
-            status: 'CANCELLED',
-          });
         }
 
         // если сообщение слишком долго ретраится - отменяем его
