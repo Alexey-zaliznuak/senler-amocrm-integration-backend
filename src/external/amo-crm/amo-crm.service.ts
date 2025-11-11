@@ -4,6 +4,7 @@ import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.ins
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
+import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
@@ -11,14 +12,17 @@ import {
   AddUnsortedResponse,
   AmoCrmError,
   AmoCrmExceptionType,
+  AmoCrmFieldErrorCode,
   AmoCrmOAuthTokenResponse,
   AmoCrmTokens,
   CreateContactResponse,
   editLeadsByIdRequest,
+  FieldError,
   GetLeadRequest,
   GetLeadResponse,
   GetUnsortedResponse,
   UpdateLeadResponse,
+  ValidationError,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
@@ -33,7 +37,10 @@ export enum AmoCrmApiErrorHumanMessages {
   IP_ACCESS_DENIED = 'Интеграция была заблокирована, обратитесь в техподдержку amoCRM',
   ACCOUNT_BLOCKED = 'Аккаунт AmoCrm заблокирован',
   TOO_MANY_REQUESTS = 'Превышен лимит запросов со стороны интеграции',
+  UNKNOWN_AUTHORIZATION_ERROR = 'Неизвестная ошибка авторизации',
 }
+
+const CUSTOM_FIELDS_PATH_PATTERN = /^custom_fields_values\.(\d+)\./;
 
 @Injectable()
 export class AmoCrmService {
@@ -416,29 +423,23 @@ export class AmoCrmService {
     const errorCode = error?.status;
 
     if (httpCode === 400 && error?.['validation-errors']?.length > 0) {
-      const validationErrors = error['validation-errors'];
+      const validationErrors = error['validation-errors'] as ValidationError[];
 
-      const hasInvalidType = validationErrors.some((validationError: any) =>
-        validationError.errors?.some((err: any) => err.code === 'InvalidType')
-      );
+      // Находим первую ошибку InvalidType один раз
+      const firstInvalidTypeError = validationErrors
+        .flatMap(ve => ve.errors || [])
+        .find((err: FieldError) => err.code === AmoCrmFieldErrorCode.INVALID_TYPE);
 
-      if (hasInvalidType) {
+      if (firstInvalidTypeError) {
         const leadFields = await this.getLeadFields({ amoCrmDomainName, tokens });
-        // Получаем первую ошибку с типом InvalidType
-        const firstInvalidTypeError = validationErrors
-          .flatMap((ve: any) => ve.errors || [])
-          .find((err: any) => err.code === 'InvalidType');
 
         let variableName = 'переменной';
 
-        if (firstInvalidTypeError?.path) {
-          const path = firstInvalidTypeError.path as string;
+        if (firstInvalidTypeError.path) {
+          const path = firstInvalidTypeError.path;
+          const customFieldMatch = path.match(CUSTOM_FIELDS_PATH_PATTERN);
 
-          // Проверяем, относится ли ошибка к custom_fields_values
-          // Пример пути: "custom_fields_values.0.values.0.value"
-          const customFieldMatch = path.match(/^custom_fields_values\.(\d+)\./);
-
-          if (customFieldMatch) {
+          if (customFieldMatch && exception?.config) {
             try {
               const requestConfig = exception.config;
               const requestData = typeof requestConfig?.data === 'string' ? JSON.parse(requestConfig.data) : requestConfig?.data;
@@ -446,13 +447,17 @@ export class AmoCrmService {
               const fieldIndex = parseInt(customFieldMatch[1], 10);
               const failedField = requestData?.custom_fields_values?.[fieldIndex];
 
-              for (const field of leadFields) {
-                if (failedField.field_id === field.id) {
-                  variableName = `поле: «${field.name}»` || `переменной с ID ${failedField.field_id}`;
-                  break;
+              if (failedField?.field_id && leadFields?.length > 0) {
+                const field = leadFields.find(f => f.id === failedField.field_id);
+                if (field) {
+                  variableName = field.name ? `поле: «${field.name}»` : `переменной с ID ${failedField.field_id}`;
                 }
               }
-            } catch (e) {}
+            } catch (e) {
+              this.logger.error('Ошибка получения имени переменной с неправильным типом данных из запроса к amoCRM', {
+                message: convertExceptionToString(e),
+              });
+            }
           }
         }
 
@@ -469,6 +474,11 @@ export class AmoCrmService {
 
     if (httpCode === 401 || errorCode === 401) {
       switch (errorCode) {
+        case 110:
+          return {
+            type: AmoCrmExceptionType.AUTHENTICATION_FAILED,
+            humanMessage: AmoCrmApiErrorHumanMessages.UNKNOWN_AUTHORIZATION_ERROR,
+          };
         case 101:
           return { type: AmoCrmExceptionType.ACCOUNT_NOT_FOUND, humanMessage: AmoCrmApiErrorHumanMessages.ACCOUNT_NOT_FOUND };
         default:

@@ -16,6 +16,10 @@ export enum AmoCrmExceptionType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
+export enum AmoCrmFieldErrorCode {
+  INVALID_TYPE = 'InvalidType'
+}
+
 export type AmoCrmTokens = {
   accessToken: string;
   refreshToken: string;
@@ -189,4 +193,21 @@ export class AmoCrmError extends Error {
     this.type = type;
     this.preliminary = preliminary;
   }
+}
+
+export interface ValidationError {
+  errors?: Array<{
+    code: string;
+    path?: string;
+  }>;
+}
+
+export interface FieldError {
+  code: string;
+  path?: string;
+}
+
+export interface LeadField {
+  id: number;
+  name: string;
 }
