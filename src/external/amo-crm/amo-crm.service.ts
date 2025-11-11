@@ -448,7 +448,7 @@ export class AmoCrmService {
               const failedField = requestData?.custom_fields_values?.[fieldIndex];
 
               if (failedField?.field_id && leadFields?.length > 0) {
-                const field = leadFields.find(f => f.id === failedField.field_id);
+                const field = leadFields.find((f: { id: any }) => f.id === failedField.field_id);
                 if (field) {
                   variableName = field.name ? `поле: «${field.name}»` : `переменной с ID ${failedField.field_id}`;
                 }
