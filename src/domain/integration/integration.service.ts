@@ -276,13 +276,27 @@ export class IntegrationService {
 
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
       } else if (error instanceof AxiosError || error instanceof AmoCrmError) {
-        const exception = this.amoCrmService.getExceptionType(error);
-        const exceptionType = exception.type;
-        const humanMessage = exception.humanMessage;
+        const AmoCrmException = await this.amoCrmService.getExceptionType(error, senlerGroup.amoCrmProfile.domainName, tokens);
 
         // сохраняем все ошибки в redis
-        if (exceptionType != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
-          await this.saveSenlerGroupErrorMessage(senlerGroup.senlerGroupId, humanMessage);
+        if (AmoCrmException.type != AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+          await this.saveSenlerGroupErrorMessage(senlerGroup.senlerGroupId, AmoCrmException.humanMessage);
+        }
+
+        // если передалось невалидное значение переменной - не ретраим
+        if (AmoCrmException.type === AmoCrmExceptionType.VARIABLE_TYPE_ERROR) {
+          this.logger.info('Запрос отменен из-за не валидных данных переменных', {
+            labels: { requestId: message.payload.requestUuid },
+            exception: {
+              amoCrmException: AmoCrmException,
+              message: convertExceptionToString(error),
+              webhook: payload,
+            },
+            status: 'CANCELLED',
+          });
+          await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
+          channel.nack(originalMessage as any, false, false);
+          return;
         }
 
         // если сообщение слишком долго ретраится - отменяем его
@@ -290,11 +304,10 @@ export class IntegrationService {
           this.logger.info('Запрос отменен из-за исчерпания попыток', {
             labels: { requestId: message.payload.requestUuid },
             exception: {
-              humanMessage,
+              amoCrmException: AmoCrmException,
               message: convertExceptionToString(error),
               delay: message.metadata.delay,
               max_delay: this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY,
-              type: exceptionType,
             },
             status: 'CANCELLED',
           });
@@ -306,10 +319,7 @@ export class IntegrationService {
         const delay = await this.publishTransferMessageWithLongerDelay(message);
         channel.nack(originalMessage as any, false, false);
 
-        // откладываем выполнение запросов для этого аккаунта на секунду
-        // возможно в будущем разделить логику для TOO_MANY_REQUESTS и других
         await this.redis.set(delayedAmoCrmCacheKey, delay.toString(), timeToSeconds({ seconds: 1 }));
-
         this.logger.info('Запрос отложен', { labels, status: 'PENDING' });
       } else {
         this.logger.error('Не удалось обработать ошибку при выполнении запроса', {
@@ -552,7 +562,7 @@ export class IntegrationService {
   }
 
   private calculateTransferMessageDelay(retryCount: number, base: number = timeToMilliseconds({ minutes: 1 })) {
-    const mx = this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY
+    const mx = this.config.TRANSFER_MESSAGE_MAX_RETRY_DELAY;
 
     const delay = 1.5 ** retryCount * (1 + Math.random()) * base;
 
