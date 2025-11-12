@@ -4,6 +4,7 @@ import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.ins
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
+import { convertExceptionToString } from 'src/utils';
 import { Logger } from 'winston';
 import { AXIOS_INJECTABLE_NAME } from './amo-crm.config';
 import {
@@ -11,19 +12,35 @@ import {
   AddUnsortedResponse,
   AmoCrmError,
   AmoCrmExceptionType,
+  AmoCrmFieldErrorCode,
   AmoCrmOAuthTokenResponse,
   AmoCrmTokens,
   CreateContactResponse,
   editLeadsByIdRequest,
+  FieldError,
   GetLeadRequest,
   GetLeadResponse,
   GetUnsortedResponse,
   UpdateLeadResponse,
+  ValidationError,
 } from './amo-crm.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
 import { RateLimitsService } from './rate-limit.service';
+
+export enum AmoCrmApiErrorHumanMessages {
+  PAYMENT_OR_LIMIT_UPDATE_REQUIRED = 'Аккаунт не оплачен или был превышен один из его лимитов, обратитесь в техподдержку amoCRM',
+  VARIABLE_TYPE_ERROR = 'Переданное значение переменной не соответствует ее типу',
+  REFRESH_TOKEN_EXPIRED = 'Ошибка обновления токена интеграции',
+  ACCOUNT_NOT_FOUND = 'Не найден указанный аккаунт amoCRM',
+  IP_ACCESS_DENIED = 'Интеграция была заблокирована, обратитесь в техподдержку amoCRM',
+  ACCOUNT_BLOCKED = 'Аккаунт AmoCrm заблокирован',
+  TOO_MANY_REQUESTS = 'Превышен лимит запросов со стороны интеграции',
+  UNKNOWN_AUTHORIZATION_ERROR = 'Неизвестная ошибка авторизации',
+}
+
+const CUSTOM_FIELDS_PATH_PATTERN = /^custom_fields_values\.(\d+)\./;
 
 @Injectable()
 export class AmoCrmService {
@@ -323,7 +340,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error creating lead field', { error });
-      const type = this.getExceptionType(error);
+      const type = await this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
@@ -381,15 +398,20 @@ export class AmoCrmService {
         });
         return actualLead;
       }
-      const type = this.getExceptionType(error);
+      const type = await this.getExceptionType(error, amoCrmDomainName, tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }
 
-  getExceptionType(exception: AxiosError | AmoCrmError): { type: AmoCrmExceptionType; humanMessage: string } {
+  async getExceptionType(
+    exception: AxiosError | AmoCrmError,
+    amoCrmDomainName: string,
+    tokens: AmoCrmTokens
+  ): Promise<{ type: AmoCrmExceptionType; humanMessage: string }> {
     /*
     Return type of amo crm error
     (source)[https://www.amocrm.ru/developers/content/crm_platform/error-codes]
+    TODO: сделать конкретные классы ошибок, разделить их на retryable и нет, возврат сразу списка ошибок
     */
     if (exception instanceof AmoCrmError) {
       return { type: exception.type, humanMessage: exception.message };
@@ -400,24 +422,69 @@ export class AmoCrmService {
     const message = error?.title;
     const errorCode = error?.status;
 
+    if (httpCode === 400 && error?.['validation-errors']?.length > 0) {
+      const validationErrors = error['validation-errors'] as ValidationError[];
+
+      // Находим первую ошибку InvalidType один раз
+      const firstInvalidTypeError = validationErrors
+        .flatMap(ve => ve.errors || [])
+        .find((err: FieldError) => err.code === AmoCrmFieldErrorCode.INVALID_TYPE);
+
+      if (firstInvalidTypeError) {
+        const leadFields = await this.getLeadFields({ amoCrmDomainName, tokens });
+
+        let variableName = 'переменной';
+
+        if (firstInvalidTypeError.path) {
+          const path = firstInvalidTypeError.path;
+          const customFieldMatch = path.match(CUSTOM_FIELDS_PATH_PATTERN);
+
+          if (customFieldMatch && exception?.config) {
+            try {
+              const requestConfig = exception.config;
+              const requestData = typeof requestConfig?.data === 'string' ? JSON.parse(requestConfig.data) : requestConfig?.data;
+
+              const fieldIndex = parseInt(customFieldMatch[1], 10);
+              const failedField = requestData?.custom_fields_values?.[fieldIndex];
+
+              if (failedField?.field_id && leadFields?.length > 0) {
+                const field = leadFields.find((f: { id: any }) => f.id === failedField.field_id);
+                if (field) {
+                  variableName = field.name ? `поле: «${field.name}»` : `переменной с ID ${failedField.field_id}`;
+                }
+              }
+            } catch (e) {
+              this.logger.error('Ошибка получения имени переменной с неправильным типом данных из запроса к amoCRM', {
+                message: convertExceptionToString(e),
+              });
+            }
+          }
+        }
+
+        return {
+          type: AmoCrmExceptionType.VARIABLE_TYPE_ERROR,
+          humanMessage: `${AmoCrmApiErrorHumanMessages.VARIABLE_TYPE_ERROR} (${variableName})`,
+        };
+      }
+    }
+
     if (message === 'Token has expired') {
-      return { type: AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED, humanMessage: 'Непредвиденная ошибка при обновлении токена' };
+      return { type: AmoCrmExceptionType.REFRESH_TOKEN_EXPIRED, humanMessage: AmoCrmApiErrorHumanMessages.REFRESH_TOKEN_EXPIRED };
     }
 
     if (httpCode === 401 || errorCode === 401) {
       switch (errorCode) {
         case 110:
-          return { type: AmoCrmExceptionType.AUTHENTICATION_FAILED, humanMessage: 'Непредвиденная ошибка при авторизации' };
-        // case 111:
-        // return AmoCrmExceptionType.CAPTCHA_REQUIRED;
-        // case 112:
-        // return AmoCrmExceptionType.USER_DISABLED;
+          return {
+            type: AmoCrmExceptionType.AUTHENTICATION_FAILED,
+            humanMessage: AmoCrmApiErrorHumanMessages.UNKNOWN_AUTHORIZATION_ERROR,
+          };
         case 101:
-          return { type: AmoCrmExceptionType.ACCOUNT_NOT_FOUND, humanMessage: 'Аккаунт AmoCrm не найден' };
+          return { type: AmoCrmExceptionType.ACCOUNT_NOT_FOUND, humanMessage: AmoCrmApiErrorHumanMessages.ACCOUNT_NOT_FOUND };
         default:
           return {
-            type: AmoCrmExceptionType.ACCESS_TOKEN_EXPIRED,
-            humanMessage: 'Неизвестная ошибка, возможно истек срок токена',
+            type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+            humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
           };
       }
     }
@@ -427,14 +494,14 @@ export class AmoCrmService {
         case 113:
           return {
             type: AmoCrmExceptionType.IP_ACCESS_DENIED,
-            humanMessage: 'Запросы были заблокированы для текущего IP системы',
+            humanMessage: AmoCrmApiErrorHumanMessages.IP_ACCESS_DENIED,
           };
         case 403:
-          return { type: AmoCrmExceptionType.ACCOUNT_BLOCKED, humanMessage: 'Аккаунт AmoCrm заблокирован' };
+          return { type: AmoCrmExceptionType.ACCOUNT_BLOCKED, humanMessage: AmoCrmApiErrorHumanMessages.ACCOUNT_BLOCKED };
         default:
           return {
-            type: AmoCrmExceptionType.INTEGRATION_DEACTIVATED,
-            humanMessage: 'Неизвестная ошибка, проверьте наличие доступа интеграции к вашему аккаунту в AmoCrm',
+            type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+            humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
           };
       }
     }
@@ -442,107 +509,28 @@ export class AmoCrmService {
     if (httpCode === 402 || errorCode === 402) {
       return {
         type: AmoCrmExceptionType.PAYMENT_REQUIRED,
-        humanMessage:
-          'Аккаунт не оплачен или был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+        humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
       };
     }
 
     if (httpCode === 429) {
       return {
         type: AmoCrmExceptionType.TOO_MANY_REQUESTS,
-        humanMessage: 'Превышен лимит запросов в секунду',
+        humanMessage: AmoCrmApiErrorHumanMessages.TOO_MANY_REQUESTS,
       };
     }
-
-    // switch (errorCode) {
-    //   case 202:
-    //     return AmoCrmExceptionType.CONTACTS_NO_PERMISSION;
-    //   case 203:
-    //     return AmoCrmExceptionType.CONTACTS_CUSTOM_FIELD_ERROR;
-    //   case 205:
-    //     return AmoCrmExceptionType.CONTACTS_NOT_CREATED;
-    //   case 212:
-    //     return AmoCrmExceptionType.CONTACTS_NOT_UPDATED;
-    //   case 219:
-    //     return AmoCrmExceptionType.CONTACTS_SEARCH_ERROR;
-    //   case 330:
-    //     return AmoCrmExceptionType.CONTACTS_TOO_MANY_DEALS;
-    // }
-
-    // if (errorCode === 330) {
-    //   return AmoCrmExceptionType.DEALS_TOO_MANY_CONTACTS;
-    // }
-
-    // switch (errorCode) {
-    //   case 244:
-    //     return AmoCrmExceptionType.EVENTS_NO_PERMISSION;
-    //   case 225:
-    //     return AmoCrmExceptionType.EVENTS_NOT_FOUND;
-    // }
-
-    // switch (errorCode) {
-    //   case 231:
-    //     return AmoCrmExceptionType.TASKS_NOT_FOUND;
-    //   case 233:
-    //     return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
-    //   case 234:
-    //     return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
-    //   case 235:
-    //     return AmoCrmExceptionType.TASKS_TYPE_NOT_SPECIFIED;
-    //   case 236:
-    //     return AmoCrmExceptionType.TASKS_CONTACTS_NOT_FOUND;
-    //   case 237:
-    //     return AmoCrmExceptionType.TASKS_DEALS_NOT_FOUND;
-    //   case 244:
-    //     return AmoCrmExceptionType.DEALS_NO_PERMISSION;
-    // }
-
-    // switch (errorCode) {
-    //   case 244:
-    //     return AmoCrmExceptionType.CATALOGS_NO_PERMISSION;
-    //   case 281:
-    //     return AmoCrmExceptionType.CATALOGS_NOT_DELETED;
-    //   case 282:
-    //     return AmoCrmExceptionType.CATALOGS_NOT_FOUND;
-    // }
-
-    // switch (errorCode) {
-    //   case 203:
-    //     return AmoCrmExceptionType.CATALOG_ITEMS_CUSTOM_FIELD_ERROR;
-    //   case 204:
-    //     return AmoCrmExceptionType.CATALOG_ITEMS_FIELD_NOT_FOUND;
-    //   case 244:
-    //     return AmoCrmExceptionType.CATALOG_ITEMS_NO_PERMISSION;
-    //   case 280:
-    //     return AmoCrmExceptionType.CATALOG_ITEMS_CREATED;
-    //   case 282:
-    //     return AmoCrmExceptionType.CATALOG_ITEMS_NOT_FOUND;
-    // }
-
-    // switch (errorCode) {
-    //   case 288:
-    //     return AmoCrmExceptionType.CUSTOMERS_NO_PERMISSION;
-    //   case 402:
-    //     return AmoCrmExceptionType.CUSTOMERS_PAYMENT_REQUIRED;
-    //   case 425:
-    //     return AmoCrmExceptionType.CUSTOMERS_FEATURE_UNAVAILABLE;
-    //   case 426:
-    //     return AmoCrmExceptionType.CUSTOMERS_FEATURE_DISABLED;
-    // }
 
     switch (errorCode) {
       case 400:
         if (error.detail == 'Payment Required') {
           return {
             type: AmoCrmExceptionType.PAYMENT_REQUIRED,
-            humanMessage:
-              'Аккаунт не оплачен или был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+            humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
           };
         }
         return {
-          type: AmoCrmExceptionType.INVALID_DATA_STRUCTURE,
-          humanMessage:
-            'Неизвестная ошибка, проверьте корректность переданных данных и оплату аккаунта, также возможно был превышен лимит для текущего тарифа(подробности можно уточнить у техподдержки AmoCrm)',
+          type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+          humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
         };
       case 422:
         return {
@@ -561,6 +549,9 @@ export class AmoCrmService {
         };
     }
 
-    return { type: AmoCrmExceptionType.UNKNOWN_ERROR, humanMessage: 'Неизвестная ошибка, обратитесь в техподдержку AmoCrm' };
+    return {
+      type: AmoCrmExceptionType.PAYMENT_REQUIRED,
+      humanMessage: AmoCrmApiErrorHumanMessages.PAYMENT_OR_LIMIT_UPDATE_REQUIRED,
+    };
   }
 }
