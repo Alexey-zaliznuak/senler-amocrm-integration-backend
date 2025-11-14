@@ -84,7 +84,7 @@ export class IntegrationStepTemplatesService {
         senlerGroupId: payload.senlerGroupId,
       })
     ) {
-      throw new ConflictException('Integration step template with same properties already exists');
+      throw new ConflictException('Integration step template with same name already exists');
     }
   }
 }
