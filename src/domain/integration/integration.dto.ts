@@ -3,7 +3,6 @@ import { plainToInstance, Transform, Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 import { parseJson } from 'src/utils';
-import { BaseAmoCrmProfileDto } from '../senlerGroups/dto/basic-senler-group.dto';
 
 export enum BotStepType {
   SendDataToAmoCrm = 'SEND_DATA_TO_AMO_CRM',
@@ -12,12 +11,10 @@ export enum BotStepType {
 
 export class TransferPairDto {
   @ApiProperty({ description: 'Identifier of variable from export service.' })
-  @IsNotEmpty()
   @IsStringOrNumber()
   from: string | number;
 
   @ApiProperty({ description: 'Identifier of variable from import service.' })
-  @IsNotEmpty()
   @IsStringOrNumber()
   to: string | number;
 }
@@ -31,8 +28,8 @@ export class PublicBotStepSettingsDto {
   @ApiProperty({
     description: 'Record of variables identifiers(name or id) as keys and values, data will be synced from keys to values.',
   })
+  @Transform(({ value }) => (value || []).filter((pair: any) => pair.from !== '' && pair.to !== ''))
   @IsArray()
-  @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TransferPairDto)
   syncableVariables: Array<TransferPairDto>;
