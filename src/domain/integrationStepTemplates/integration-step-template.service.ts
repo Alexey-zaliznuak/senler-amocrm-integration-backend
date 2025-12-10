@@ -73,19 +73,18 @@ export class IntegrationStepTemplatesService {
   }
 
   async validateCreateIntegrationStepTemplateData(data: CreateIntegrationStepTemplateRequestDto) {
-    await this.checkConstraintsOrThrow(data);
+    await this.checkNameUniqueOrThrow(data);
     await this.prisma.senlerGroup.findUniqueOrThrowWithCache({ where: { id: data.senlerGroupId } });
   }
 
-  async checkConstraintsOrThrow(constraints: Partial<Pick<IntegrationStepTemplate, 'id' | 'name'>>): Promise<void | never> {
-    const constraintsNames = ['id', 'name'];
-
+  async checkNameUniqueOrThrow(payload: Pick<IntegrationStepTemplate, 'name' | 'senlerGroupId'>): Promise<void | never> {
     if (
-      await this.prisma.integrationStepTemplate.existsWithCache({
-        OR: constraintsNames.map(key => ({ [key]: constraints[key] })),
+      await this.prisma.integrationStepTemplate.exists({
+        name: payload.name,
+        senlerGroupId: payload.senlerGroupId,
       })
     ) {
-      throw new ConflictException('Integration step template with same properties already exists');
+      throw new ConflictException('Integration step template with same name already exists');
     }
   }
 }
