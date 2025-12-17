@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -16,7 +17,7 @@ import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
 import { RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
-import { AppConfigType } from 'src/infrastructure/config/config.app-config';
+import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
@@ -25,8 +26,9 @@ import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
+import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
+import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
-import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './integration.dto';
 import { IntegrationUtils } from './integration.utils';
 
 @Injectable()
@@ -45,6 +47,10 @@ export class IntegrationService {
     private readonly amoCrmService: AmoCrmService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
+
+  public getConf() {
+    return { conf: AppConfig, env: process.env };
+  }
 
   async changeAmoCrmAccount(body: ChangeAmoCrmAccountRequestDto): Promise<void> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
@@ -103,9 +109,9 @@ export class IntegrationService {
     };
 
     const labels = this.extractLoggingLabelsFromRequest(message.payload);
+    const logger = this.logger.child({ labels });
 
-    this.logger.info('Получен запрос', {
-      labels,
+    logger.info('Получен запрос', {
       requestTitle: `Запрос от ${message.metadata.createdAt} (UTC)`,
       data: message,
       status: 'VALIDATING',
@@ -114,7 +120,7 @@ export class IntegrationService {
     try {
       const instance = plainToInstance(BotStepWebhookDto, message.payload ?? {});
       const validationErrors = await validate(instance);
-      message.payload = instance;
+      logger.info('Ошибка валидации', { instance, validationErrors });
 
       if (validationErrors.length) {
         const details = validationErrors.map(e => ({
@@ -135,14 +141,15 @@ export class IntegrationService {
         });
       }
 
+      message.payload = this.withSenlerVarsFormatting(instance);
+
       await this.rabbitMq.publishMessage(
         this.config.RABBITMQ_TRANSFER_EXCHANGE,
         this.config.RABBITMQ_TRANSFER_ROUTING_KEY,
         message
       );
 
-      this.logger.info('Запрос принят в обработку', {
-        labels,
+      logger.info('Запрос принят в обработку', {
         requestTitle: this.buildProcessWebhookTitle(message.payload),
         status: 'PENDING',
       });
@@ -155,7 +162,7 @@ export class IntegrationService {
 
       const details = convertExceptionToString(error);
 
-      this.logger.error('Ошибка запроса', {
+      logger.error('Ошибка запроса', {
         labels,
         details,
         status: 'FAILED',
@@ -209,9 +216,15 @@ export class IntegrationService {
     try {
       const { lead, amoCrmLead } = await this.getOrCreateLeadIfNotExists({
         senlerLeadId: payload.lead.id,
-        name: payload.lead.name,
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        name: payload.publicBotStepSettings.amoCrmTransferringSettings.name,
+        price: payload.publicBotStepSettings.amoCrmTransferringSettings.price
+          ? +payload.publicBotStepSettings.amoCrmTransferringSettings.price
+          : undefined,
+        statusId: payload.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
+        pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
+        responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
         tokens,
         labels,
       });
@@ -396,6 +409,13 @@ export class IntegrationService {
     await this.amoCrmService.editLeadsById({
       amoCrmDomainName: lead.senlerGroup.amoCrmProfile.domainName,
       amoCrmLeadId: lead.amoCrmLeadId,
+      name: body.publicBotStepSettings.amoCrmTransferringSettings.name ?? undefined,
+      price: body.publicBotStepSettings.amoCrmTransferringSettings.price
+        ? +body.publicBotStepSettings.amoCrmTransferringSettings.price
+        : undefined,
+      statusId: body.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
+      pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
+      responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
       tokens,
       customFieldsValues,
       labels,
@@ -411,6 +431,8 @@ export class IntegrationService {
       amoCrmLeadCustomFieldsValues
     );
 
+    this.logger.info('Отправка переменных в сенлер', { labels: this.extractLoggingLabelsFromRequest(body), vars: varsValues });
+
     await Promise.all([
       Promise.all(varsValues.glob_vars.map(globalVar => client.globalVars.set({ name: globalVar.n, value: globalVar.v }))),
       Promise.all(
@@ -423,13 +445,21 @@ export class IntegrationService {
     senlerLeadId,
     senlerGroupId,
     name,
+    price,
+    statusId,
+    pipelineId,
+    responsibleUserId,
     tokens,
     amoCrmDomainName,
     labels,
   }: {
     senlerLeadId: string;
     senlerGroupId: number;
-    name: string;
+    name?: string;
+    price?: number;
+    statusId?: number;
+    pipelineId?: number;
+    responsibleUserId?: number;
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;
     labels: { requestId: string };
@@ -456,8 +486,12 @@ export class IntegrationService {
         const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
           amoCrmDomainName,
           amoCrmLeadId: lead.amoCrmLeadId,
-          name,
           tokens,
+          name,
+          price,
+          statusId,
+          pipelineId,
+          responsibleUserId,
         });
 
         this.logger.info('Лид был проверен и создан(если требовалось)', labels);
@@ -502,7 +536,7 @@ export class IntegrationService {
     }
   }
 
-  async getAmoCrmFields(senlerGroupId: number) {
+  async getAmoCrmWorkspaceInfo(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
     const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
       where: { senlerGroupId },
       include: { amoCrmProfile: true },
@@ -514,19 +548,37 @@ export class IntegrationService {
     };
 
     try {
-      return await this.amoCrmService.getLeadFields({
-        amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
-        tokens,
-      });
+      const [fields, pipelines, users] = await Promise.all([
+        this.amoCrmService.getLeadFields({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+        this.amoCrmService.getPipelinesWithStatuses({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+        this.amoCrmService.getUsers({
+          amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+          tokens,
+        }),
+      ]);
+      return { fields, pipelines, users };
     } catch (error) {
       if (error instanceof AxiosError) {
-        return {
+        this.logger.error('Ошибка получения сведений от AmoCrm', {
           error: {
-            name: 'Error during request to AmoCrm',
+            senlerGroupId,
             code: error.status,
             message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
           },
-        };
+        });
+        throw new HttpException(
+          {
+            message: error.status === 402 ? 'Проверьте оплату тарифа в аккаунте' : 'Отсутствует подробная информация',
+            errorCode: error.status,
+          },
+          HttpStatus.BAD_REQUEST
+        );
       }
     }
   }
@@ -576,4 +628,31 @@ export class IntegrationService {
   // public buildCancelledAmoCrmCacheKey = (accessToken: string) => this.CACHE_CANCELLED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildDelayedAmoCrmCacheKey = (accessToken: string) => this.CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX + accessToken;
   public buildSenlerGroupErrorMessagesCacheKey = (senlerGroupId: number) => `senlerGroups:${senlerGroupId}:errors`;
+  public withSenlerVarsFormatting(body: BotStepWebhookDto): BotStepWebhookDto {
+    const s = body.publicBotStepSettings.amoCrmTransferringSettings;
+
+    if (!s.name) {
+      body.publicBotStepSettings.amoCrmTransferringSettings.name = `${body.lead.name} ${body.lead.surname}`.trim();
+    } else {
+      body.publicBotStepSettings.amoCrmTransferringSettings.name = this.senlerService.formatWithSenlerVars(s.name, body);
+    }
+
+    if (s.price) {
+      body.publicBotStepSettings.amoCrmTransferringSettings.price = this.senlerService.formatWithSenlerVars(s.price, body);
+    }
+    return body;
+  }
+
+  public async getStat(): Promise<any> {
+    let groups = await this.prisma.senlerGroup.findMany({ select: { senlerGroupId: true, _count: { select: { leads: true } } } });
+    groups = groups.sort((a, b) => -(a._count.leads - b._count.leads));
+
+    let res = '';
+
+    for (const group of groups) {
+      res = res.concat(`Айди группы: ${group.senlerGroupId}, лидов: ${group._count.leads}\n`);
+    }
+
+    return res;
+  }
 }
