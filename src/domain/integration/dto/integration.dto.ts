@@ -79,12 +79,10 @@ export class LeadDto {
   id: string;
 
   @ApiProperty({ description: 'Lead name.' })
-  @IsNotEmpty()
   @IsString()
   name: string;
 
   @ApiProperty({ description: 'Lead surname.' })
-  @IsNotEmpty()
   @IsString()
   surname: string;
 
