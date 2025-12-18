@@ -120,7 +120,6 @@ export class IntegrationService {
     try {
       const instance = plainToInstance(BotStepWebhookDto, message.payload ?? {});
       const validationErrors = await validate(instance);
-      logger.info('Ошибка валидации', { instance, validationErrors });
 
       if (validationErrors.length) {
         const details = validationErrors.map(e => ({
@@ -580,6 +579,8 @@ export class IntegrationService {
           HttpStatus.BAD_REQUEST
         );
       }
+      this.logger.error('Ошибка получения сведений от AmoCrm', { error: convertExceptionToString(error) });
+      throw error;
     }
   }
 

@@ -234,7 +234,7 @@ export class UnlinkAmoCrmAccountRequestDto {
 }
 
 export class TransferMessageMetadata {
-  @ApiProperty({ description: 'Timestamp of message created.' })
+  @ApiProperty({ description: 'Number of retry attempt.' })
   @IsNumber()
   retryNumber?: number;
 
@@ -243,7 +243,7 @@ export class TransferMessageMetadata {
   createdAt?: string;
 
   @ApiProperty({ description: 'Last message delay.' })
-  @IsString()
+  @IsNumber()
   delay?: number;
 }
 

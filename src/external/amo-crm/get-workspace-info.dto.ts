@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
 
-enum FieldType {
+export enum FieldType {
   TRACKING_DATA = 'tracking_data',
 }
 
-enum EntityType {
+export enum EntityType {
   LEADS = 'leads',
 }
 
