@@ -213,7 +213,6 @@ export class BotStepWebhookDto {
 
   @ApiProperty({ description: 'Bot callback.', type: BotCallbackDto })
   @ValidateIf(obj => obj.botCallback != null)
-  @IsNotEmpty()
   @ValidateNested()
   @Type(() => BotCallbackDto)
   botCallback: BotCallbackDto | null;
