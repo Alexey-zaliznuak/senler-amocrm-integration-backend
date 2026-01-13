@@ -24,7 +24,6 @@ import {
   UpdateLeadResponse,
   ValidationError,
 } from './amo-crm.dto';
-import { FieldDto, GetPipelinesResponse, GetUsersResponse, PipelineDto, UserDto } from './get-workspace-info.dto';
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
@@ -234,11 +233,9 @@ export class AmoCrmService {
   }: {
     amoCrmDomainName: string;
     leads: Array<{
-      name?: string;
+      name: string;
       price?: number;
       status_id?: number;
-      pipeline_id?: number;
-      responsible_user_id?: number;
     }>;
     tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {
@@ -278,12 +275,10 @@ export class AmoCrmService {
   @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomainName,
-    amoCrmLeadId,
-    name,
+    amoCrmLeadId: AmoCRMLeadId,
     price,
-    statusId,
-    pipelineId,
-    responsibleUserId,
+    status_id,
+    pipeline_id,
     tokens,
     customFieldsValues,
     labels,
@@ -291,13 +286,11 @@ export class AmoCrmService {
     try {
       this.logger.info('Editing lead', { labels });
       const response = await this.axios.patch<UpdateLeadResponse>(
-        `https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}`,
+        `https://${amoCrmDomainName}/api/v4/leads/${AmoCRMLeadId}`,
         {
-          name,
           price,
-          status_id: statusId,
-          pipeline_id: pipelineId,
-          responsible_user_id: responsibleUserId,
+          status_id,
+          pipeline_id,
           custom_fields_values: customFieldsValues,
         },
         {
@@ -362,7 +355,7 @@ export class AmoCrmService {
     tokens: AmoCrmTokens;
     page?: number;
     limit?: number;
-  }): Promise<FieldDto[]> {
+  }): Promise<any> {
     try {
       const response = await this.axios.get<any>(`https://${amoCrmDomainName}/api/v4/leads/custom_fields`, {
         headers: {
@@ -377,100 +370,16 @@ export class AmoCrmService {
     }
   }
 
-  @UpdateRateLimitAndThrowIfNeed()
-  @HandleAccessTokenExpiration()
-  async getPipelinesWithStatuses({
-    amoCrmDomainName,
-    tokens,
-  }: {
-    amoCrmDomainName: string;
-    tokens: AmoCrmTokens;
-  }): Promise<PipelineDto[]> {
-    try {
-      const response = await this.axios.get<GetPipelinesResponse>(`https://${amoCrmDomainName}/api/v4/leads/pipelines`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-        },
-      });
-
-      // Преобразуем ответ в нужный формат
-      const pipelines = response.data._embedded.pipelines.map(pipeline => ({
-        id: pipeline.id,
-        name: pipeline.name,
-        statuses: pipeline._embedded.statuses.map(status => ({
-          id: status.id,
-          name: status.name,
-        })),
-      }));
-
-      this.logger.info('Successfully fetched pipelines with statuses', {
-        amoCrmDomainName,
-        pipelinesCount: pipelines.length,
-      });
-
-      return pipelines;
-    } catch (error) {
-      this.logger.error('Error getting pipelines with statuses', { error });
-
-      if (error instanceof AxiosError) {
-        throw new UnauthorizedException('Failed to get pipelines');
-      }
-
-      throw error;
-    }
-  }
-
-  @UpdateRateLimitAndThrowIfNeed()
-  @HandleAccessTokenExpiration()
-  async getUsers({ amoCrmDomainName, tokens }: { amoCrmDomainName: string; tokens: AmoCrmTokens }): Promise<UserDto[]> {
-    try {
-      const response = await this.axios.get<GetUsersResponse>(`https://${amoCrmDomainName}/api/v4/users`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-        },
-      });
-
-      // Преобразуем ответ в упрощенный формат
-      const users = response.data._embedded.users.map(user => ({
-        id: user.id,
-        name: user.name,
-      }));
-
-      this.logger.info('Successfully fetched users', {
-        amoCrmDomainName,
-        usersCount: users.length,
-      });
-
-      return users;
-    } catch (error) {
-      this.logger.error('Error getting users', { error });
-
-      if (error instanceof AxiosError) {
-        throw new UnauthorizedException('Failed to get users');
-      }
-
-      throw error;
-    }
-  }
-
   @HandleAccessTokenExpiration()
   async createLeadIfNotExists({
     amoCrmDomainName,
     amoCrmLeadId,
     name,
-    price,
-    statusId,
-    pipelineId,
-    responsibleUserId,
     tokens,
   }: {
     amoCrmDomainName: string;
     amoCrmLeadId: number;
     name: string;
-    price?: number;
-    statusId?: number;
-    pipelineId?: number;
-    responsibleUserId?: number;
     tokens: AmoCrmTokens;
   }) {
     try {
@@ -483,11 +392,7 @@ export class AmoCrmService {
       return lead;
     } catch (error) {
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
-        const actualLead = await this.createLead({
-          amoCrmDomainName,
-          leads: [{ name, price, status_id: statusId, pipeline_id: pipelineId, responsible_user_id: responsibleUserId }],
-          tokens,
-        });
+        const actualLead = await this.createLead({ amoCrmDomainName, leads: [{ name }], tokens });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
           labels: { newAmoCrmLead: actualLead.id },
         });

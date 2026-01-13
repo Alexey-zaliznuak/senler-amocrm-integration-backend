@@ -209,7 +209,7 @@ export class PrismaCacheExtensionService implements OnModuleInit {
             const result = await context.update(args);
 
             if (result && !result?.id) {
-              serviceThis.logger.error('Can not invalidate object cache: no id in result', { result, args });
+              serviceThis.logger.error('Can not invalidate object cache: no id in result', { result });
             }
 
             if (result?.id) {

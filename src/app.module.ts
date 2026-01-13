@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IntegrationModule } from './domain/integration/integration.module';
 import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
+import { LogsModule } from './domain/logs/logs.module';
 import { MetricsModule } from './domain/metrics/metrics.module';
 import { SenlerGroupsModule } from './domain/senlerGroups/senler-groups.module';
 import { AmoCrmModule } from './external/amo-crm/amo-crm.module';
@@ -38,6 +39,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     IntegrationModule,
     IntegrationStepTemplatesModule,
     MetricsModule,
+    LogsModule,
 
     // Infrastructure
     LoggingModule.forRoot(),
