@@ -1,6 +1,6 @@
 import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { BotStepWebhookDto } from 'src/domain/integration/integration.dto';
+import { BotStepWebhookDto } from 'src/domain/integration/dto/integration.dto';
 import { AXIOS, CustomAxiosInstance } from 'src/infrastructure/axios/instance';
 import { AppConfigType } from 'src/infrastructure/config/config.app-config';
 import { CONFIG } from 'src/infrastructure/config/config.module';
@@ -40,6 +40,10 @@ export class SenlerService {
   }
 
   async sendCallbackOnWebhookRequest(body: BotStepWebhookDto, sendError?: boolean): Promise<void> {
+    if (!body.botCallback) {
+      return;
+    }
+
     const { group_id, ...bodyToStringify } = body.botCallback;
     bodyToStringify.result.error_code = sendError ? 1 : 0;
 
@@ -102,5 +106,54 @@ export class SenlerService {
 
   private customStringify(data: any): string {
     return JSON.stringify(data).replace(/:/g, ': ').replace(/,/g, ', ');
+  }
+
+  public formatWithSenlerVars(statement: string, body: BotStepWebhookDto): string {
+    if (!body.lead.personalVars || Array.isArray(body.lead.personalVars) || Object.keys(body.lead.personalVars).length === 0) {
+      return statement;
+    }
+
+    const userProperties = {};
+    userProperties['username'] = body.lead.vkDomain !== 'null' ? body.lead.vkDomain : body.lead.tgUsername;
+    userProperties['fullname'] = `${body.lead.name} ${body.lead.surname}`;
+    userProperties['userid'] = body.lead.vkUserId;
+    userProperties['city'] = body.lead.city;
+    userProperties['country'] = body.lead.country;
+    userProperties['relation'] = body.lead.maritalStatus;
+
+    for (const [key, val] of Object.entries(body.lead.personalVars)) {
+      const escapedKey = this.escapeRegExp(key);
+      const regex = new RegExp(`\\{%${escapedKey}%\\}`, 'g');
+
+      const escapedValue = this.escapeHtml(String(val));
+      statement = statement.replace(regex, escapedValue);
+    }
+
+    statement = statement.replace(/\{%.*?%\}/g, 'null');
+
+    for (const [key, val] of Object.entries(userProperties)) {
+      const escapedKey = this.escapeRegExp(key);
+      const regex = new RegExp(`%${escapedKey}%`, 'g');
+
+      const escapedValue = this.escapeHtml(String(val));
+      statement = statement.replace(regex, escapedValue);
+    }
+
+    statement = statement.replace(/%\w+%/g, 'null');
+
+    return statement;
+  }
+
+  private escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  private escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }
