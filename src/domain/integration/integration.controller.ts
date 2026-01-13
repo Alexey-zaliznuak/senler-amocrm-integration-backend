@@ -1,17 +1,18 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiResponse } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
+import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import {
   BotStepWebhookDto,
   ChangeAmoCrmAccountRequestDto,
-  GetSenlerGroupFieldsRequestDto,
+  SenlerGroupIdQueryDto,
   TransferMessage,
-} from './integration.dto';
+} from './dto/integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
@@ -37,21 +38,35 @@ export class IntegrationController {
     await this.integrationService.processTransferMessage(msg.content, channel, msg);
   }
 
-  @Get('getAmoFields')
+  @Get('amocrm-workspace-info')
   @HttpCode(HttpStatus.OK)
-  async getAmoFields(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<any> {
-    return await this.integrationService.getAmoCrmFields(query.senlerGroupId);
+  @ApiResponse({ type: AmoCrmWorkspaceInfoDto })
+  async getAmoCrmWorkspaceInfo(@Query() query: SenlerGroupIdQueryDto): Promise<AmoCrmWorkspaceInfoDto> {
+    return await this.integrationService.getAmoCrmWorkspaceInfo(query.senlerGroupId);
   }
 
   @Get('AmoCrmErrors')
   @HttpCode(HttpStatus.OK)
-  async getAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<string> {
+  async getAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<string> {
     return await this.integrationService.getSenlerGroupErrorMessage(query.senlerGroupId);
   }
 
   @Delete('AmoCrmErrors')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteAmoCrmErrors(@Query() query: GetSenlerGroupFieldsRequestDto): Promise<void> {
+  async deleteAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<void> {
     await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);
   }
+
+  // Для отладки/статистики Михаилу
+  // @Get('conf')
+  // @HttpCode(HttpStatus.OK)
+  // public getConf(): any {
+  //   return this.integrationService.getConf();
+  // }
+
+  // @Get('stat')
+  // @HttpCode(HttpStatus.OK)
+  // public getStat(): any {
+  //   return this.integrationService.getStat();
+  // }
 }
