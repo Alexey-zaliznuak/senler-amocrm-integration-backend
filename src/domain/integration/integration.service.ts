@@ -127,7 +127,7 @@ export class IntegrationService {
           errors: Object.values(e.constraints ?? {}),
         }));
 
-        this.logger.error('Ошибка валидации запроса', {
+        logger.error('Ошибка валидации запроса', {
           labels,
           details,
           status: 'FAILED',
