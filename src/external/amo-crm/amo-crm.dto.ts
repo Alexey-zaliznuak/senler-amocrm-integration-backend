@@ -165,9 +165,11 @@ export type UpdateLeadResponse = {
 export type editLeadsByIdRequest = {
   amoCrmDomainName: string;
   amoCrmLeadId: number;
-  price?: string;
-  status_id?: string;
-  pipeline_id?: string;
+  price?: number;
+  name?: string;
+  statusId?: number;
+  pipelineId?: number;
+  responsibleUserId?: number;
   tokens: AmoCrmTokens;
   customFieldsValues?: editLeadsByIdCustomFieldsValueRequest[];
 };
