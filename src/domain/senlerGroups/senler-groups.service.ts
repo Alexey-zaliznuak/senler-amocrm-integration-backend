@@ -79,7 +79,7 @@ export class SenlerGroupsService {
     }
   }
 
-  async getOrCreateAmoCrmProfile(data: CreateSenlerGroupRequestDto) {
+  async getOrCreateAmoCrmProfile(data: { amoCrmDomainName: string; amoCrmAuthorizationCode: string }) {
     const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
       amoCrmDomainName: data.amoCrmDomainName,
       code: data.amoCrmAuthorizationCode,

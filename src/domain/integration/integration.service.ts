@@ -30,6 +30,7 @@ import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { IntegrationUtils } from './integration.utils';
+import { SenlerGroupsService } from '../senlerGroups/senler-groups.service';
 
 @Injectable()
 export class IntegrationService {
@@ -45,6 +46,7 @@ export class IntegrationService {
     private readonly rabbitMq: RabbitMqService,
     private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService,
+    private readonly senlerGroupsService: SenlerGroupsService,
     public readonly rateLimitsService: RateLimitsService
   ) {}
 
@@ -58,7 +60,7 @@ export class IntegrationService {
     });
 
     try {
-      const amoCrmProfile = await this.getOrCreateAmoCrmProfile(body);
+      const amoCrmProfile = await this.senlerGroupsService.getOrCreateAmoCrmProfile(body);
 
       await this.prisma.senlerGroup.updateWithCacheInvalidate({
         where: { id: senlerGroup.id },
@@ -81,47 +83,6 @@ export class IntegrationService {
 
       throw error;
     }
-  }
-
-  async getOrCreateAmoCrmProfile(data: { amoCrmDomainName: string; amoCrmAuthorizationCode: string }) {
-    const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
-      amoCrmDomainName: data.amoCrmDomainName,
-      code: data.amoCrmAuthorizationCode,
-    });
-
-    const existingProfile = await this.prisma.amoCrmProfile.findUnique({
-      where: { domainName: data.amoCrmDomainName },
-    });
-
-    if (existingProfile) {
-      // Обновляем токены для существующего профиля (реавторизация)
-      const updatedProfile = await this.prisma.amoCrmProfile.updateWithCacheInvalidate({
-        where: { id: existingProfile.id },
-        data: {
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-        },
-      });
-
-      // Инвалидируем кэш всех связанных senlerGroup
-      const relatedGroups = await this.prisma.senlerGroup.findMany({
-        where: { amoCrmProfileId: existingProfile.id },
-        select: { id: true },
-      });
-      if (relatedGroups.length > 0) {
-        await this.prisma.senlerGroup.invalidateCache(relatedGroups.map(g => g.id));
-      }
-
-      return updatedProfile;
-    }
-
-    return await this.prisma.amoCrmProfile.create({
-      data: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        domainName: data.amoCrmDomainName,
-      },
-    });
   }
 
   async processBotStepWebhook(body: any) {
