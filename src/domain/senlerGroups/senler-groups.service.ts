@@ -80,13 +80,36 @@ export class SenlerGroupsService {
   }
 
   async getOrCreateAmoCrmProfile(data: CreateSenlerGroupRequestDto) {
-    let profile = await this.prisma.amoCrmProfile.findUnique({ where: { domainName: data.amoCrmDomainName } });
-    if (profile) return profile;
-
     const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
       amoCrmDomainName: data.amoCrmDomainName,
       code: data.amoCrmAuthorizationCode,
     });
+
+    const existingProfile = await this.prisma.amoCrmProfile.findUnique({ 
+      where: { domainName: data.amoCrmDomainName } 
+    });
+
+    if (existingProfile) {
+      // Обновляем токены для существующего профиля (реавторизация)
+      const updatedProfile = await this.prisma.amoCrmProfile.updateWithCacheInvalidate({
+        where: { id: existingProfile.id },
+        data: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+        },
+      });
+
+      // Инвалидируем кэш всех связанных senlerGroup
+      const relatedGroups = await this.prisma.senlerGroup.findMany({
+        where: { amoCrmProfileId: existingProfile.id },
+        select: { id: true },
+      });
+      if (relatedGroups.length > 0) {
+        await this.prisma.senlerGroup.invalidateCache(relatedGroups.map(g => g.id));
+      }
+
+      return updatedProfile;
+    }
 
     return await this.prisma.amoCrmProfile.create({
       data: {
