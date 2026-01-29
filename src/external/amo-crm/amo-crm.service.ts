@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { CustomAxiosInstance } from 'src/infrastructure/axios/instance/axios.instance';
 import { LOGGER_INJECTABLE_NAME } from 'src/infrastructure/axios/instance/axios.instance.config';
@@ -111,7 +111,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
-      throw new UnauthorizedException('Access tokens истек');
+      throw error;
     }
   }
 
@@ -160,7 +160,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error adding unsorted', { error });
-      throw new UnauthorizedException('Failed to add unsorted data');
+      throw error;
     }
   }
 
@@ -196,7 +196,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error accepting unsorted', { error });
-      throw new UnauthorizedException('Failed to accept unsorted data');
+      throw error;
     }
   }
 
@@ -221,7 +221,7 @@ export class AmoCrmService {
       return response.data;
     } catch (error) {
       this.logger.error('Error getting unsorted by UID', { error });
-      throw new UnauthorizedException('Failed to get unsorted data');
+      throw error;
     }
   }
 
@@ -411,11 +411,6 @@ export class AmoCrmService {
       return pipelines;
     } catch (error) {
       this.logger.error('Error getting pipelines with statuses', { error });
-
-      if (error instanceof AxiosError) {
-        throw new UnauthorizedException('Failed to get pipelines');
-      }
-
       throw error;
     }
   }
@@ -444,11 +439,6 @@ export class AmoCrmService {
       return users;
     } catch (error) {
       this.logger.error('Error getting users', { error });
-
-      if (error instanceof AxiosError) {
-        throw new UnauthorizedException('Failed to get users');
-      }
-
       throw error;
     }
   }
