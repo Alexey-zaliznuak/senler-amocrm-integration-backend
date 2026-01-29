@@ -26,11 +26,11 @@ import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
+import { SenlerGroupsService } from '../senlerGroups/senler-groups.service';
 import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
 import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { IntegrationUtils } from './integration.utils';
-import { SenlerGroupsService } from '../senlerGroups/senler-groups.service';
 
 @Injectable()
 export class IntegrationService {
@@ -168,7 +168,8 @@ export class IntegrationService {
       status: 'IN PROGRESS',
     });
 
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueWithCache({
+    // Не используем кеш для токенов - они могут быть обновлены параллельным запросом
+    const senlerGroup = await this.prisma.senlerGroup.findUnique({
       where: { senlerGroupId: payload.senlerGroupId },
       include: { amoCrmProfile: true },
     });
@@ -519,7 +520,7 @@ export class IntegrationService {
   }
 
   async getAmoCrmWorkspaceInfo(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {
-    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrowWithCache({
+    const senlerGroup = await this.prisma.senlerGroup.findUniqueOrThrow({
       where: { senlerGroupId },
       include: { amoCrmProfile: true },
     });
