@@ -7,9 +7,10 @@ import { LOGGER_INJECTABLE_NAME } from './integration.config';
 import { IntegrationController } from './integration.controller';
 import { SenlerModule } from 'src/external/senler/senler.module';
 import { IntegrationService } from './integration.service';
+import { SenlerGroupsModule } from '../senlerGroups/senler-groups.module';
 
 @Module({
-  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME), AmoCrmModule, SenlerModule, RabbitmqModule, RedisModule],
+  imports: [LoggingModule.forFeature(LOGGER_INJECTABLE_NAME), AmoCrmModule, SenlerModule, RabbitmqModule, RedisModule, SenlerGroupsModule],
   controllers: [IntegrationController],
   providers: [IntegrationService],
 })
