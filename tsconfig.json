@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
+    "useUnknownInCatchVariables": false,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,

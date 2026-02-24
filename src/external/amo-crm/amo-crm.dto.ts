@@ -17,7 +17,7 @@ export enum AmoCrmExceptionType {
 }
 
 export enum AmoCrmFieldErrorCode {
-  INVALID_TYPE = 'InvalidType'
+  INVALID_TYPE = 'InvalidType',
 }
 
 export type AmoCrmTokens = {
@@ -30,6 +30,10 @@ export type AmoCrmOAuthTokenResponse = {
   expires_in: number;
   access_token: string;
   refresh_token: string;
+};
+
+export type GetOrCreateContactResponse = {
+  id: number;
 };
 
 export type CreateContactResponse = {
@@ -98,6 +102,65 @@ export type GetLeadRequest = {
   leadId: string | number;
   tokens: AmoCrmTokens;
   amoCrmDomainName: string;
+};
+
+export type CreateLeadDto = {
+  name?: string;
+  price?: number;
+  status_id?: number;
+  pipeline_id?: number;
+  responsible_user_id?: number;
+  _embedded?: { contacts: Array<{ id: number }> };
+};
+
+export type GetContactRequest = {
+  contactId: string | number;
+  tokens: AmoCrmTokens;
+  amoCrmDomainName: string;
+};
+
+export type GetOrCreateContactRequest = {
+  contactId?: number;
+  tokens: AmoCrmTokens;
+  amoCrmDomainName: string;
+
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+};
+
+export type GetContactResponse = {
+  id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  responsible_user_id: number;
+  group_id: number;
+  created_by: number;
+  updated_by: number;
+  created_at: number; // Unix timestamp
+  updated_at: number; // Unix timestamp
+  closest_task_at: number | null;
+  is_deleted: boolean;
+  is_unsorted: boolean;
+  custom_fields_values: Array<AmoCustomField> | null;
+  account_id: number;
+  _links: {
+    self: {
+      href: string;
+    };
+  };
+  _embedded: {
+    tags: Array<{
+      id: number;
+      name: string;
+      color: string;
+    }>;
+    companies: Array<{
+      id: number;
+      name: string;
+    }>;
+  };
 };
 
 export interface AmoCustomField {
@@ -169,6 +232,7 @@ export type editLeadsByIdRequest = {
   name?: string;
   statusId?: number;
   pipelineId?: number;
+  contactId?: number;
   responsibleUserId?: number;
   tokens: AmoCrmTokens;
   customFieldsValues?: editLeadsByIdCustomFieldsValueRequest[];

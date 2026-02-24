@@ -54,6 +54,7 @@ model Lead {
   updatedAt        DateTime       @updatedAt
 
   amoCrmLeadId     Int
+  amoCrmContactId  Int?
 
   senlerLeadId     String         @unique
 
@@ -61,4 +62,5 @@ model Lead {
   senlerGroup      SenlerGroup    @relation(fields: [senlerGroupId], references: [id], onDelete: Cascade)
 
   @@unique([senlerLeadId, senlerGroupId])
+  @@index([amoCrmLeadId, amoCrmContactId])
 }

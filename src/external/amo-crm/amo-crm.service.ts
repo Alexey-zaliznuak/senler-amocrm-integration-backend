@@ -16,10 +16,15 @@ import {
   AmoCrmOAuthTokenResponse,
   AmoCrmTokens,
   CreateContactResponse,
+  CreateLeadDto,
   editLeadsByIdRequest,
   FieldError,
+  GetContactRequest,
+  GetContactResponse,
   GetLeadRequest,
   GetLeadResponse,
+  GetOrCreateContactRequest,
+  GetOrCreateContactResponse,
   GetUnsortedResponse,
   UpdateLeadResponse,
   ValidationError,
@@ -80,37 +85,21 @@ export class AmoCrmService {
 
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
-  async addContact({
-    amoCrmDomainName,
-    name,
-    first_name,
-    last_name,
-    tokens,
-  }: {
-    amoCrmDomainName: string;
-    name: string;
-    first_name: string;
-    last_name: string;
-    tokens: AmoCrmTokens;
-  }): Promise<CreateContactResponse> {
+  async createContact(
+    names: { name?: string; first_name?: string; last_name?: string },
+    amoCrmDomainName: string,
+    tokens: AmoCrmTokens
+  ): Promise<CreateContactResponse> {
     try {
-      const response = await this.axios.post<CreateContactResponse>(
-        `https://${amoCrmDomainName}/api/v4/contacts`,
-        {
-          name,
-          first_name,
-          last_name,
+      const response = await this.axios.post<CreateContactResponse>(`https://${amoCrmDomainName}/api/v4/contacts`, names, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        }
-      );
+      });
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error adding contact', { error });
+      this.logger.error('Error adding contact', { error, names });
       throw error;
     }
   }
@@ -233,13 +222,7 @@ export class AmoCrmService {
     tokens,
   }: {
     amoCrmDomainName: string;
-    leads: Array<{
-      name?: string;
-      price?: number;
-      status_id?: number;
-      pipeline_id?: number;
-      responsible_user_id?: number;
-    }>;
+    leads: Array<CreateLeadDto>;
     tokens: AmoCrmTokens;
   }): Promise<GetLeadResponse> {
     const response = await this.axios.post<GetLeadResponse>(`https://${amoCrmDomainName}/api/v4/leads`, leads, {
@@ -276,6 +259,27 @@ export class AmoCrmService {
 
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
+  async GetContactById(data: GetContactRequest): Promise<GetContactResponse> {
+    const params = new URLSearchParams();
+
+    params.append('with', 'custom_fields_values');
+
+    const response = await this.axios.get<any>(`https://collabox.amocrm.ru/api/v4/contacts/${data.contactId}`, {
+      headers: {
+        Authorization: `Bearer ${data.tokens.accessToken}`,
+      },
+    });
+
+    if (response.status === HttpStatus.NO_CONTENT) {
+      this.logger.error('Contact not found');
+      throw new AxiosError('Contact not found', HttpStatus.NO_CONTENT.toString());
+    }
+
+    return response.data;
+  }
+
+  @UpdateRateLimitAndThrowIfNeed()
+  @HandleAccessTokenExpiration()
   async editLeadsById({
     amoCrmDomainName,
     amoCrmLeadId,
@@ -283,23 +287,30 @@ export class AmoCrmService {
     price,
     statusId,
     pipelineId,
+    contactId,
     responsibleUserId,
     tokens,
     customFieldsValues,
     labels,
   }: editLeadsByIdRequest & { labels: { requestId: string } }): Promise<UpdateLeadResponse> {
     try {
+      let body = {
+        name,
+        price,
+        status_id: statusId,
+        pipeline_id: pipelineId,
+        responsible_user_id: responsibleUserId,
+        custom_fields_values: customFieldsValues,
+      };
+
+      if (contactId !== undefined) {
+        body = Object.assign(body, { _embedded: { contacts: [{ id: contactId }] } });
+      }
+
       this.logger.info('Editing lead', { labels });
       const response = await this.axios.patch<UpdateLeadResponse>(
         `https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}`,
-        {
-          name,
-          price,
-          status_id: statusId,
-          pipeline_id: pipelineId,
-          responsible_user_id: responsibleUserId,
-          custom_fields_values: customFieldsValues,
-        },
+        body,
         {
           headers: {
             Authorization: `Bearer ${tokens.accessToken}`,
@@ -450,6 +461,7 @@ export class AmoCrmService {
     name,
     price,
     statusId,
+    contactId,
     pipelineId,
     responsibleUserId,
     tokens,
@@ -460,6 +472,7 @@ export class AmoCrmService {
     price?: number;
     statusId?: number;
     pipelineId?: number;
+    contactId?: number;
     responsibleUserId?: number;
     tokens: AmoCrmTokens;
   }) {
@@ -469,13 +482,21 @@ export class AmoCrmService {
         tokens,
         leadId: amoCrmLeadId,
       });
-
       return lead;
     } catch (error) {
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
         const actualLead = await this.createLead({
           amoCrmDomainName,
-          leads: [{ name, price, status_id: statusId, pipeline_id: pipelineId, responsible_user_id: responsibleUserId }],
+          leads: [
+            {
+              name,
+              price,
+              status_id: statusId,
+              pipeline_id: pipelineId,
+              responsible_user_id: responsibleUserId,
+              _embedded: { contacts: [{ id: contactId }] },
+            },
+          ],
           tokens,
         });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
@@ -484,6 +505,52 @@ export class AmoCrmService {
         return actualLead;
       }
       const type = await this.getExceptionType(error, amoCrmDomainName, tokens);
+      throw new AmoCrmError(type.type, false, type.humanMessage);
+    }
+  }
+
+  @HandleAccessTokenExpiration()
+  async CreateContactIfNotExists(data: GetOrCreateContactRequest): Promise<GetOrCreateContactResponse> {
+    if (!data.contactId) {
+      const contact = await this.createContact(
+        {
+          name: data.name,
+          first_name: data.first_name,
+          last_name: data.last_name,
+        },
+        data.amoCrmDomainName,
+        data.tokens
+      );
+      this.logger.info('Создан контакт, причина: не указан contactId', {
+        labels: { newAmoCrmContact: { id: contact.id } },
+      });
+      return contact;
+    }
+
+    try {
+      const contact = await this.GetContactById({
+        contactId: data.contactId,
+        tokens: data.tokens,
+        amoCrmDomainName: data.amoCrmDomainName,
+      });
+      return { id: contact.id };
+    } catch (error) {
+      if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
+        const contact = await this.createContact(
+          {
+            name: data.name,
+            first_name: data.first_name,
+            last_name: data.last_name,
+          },
+          data.amoCrmDomainName,
+          data.tokens
+        );
+        this.logger.info('Создан контакт, причина: нету контакта с таким amoCrmContactId в самом AMO', {
+          labels: { newAmoCrmContact: { id: contact.id } },
+        });
+        return contact;
+      }
+      const type = await this.getExceptionType(error, data.amoCrmDomainName, data.tokens);
       throw new AmoCrmError(type.type, false, type.humanMessage);
     }
   }

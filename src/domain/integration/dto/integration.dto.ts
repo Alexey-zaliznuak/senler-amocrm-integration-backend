@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { plainToInstance, Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, ValidateIf, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, ValidateIf, ValidateNested } from 'class-validator';
 import { IsStringOrNumber } from 'src/infrastructure/validation';
 import { parseJson } from 'src/utils';
 
@@ -45,6 +45,11 @@ export class AmoCrmTransferringSettingsDto {
   @ValidateIf(obj => obj.responsibleUserId != null)
   @IsNumber()
   responsibleUserId: number | null;
+
+  @ApiProperty({ description: 'Создать контакт для сделки' })
+  @Transform(({ value }) => value ?? false, { toClassOnly: true })
+  @IsBoolean()
+  createContact: boolean;
 }
 
 export class PublicBotStepSettingsDto {

@@ -14,7 +14,13 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
-import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
+import {
+  AmoCrmError,
+  AmoCrmExceptionType,
+  GetLeadResponse as AmoCrmLead,
+  AmoCrmTokens,
+  CreateLeadDto,
+} from 'src/external/amo-crm/amo-crm.dto';
 import { RateLimitsService } from 'src/external/amo-crm/rate-limit.service';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { AppConfig, AppConfigType } from 'src/infrastructure/config/config.app-config';
@@ -205,6 +211,7 @@ export class IntegrationService {
         price: payload.publicBotStepSettings.amoCrmTransferringSettings.price
           ? +payload.publicBotStepSettings.amoCrmTransferringSettings.price
           : undefined,
+        createContact: payload.publicBotStepSettings.amoCrmTransferringSettings.createContact,
         statusId: payload.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
         pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
         responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
@@ -431,6 +438,7 @@ export class IntegrationService {
     price,
     statusId,
     pipelineId,
+    createContact,
     responsibleUserId,
     tokens,
     amoCrmDomainName,
@@ -442,6 +450,7 @@ export class IntegrationService {
     price?: number;
     statusId?: number;
     pipelineId?: number;
+    createContact: boolean;
     responsibleUserId?: number;
     tokens: AmoCrmTokens;
     amoCrmDomainName: string;
@@ -466,6 +475,8 @@ export class IntegrationService {
       });
 
       if (lead) {
+        const contactId = await this.getContactForLead({ name }, lead.amoCrmContactId, amoCrmDomainName, tokens);
+
         const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
           amoCrmDomainName,
           amoCrmLeadId: lead.amoCrmLeadId,
@@ -473,25 +484,39 @@ export class IntegrationService {
           name,
           price,
           statusId,
+          contactId,
           pipelineId,
           responsibleUserId,
         });
 
+        this.logger.info('Обновление данных сделки и контакта', { contactId, lead, actualAmoCrmLead });
+        // TODO: Исправить при необходимости
+        // Текущая реализация не проверяет что контакт привязан к сделке
+        // т.е если пользователь разорвет связь между контактом и сделкой то мы ее не восстановим
+
         this.logger.info('Лид был проверен и создан(если требовалось)', labels);
 
-        if (lead.amoCrmLeadId != actualAmoCrmLead.id) {
+        if (lead.amoCrmLeadId != actualAmoCrmLead.id || contactId != lead.amoCrmContactId) {
           lead = await this.prisma.lead.update({
             where: { amoCrmLeadId: lead.amoCrmLeadId, senlerLeadId },
             include: { senlerGroup: { include: { amoCrmProfile: true } } },
-            data: { amoCrmLeadId: actualAmoCrmLead.id },
+            data: { amoCrmLeadId: actualAmoCrmLead.id, amoCrmContactId: contactId },
           });
         }
         return { lead, amoCrmLead: actualAmoCrmLead };
       }
 
+      let newLeadPayload: CreateLeadDto = { name };
+      let newLeadContactId = null;
+
+      if (createContact) {
+        newLeadContactId = (await this.amoCrmService.createContact({ name }, amoCrmDomainName, tokens)).id;
+        newLeadPayload = { ...newLeadPayload, _embedded: { contacts: [{ id: newLeadContactId }] } };
+      }
+
       const newAmoCrmLead = await this.amoCrmService.createLead({
         amoCrmDomainName,
-        leads: [{ name }],
+        leads: [newLeadPayload],
         tokens,
       });
       this.logger.info('Создан лид, причина: нету лида с таким senlerLeadId в базе', {
@@ -502,6 +527,7 @@ export class IntegrationService {
         data: {
           amoCrmLeadId: newAmoCrmLead.id,
           senlerLeadId: senlerLeadId,
+          amoCrmContactId: newLeadContactId,
           senlerGroup: {
             connect: {
               senlerGroupId,
@@ -516,6 +542,45 @@ export class IntegrationService {
       };
     } finally {
       await this.redis.releaseLock(lockKey);
+    }
+  }
+
+  async getContactForLead(
+    contactNames: { name?: string; firstName?: string; lastName?: string },
+    existsContactId: number | null,
+    amoCrmDomainName: string,
+    tokens: AmoCrmTokens
+  ) {
+    // если контакт уже был создан то проверяем что его не удалили
+    if (existsContactId) {
+      try {
+        const contact = await this.amoCrmService.GetContactById({
+          contactId: existsContactId,
+          tokens: tokens,
+          amoCrmDomainName: amoCrmDomainName,
+        });
+        return contact.id;
+      } catch (error) {
+        if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
+          // если контакт удален то ниже пробуем найти подходящий или создать новый
+          existsContactId = null;
+        }
+        const type = await this.amoCrmService.getExceptionType(error, amoCrmDomainName, tokens);
+        throw new AmoCrmError(type.type, false, type.humanMessage);
+      }
+    }
+
+    // если у лида нет контакта то создадим новый
+    if (!existsContactId) {
+      this.logger.info('Создаем контакт');
+
+      const contact = await this.amoCrmService.CreateContactIfNotExists({
+        amoCrmDomainName: amoCrmDomainName,
+        tokens: tokens,
+        ...contactNames,
+      });
+
+      return contact.id;
     }
   }
 
