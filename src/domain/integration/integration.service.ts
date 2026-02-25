@@ -12,6 +12,7 @@ import * as amqp from 'amqplib';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { RedisClientType } from 'redis';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
@@ -332,6 +333,42 @@ export class IntegrationService {
         channel.nack(originalMessage as any, false, false);
       }
     }
+  }
+
+  public async getUsersActiveStats(): Promise<{
+    usersActiveD1: number;
+    usersActiveD3: number;
+    usersActiveD7: number;
+    usersActiveD14: number;
+    usersActiveD30: number;
+  }> {
+    const client: RedisClientType = this.redis.getClient();
+    const now = Math.floor(Date.now() / 1000);
+
+    const periods = {
+      d1: timeToSeconds({ days: 1 }),
+      d3: timeToSeconds({ days: 3 }),
+      d7: timeToSeconds({ days: 7 }),
+      d14: timeToSeconds({ days: 17 }),
+      d30: timeToSeconds({ days: 30 }),
+    };
+
+    const [usersActiveD1, usersActiveD3, usersActiveD7, usersActiveD14, usersActiveD30] = await Promise.all([
+      client.zCount('active:users', now - periods.d1, '+inf'),
+      client.zCount('active:users', now - periods.d3, '+inf'),
+      client.zCount('active:users', now - periods.d7, '+inf'),
+      client.zCount('active:users', now - periods.d14, '+inf'),
+      client.zCount('active:users', now - periods.d30, '+inf'),
+    ]);
+
+    return { usersActiveD1, usersActiveD3, usersActiveD7, usersActiveD14, usersActiveD30 };
+  }
+
+  public async trackUserActivity(userId: string): Promise<void> {
+    const client: RedisClientType = this.redis.getClient();
+    const now = Math.floor(Date.now() / 1000);
+
+    await client.zAdd('active:users', { score: now, value: userId });
   }
 
   async republishTransferMessageWithLongerDelay(
