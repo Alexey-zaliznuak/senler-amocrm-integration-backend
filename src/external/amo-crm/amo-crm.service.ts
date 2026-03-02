@@ -85,11 +85,15 @@ export class AmoCrmService {
 
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
-  async createContact(
-    names: { name?: string; first_name?: string; last_name?: string },
-    amoCrmDomainName: string,
-    tokens: AmoCrmTokens
-  ): Promise<CreateContactResponse> {
+  async createContact({
+    names,
+    amoCrmDomainName,
+    tokens,
+  }: {
+    names: { name?: string; first_name?: string; last_name?: string };
+    amoCrmDomainName: string;
+    tokens: AmoCrmTokens;
+  }): Promise<CreateContactResponse> {
     try {
       const response = await this.axios.post<CreateContactResponse>(`https://${amoCrmDomainName}/api/v4/contacts`, names, {
         headers: {
@@ -513,15 +517,15 @@ export class AmoCrmService {
   @HandleAccessTokenExpiration()
   async CreateContactIfNotExists(data: GetOrCreateContactRequest): Promise<GetOrCreateContactResponse> {
     if (!data.contactId) {
-      const contact = await this.createContact(
-        {
+      const contact = await this.createContact({
+        names: {
           name: data.name,
           first_name: data.first_name,
           last_name: data.last_name,
         },
-        data.amoCrmDomainName,
-        data.tokens
-      );
+        amoCrmDomainName: data.amoCrmDomainName,
+        tokens: data.tokens,
+      });
       this.logger.info('Создан контакт, причина: не указан contactId', {
         labels: { newAmoCrmContact: { id: contact.id } },
       });
@@ -537,15 +541,15 @@ export class AmoCrmService {
       return { id: contact.id };
     } catch (error) {
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
-        const contact = await this.createContact(
-          {
+        const contact = await this.createContact({
+          names: {
             name: data.name,
             first_name: data.first_name,
             last_name: data.last_name,
           },
-          data.amoCrmDomainName,
-          data.tokens
-        );
+          amoCrmDomainName: data.amoCrmDomainName,
+          tokens: data.tokens,
+        });
         this.logger.info('Создан контакт, причина: нету контакта с таким amoCrmContactId в самом AMO', {
           labels: { newAmoCrmContact: { id: contact.id } },
         });

@@ -516,7 +516,7 @@ export class IntegrationService {
       let newLeadContactId = null;
 
       if (createContact) {
-        newLeadContactId = (await this.amoCrmService.createContact({ name }, amoCrmDomainName, tokens)).id;
+        newLeadContactId = (await this.amoCrmService.createContact({ names: { name }, amoCrmDomainName, tokens })).id;
         newLeadPayload = { ...newLeadPayload, _embedded: { contacts: [{ id: newLeadContactId }] } };
       }
 
