@@ -475,7 +475,13 @@ export class IntegrationService {
       });
 
       if (lead) {
-        const contactId = await this.getContactForLead({ name }, lead.amoCrmContactId, amoCrmDomainName, tokens);
+        const contactId = await this.getContactForLead(
+          { name },
+          lead.amoCrmContactId,
+          amoCrmDomainName,
+          tokens,
+          createContact
+        );
 
         const actualAmoCrmLead = await this.amoCrmService.createLeadIfNotExists({
           amoCrmDomainName,
@@ -549,8 +555,9 @@ export class IntegrationService {
     contactNames: { name?: string; firstName?: string; lastName?: string },
     existsContactId: number | null,
     amoCrmDomainName: string,
-    tokens: AmoCrmTokens
-  ) {
+    tokens: AmoCrmTokens,
+    createContact: boolean
+  ): Promise<number | null> {
     // если контакт уже был создан то проверяем что его не удалили
     if (existsContactId) {
       try {
@@ -562,16 +569,20 @@ export class IntegrationService {
         return contact.id;
       } catch (error) {
         if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
-          // если контакт удален то ниже пробуем найти подходящий или создать новый
+          // если контакт удален то ниже пробуем найти подходящий или создать новый (только если createContact)
           existsContactId = null;
+        } else {
+          const type = await this.amoCrmService.getExceptionType(error, amoCrmDomainName, tokens);
+          throw new AmoCrmError(type.type, false, type.humanMessage);
         }
-        const type = await this.amoCrmService.getExceptionType(error, amoCrmDomainName, tokens);
-        throw new AmoCrmError(type.type, false, type.humanMessage);
       }
     }
 
-    // если у лида нет контакта то создадим новый
+    // если у лида нет контакта — создаём только при createContact
     if (!existsContactId) {
+      if (!createContact) {
+        return null;
+      }
       this.logger.info('Создаем контакт');
 
       const contact = await this.amoCrmService.CreateContactIfNotExists({
@@ -582,6 +593,8 @@ export class IntegrationService {
 
       return contact.id;
     }
+
+    return null;
   }
 
   async getAmoCrmWorkspaceInfo(senlerGroupId: number): Promise<AmoCrmWorkspaceInfoDto> {

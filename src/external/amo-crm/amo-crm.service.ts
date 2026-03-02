@@ -264,7 +264,7 @@ export class AmoCrmService {
 
     params.append('with', 'custom_fields_values');
 
-    const response = await this.axios.get<any>(`https://collabox.amocrm.ru/api/v4/contacts/${data.contactId}`, {
+    const response = await this.axios.get<any>(`https://${data.amoCrmDomainName}/api/v4/contacts/${data.contactId}`, {
       headers: {
         Authorization: `Bearer ${data.tokens.accessToken}`,
       },
@@ -485,18 +485,19 @@ export class AmoCrmService {
       return lead;
     } catch (error) {
       if (error instanceof AxiosError && (error.response?.status === 404 || error.code === HttpStatus.NO_CONTENT.toString())) {
+        const leadPayload: CreateLeadDto = {
+          name,
+          price,
+          status_id: statusId,
+          pipeline_id: pipelineId,
+          responsible_user_id: responsibleUserId,
+        };
+        if (contactId != null) {
+          leadPayload._embedded = { contacts: [{ id: contactId }] };
+        }
         const actualLead = await this.createLead({
           amoCrmDomainName,
-          leads: [
-            {
-              name,
-              price,
-              status_id: statusId,
-              pipeline_id: pipelineId,
-              responsible_user_id: responsibleUserId,
-              _embedded: { contacts: [{ id: contactId }] },
-            },
-          ],
+          leads: [leadPayload],
           tokens,
         });
         this.logger.info('Создан лид, причина: нету лида с таким amoCrmLeadId в самом AMO', {
