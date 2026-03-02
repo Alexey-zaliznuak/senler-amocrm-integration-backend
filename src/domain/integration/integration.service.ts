@@ -124,6 +124,8 @@ export class IntegrationService {
         });
       }
 
+      this.trackUserActivity(instance.senlerGroupId.toString());
+
       message.payload = this.withSenlerVarsFormatting(instance);
 
       await this.rabbitMq.publishMessage(
@@ -364,11 +366,15 @@ export class IntegrationService {
     return { usersActiveD1, usersActiveD3, usersActiveD7, usersActiveD14, usersActiveD30 };
   }
 
-  public async trackUserActivity(userId: string): Promise<void> {
-    const client: RedisClientType = this.redis.getClient();
-    const now = Math.floor(Date.now() / 1000);
+  public async trackUserActivity(senlerGroupId: string): Promise<void> {
+    try {
+      const client: RedisClientType = this.redis.getClient();
+      const now = Math.floor(Date.now() / 1000);
 
-    await client.zAdd('active:users', { score: now, value: userId });
+      await client.zAdd('active:users', { score: now, value: senlerGroupId });
+    } catch (err) {
+      this.logger.error('Ошибка сохранения статистики', { error: convertExceptionToString(err), senlerGroupId });
+    }
   }
 
   async republishTransferMessageWithLongerDelay(
