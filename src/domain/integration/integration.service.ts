@@ -417,6 +417,7 @@ export class IntegrationService {
       statusId: body.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
       pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
       responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
+      contactId: lead.amoCrmContactId ?? undefined,
       tokens,
       customFieldsValues,
       labels,
@@ -509,9 +510,17 @@ export class IntegrationService {
         });
 
         this.logger.info('Обновление данных сделки и контакта', { contactId, lead, actualAmoCrmLead });
-        // TODO: Исправить при необходимости
-        // Текущая реализация не проверяет что контакт привязан к сделке
-        // т.е если пользователь разорвет связь между контактом и сделкой то мы ее не восстановим
+
+        // Привязываем контакт к сделке в AmoCRM, если он был создан или восстановлен
+        if (contactId != null) {
+          await this.amoCrmService.editLeadsById({
+            amoCrmDomainName,
+            amoCrmLeadId: actualAmoCrmLead.id,
+            contactId,
+            tokens,
+            labels,
+          });
+        }
 
         this.logger.info('Лид был проверен и создан(если требовалось)', labels);
 
