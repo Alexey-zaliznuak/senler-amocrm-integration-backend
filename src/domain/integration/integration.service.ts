@@ -417,7 +417,6 @@ export class IntegrationService {
       statusId: body.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
       pipelineId: body.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
       responsibleUserId: body.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
-      contactId: lead.amoCrmContactId ?? undefined,
       tokens,
       customFieldsValues,
       labels,
@@ -511,11 +510,11 @@ export class IntegrationService {
 
         this.logger.info('Обновление данных сделки и контакта', { contactId, lead, actualAmoCrmLead });
 
-        // Привязываем контакт к сделке в AmoCRM, если он отвязан или отсутствует
+        // Привязываем контакт к сделке через API связей (PATCH /leads не поддерживает _embedded.contacts)
         const linkedContactIds = actualAmoCrmLead._embedded?.contacts?.map((c) => c.id) ?? [];
         const isContactLinked = contactId != null && linkedContactIds.includes(contactId);
         if (contactId != null && !isContactLinked) {
-          await this.amoCrmService.editLeadsById({
+          await this.amoCrmService.linkContactToLead({
             amoCrmDomainName,
             amoCrmLeadId: actualAmoCrmLead.id,
             contactId,

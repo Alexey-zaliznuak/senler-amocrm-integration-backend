@@ -344,6 +344,40 @@ export class AmoCrmService {
 
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
+  async linkContactToLead({
+    amoCrmDomainName,
+    amoCrmLeadId,
+    contactId,
+    tokens,
+    labels,
+  }: {
+    amoCrmDomainName: string;
+    amoCrmLeadId: number;
+    contactId: number;
+    tokens: AmoCrmTokens;
+    labels?: { requestId: string };
+  }): Promise<void> {
+    const body = [
+      {
+        to_entity_id: contactId,
+        to_entity_type: 'contacts' as const,
+        metadata: { is_main: true },
+      },
+    ];
+    await this.axios.post(
+      `https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}/link`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      }
+    );
+    this.logger.info('Contact linked to lead', { labels, contactId, amoCrmLeadId });
+  }
+
+  @UpdateRateLimitAndThrowIfNeed()
+  @HandleAccessTokenExpiration()
   async createLeadField({
     amoCrmDomainName,
     fields,
