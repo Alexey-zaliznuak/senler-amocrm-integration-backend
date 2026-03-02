@@ -529,7 +529,12 @@ export class IntegrationService {
       let newLeadContactId = null;
 
       if (createContact) {
-        newLeadContactId = (await this.amoCrmService.createContact({ names: contactNames, amoCrmDomainName, tokens })).id;
+        const amoContactNames = {
+          first_name: contactNames.firstName,
+          last_name: contactNames.lastName,
+          name: contactNames.name,
+        };
+        newLeadContactId = (await this.amoCrmService.createContact({ names: amoContactNames, amoCrmDomainName, tokens })).id;
         newLeadPayload = { ...newLeadPayload, _embedded: { contacts: [{ id: newLeadContactId }] } };
       }
 
@@ -601,7 +606,9 @@ export class IntegrationService {
       const contact = await this.amoCrmService.CreateContactIfNotExists({
         amoCrmDomainName: amoCrmDomainName,
         tokens: tokens,
-        ...contactNames,
+        first_name: contactNames.firstName,
+        last_name: contactNames.lastName,
+        name: contactNames.name,
       });
 
       return contact.id;
