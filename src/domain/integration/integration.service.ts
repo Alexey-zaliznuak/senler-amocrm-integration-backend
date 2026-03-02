@@ -217,6 +217,7 @@ export class IntegrationService {
         senlerLeadId: payload.lead.id,
         senlerGroupId: payload.senlerGroupId,
         amoCrmDomainName: senlerGroup.amoCrmProfile.domainName,
+        contactNames: { firstName: payload.lead.name, lastName: payload.lead.surname },
         name: payload.publicBotStepSettings.amoCrmTransferringSettings.name,
         price: payload.publicBotStepSettings.amoCrmTransferringSettings.price
           ? +payload.publicBotStepSettings.amoCrmTransferringSettings.price
@@ -444,6 +445,7 @@ export class IntegrationService {
   async getOrCreateLeadIfNotExists({
     senlerLeadId,
     senlerGroupId,
+    contactNames,
     name,
     price,
     statusId,
@@ -456,6 +458,7 @@ export class IntegrationService {
   }: {
     senlerLeadId: string;
     senlerGroupId: number;
+    contactNames: { name?: string; firstName?: string; lastName?: string };
     name?: string;
     price?: number;
     statusId?: number;
@@ -486,7 +489,7 @@ export class IntegrationService {
 
       if (lead) {
         const contactId = await this.getContactForLead(
-          { name },
+          contactNames,
           lead.amoCrmContactId,
           amoCrmDomainName,
           tokens,
@@ -526,7 +529,7 @@ export class IntegrationService {
       let newLeadContactId = null;
 
       if (createContact) {
-        newLeadContactId = (await this.amoCrmService.createContact({ names: { name }, amoCrmDomainName, tokens })).id;
+        newLeadContactId = (await this.amoCrmService.createContact({ names: contactNames, amoCrmDomainName, tokens })).id;
         newLeadPayload = { ...newLeadPayload, _embedded: { contacts: [{ id: newLeadContactId }] } };
       }
 
