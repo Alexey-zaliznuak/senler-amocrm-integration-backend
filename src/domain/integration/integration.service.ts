@@ -190,6 +190,16 @@ export class IntegrationService {
       return;
     }
 
+    if (!senlerGroup.amoCrmProfile.domainName) {
+      this.logger.error('Ошибка в результате выполнения запроса', {
+        labels,
+        details: 'У профиля AmoCRM не указан domainName (senlerGroupId: ' + senlerGroup.senlerGroupId + ')',
+        status: 'FAILED',
+      });
+      channel.nack(originalMessage as any, false, false);
+      return;
+    }
+
     // Проверяем что ключ не в отложенных(при 429 блокируем ключ на секунду) и не заблоченных
     const delayedAmoCrmCacheKey = this.buildDelayedAmoCrmCacheKey(senlerGroup.amoCrmProfile.accessToken);
     if (await this.redis.exists(delayedAmoCrmCacheKey)) {
