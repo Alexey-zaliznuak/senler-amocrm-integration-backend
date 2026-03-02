@@ -94,11 +94,13 @@ export class AmoCrmService {
     tokens: AmoCrmTokens;
   }): Promise<CreateContactResponse> {
     try {
-      // API AmoCRM v4 ожидает массив контактов в теле запроса
-      const contactData = { name, first_name, last_name };
-      const response = await this.axios.post<{ _embedded: { contacts: CreateContactResponse[] } }>(
+      const response = await this.axios.post<CreateContactResponse>(
         `https://${amoCrmDomainName}/api/v4/contacts`,
-        [contactData],
+        {
+          name,
+          first_name,
+          last_name,
+        },
         {
           headers: {
             Authorization: `Bearer ${tokens.accessToken}`,
@@ -106,7 +108,7 @@ export class AmoCrmService {
         }
       );
 
-      return response.data._embedded.contacts[0];
+      return response.data;
     } catch (error) {
       this.logger.error('Error adding contact', { error });
       throw error;
