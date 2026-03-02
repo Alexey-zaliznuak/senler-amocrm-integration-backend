@@ -29,11 +29,11 @@ export class MetricsService {
   private dbCacheHitRatio: Gauge<string>;
 
   // Business
-  private usersActive1Day: Gauge<string>;
-  private usersActive3Days: Gauge<string>;
-  private usersActive7Days: Gauge<string>;
-  private usersActive14Days: Gauge<string>;
-  private usersActive30Days: Gauge<string>;
+  private groupsActive1Day: Gauge<string>;
+  private groupsActive3Days: Gauge<string>;
+  private groupsActive7Days: Gauge<string>;
+  private groupsActive14Days: Gauge<string>;
+  private groupsActive30Days: Gauge<string>;
 
   constructor(
     private readonly prisma: PrismaCacheExtensionService,
@@ -119,40 +119,40 @@ export class MetricsService {
       registers: [this.registry],
     });
 
-    this.usersActive1Day = new Gauge({
-      name: 'active_users_count_1_days',
+    this.groupsActive1Day = new Gauge({
+      name: 'active_senler_groups_count_1_days',
       help: 'Active senler groups in 1 day',
       registers: [this.registry],
     });
-    this.usersActive3Days = new Gauge({
-      name: 'active_users_count_3_days',
+    this.groupsActive3Days = new Gauge({
+      name: 'active_senler_groups_count_3_days',
       help: 'Active senler groups in 3 days',
       registers: [this.registry],
     });
-    this.usersActive7Days = new Gauge({
-      name: 'active_users_count_7_days',
+    this.groupsActive7Days = new Gauge({
+      name: 'active_senler_groups_count_7_days',
       help: 'Active senler groups in 7 days',
       registers: [this.registry],
     });
-    this.usersActive14Days = new Gauge({
-      name: 'active_users_count_14_days',
-      help: 'Active senler groups in 17 days',
+    this.groupsActive14Days = new Gauge({
+      name: 'active_senler_groups_count_14_days',
+      help: 'Active senler groups in 14 days',
       registers: [this.registry],
     });
-    this.usersActive30Days = new Gauge({
-      name: 'active_users_count_30_days',
+    this.groupsActive30Days = new Gauge({
+      name: 'active_senler_groups_count_30_days',
       help: 'Active senler groups in 30 days',
       registers: [this.registry],
     });
   }
 
   async updateMetrics() {
-    const [cpuMetrics, ramMetrics, dbMetrics, { usersActiveD1, usersActiveD3, usersActiveD7, usersActiveD14, usersActiveD30 }] =
+    const [cpuMetrics, ramMetrics, dbMetrics, { groupsActiveD1, groupsActiveD3, groupsActiveD7, groupsActiveD14, groupsActiveD30 }] =
       await Promise.all([
         this.getCpuMetrics(),
         this.getRamMetrics(),
         this.getDatabaseMetrics(),
-        await this.integrationService.getUsersActiveStats(),
+        this.integrationService.getSenlerGroupsActiveStats(),
       ]);
 
     // CPU metrics
@@ -175,11 +175,11 @@ export class MetricsService {
     this.dbCacheHitRatio.set(parseFloat(dbMetrics.hitsRatio));
 
     // Business
-    this.usersActive1Day.set(usersActiveD1);
-    this.usersActive3Days.set(usersActiveD3);
-    this.usersActive7Days.set(usersActiveD7);
-    this.usersActive14Days.set(usersActiveD14);
-    this.usersActive30Days.set(usersActiveD30);
+    this.groupsActive1Day.set(groupsActiveD1);
+    this.groupsActive3Days.set(groupsActiveD3);
+    this.groupsActive7Days.set(groupsActiveD7);
+    this.groupsActive14Days.set(groupsActiveD14);
+    this.groupsActive30Days.set(groupsActiveD30);
   }
 
   async getMetrics() {
