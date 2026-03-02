@@ -247,7 +247,7 @@ export class AmoCrmService {
   async getLeadById(data: GetLeadRequest): Promise<GetLeadResponse> {
     const params = new URLSearchParams();
 
-    params.append('with', 'custom_fields_values');
+    params.append('with', 'custom_fields_values,contacts');
 
     const response = await this.axios.get<GetLeadResponse>(
       `https://${data.amoCrmDomainName}/api/v4/leads/${data.leadId}?${params}`,

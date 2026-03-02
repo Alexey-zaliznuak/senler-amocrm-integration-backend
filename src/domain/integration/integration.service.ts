@@ -511,8 +511,10 @@ export class IntegrationService {
 
         this.logger.info('Обновление данных сделки и контакта', { contactId, lead, actualAmoCrmLead });
 
-        // Привязываем контакт к сделке в AmoCRM, если он был создан или восстановлен
-        if (contactId != null) {
+        // Привязываем контакт к сделке в AmoCRM, если он отвязан или отсутствует
+        const linkedContactIds = actualAmoCrmLead._embedded?.contacts?.map((c) => c.id) ?? [];
+        const isContactLinked = contactId != null && linkedContactIds.includes(contactId);
+        if (contactId != null && !isContactLinked) {
           await this.amoCrmService.editLeadsById({
             amoCrmDomainName,
             amoCrmLeadId: actualAmoCrmLead.id,
