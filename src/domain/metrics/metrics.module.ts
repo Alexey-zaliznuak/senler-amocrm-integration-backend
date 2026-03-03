@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { IntegrationModule } from '../integration/integration.module';
 import { MetricsController } from './metrics.controller';
 import { MetricsService } from './metrics.service';
@@ -6,6 +6,7 @@ import { MetricsService } from './metrics.service';
 @Module({
   controllers: [MetricsController],
   providers: [MetricsService],
-  imports: [IntegrationModule],
+  imports: [forwardRef(() => IntegrationModule)],
+  exports: [MetricsService],
 })
 export class MetricsModule {}

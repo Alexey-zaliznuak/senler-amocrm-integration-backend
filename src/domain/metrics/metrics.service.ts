@@ -28,6 +28,9 @@ export class MetricsService {
   private dbCacheReconnections: Counter<string>;
   private dbCacheHitRatio: Gauge<string>;
 
+  // Webhooks
+  private webhooksReceived: Counter<string>;
+
   // Business
   private groupsActive1Day: Gauge<string>;
   private groupsActive3Days: Gauge<string>;
@@ -119,6 +122,12 @@ export class MetricsService {
       registers: [this.registry],
     });
 
+    this.webhooksReceived = new Counter({
+      name: 'webhooks_received_total',
+      help: 'Total number of successfully validated bot step webhooks received',
+      registers: [this.registry],
+    });
+
     this.groupsActive1Day = new Gauge({
       name: 'active_senler_groups_count_1_days',
       help: 'Active senler groups in 1 day',
@@ -147,13 +156,17 @@ export class MetricsService {
   }
 
   async updateMetrics() {
-    const [cpuMetrics, ramMetrics, dbMetrics, { groupsActiveD1, groupsActiveD3, groupsActiveD7, groupsActiveD14, groupsActiveD30 }] =
-      await Promise.all([
-        this.getCpuMetrics(),
-        this.getRamMetrics(),
-        this.getDatabaseMetrics(),
-        this.integrationService.getSenlerGroupsActiveStats(),
-      ]);
+    const [
+      cpuMetrics,
+      ramMetrics,
+      dbMetrics,
+      { groupsActiveD1, groupsActiveD3, groupsActiveD7, groupsActiveD14, groupsActiveD30 },
+    ] = await Promise.all([
+      this.getCpuMetrics(),
+      this.getRamMetrics(),
+      this.getDatabaseMetrics(),
+      this.integrationService.getSenlerGroupsActiveStats(),
+    ]);
 
     // CPU metrics
     this.cpuUser.set(parseFloat(cpuMetrics.cpuLoad.user));
@@ -185,6 +198,10 @@ export class MetricsService {
   async getMetrics() {
     await this.updateMetrics();
     return this.registry.metrics();
+  }
+
+  incrementWebhooksReceived(): void {
+    this.webhooksReceived.inc();
   }
 
   private async getCpuMetrics() {
