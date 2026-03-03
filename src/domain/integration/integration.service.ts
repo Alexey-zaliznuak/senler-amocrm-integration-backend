@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -27,6 +28,7 @@ import { RabbitMqService } from 'src/infrastructure/rabbitmq/rabbitmq.service';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { convertExceptionToString, timeToMilliseconds, timeToSeconds } from 'src/utils';
 import { Logger } from 'winston';
+import { MetricsService } from '../metrics/metrics.service';
 import { SenlerGroupsService } from '../senlerGroups/senler-groups.service';
 import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import { BotStepType, BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, TransferMessage } from './dto/integration.dto';
@@ -50,7 +52,8 @@ export class IntegrationService {
     private readonly senlerService: SenlerService,
     private readonly amoCrmService: AmoCrmService,
     private readonly senlerGroupsService: SenlerGroupsService,
-    public readonly rateLimitsService: RateLimitsService
+    public readonly rateLimitsService: RateLimitsService,
+    @Inject(forwardRef(() => MetricsService)) private readonly metricsService: MetricsService
   ) {}
 
   public getConf() {
@@ -126,6 +129,7 @@ export class IntegrationService {
         });
       }
 
+      this.metricsService.incrementWebhooksReceived();
       this.trackSenlerGroupActivity(instance.senlerGroupId.toString());
 
       message.payload = this.withSenlerVarsFormatting(instance);
