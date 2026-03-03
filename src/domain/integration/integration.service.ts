@@ -511,9 +511,10 @@ export class IntegrationService {
         this.logger.info('Обновление данных сделки и контакта', { contactId, lead, actualAmoCrmLead });
 
         // Привязываем контакт к сделке через API связей (PATCH /leads не поддерживает _embedded.contacts)
+        // При createContact false не привязываем контакт (даже если он был отвязан в AmoCRM)
         const linkedContactIds = actualAmoCrmLead._embedded?.contacts?.map((c) => c.id) ?? [];
         const isContactLinked = contactId != null && linkedContactIds.includes(contactId);
-        if (contactId != null && !isContactLinked) {
+        if (createContact && contactId != null && !isContactLinked) {
           await this.amoCrmService.linkContactToLead({
             amoCrmDomainName,
             amoCrmLeadId: actualAmoCrmLead.id,
