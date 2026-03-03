@@ -357,23 +357,24 @@ export class AmoCrmService {
     tokens: AmoCrmTokens;
     labels?: { requestId: string };
   }): Promise<void> {
-    const body = [
-      {
-        to_entity_id: contactId,
-        to_entity_type: 'contacts' as const,
-        metadata: { is_main: true },
-      },
-    ];
-    await this.axios.post(
-      `https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}/link`,
-      body,
-      {
+    try {
+      const body = [
+        {
+          to_entity_id: contactId,
+          to_entity_type: 'contacts' as const,
+          metadata: { is_main: true },
+        },
+      ];
+      await this.axios.post(`https://${amoCrmDomainName}/api/v4/leads/${amoCrmLeadId}/link`, body, {
         headers: {
           Authorization: `Bearer ${tokens.accessToken}`,
         },
-      }
-    );
-    this.logger.info('Contact linked to lead', { labels, contactId, amoCrmLeadId });
+      });
+      this.logger.info('Contact linked to lead', { labels, contactId, amoCrmLeadId });
+    } catch (error) {
+      this.logger.error('Error linking contact to lead', { error });
+      throw error;
+    }
   }
 
   @UpdateRateLimitAndThrowIfNeed()
