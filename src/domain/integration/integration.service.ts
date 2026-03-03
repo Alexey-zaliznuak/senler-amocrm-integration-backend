@@ -12,6 +12,7 @@ import * as amqp from 'amqplib';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { RedisClientType } from 'redis';
 import { ApiError, SenlerApiClientV2 } from 'senler-sdk';
 import { AmoCrmService } from 'src/external/amo-crm';
 import { AmoCrmError, AmoCrmExceptionType, GetLeadResponse as AmoCrmLead, AmoCrmTokens } from 'src/external/amo-crm/amo-crm.dto';
@@ -37,6 +38,8 @@ export class IntegrationService {
   private readonly utils = new IntegrationUtils();
 
   private readonly CACHE_DELAYED_TRANSFER_MESSAGES_PREFIX = 'transferMessages:delayed:';
+  private readonly ACTIVE_STATS_LAST_CLEANUP_KEY = 'metrics:senlerGroups:activeStats:lastCleanup';
+  private readonly ACTIVE_STATS_KEY = 'metrics:senlerGroups:activeStats';
 
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
@@ -122,6 +125,8 @@ export class IntegrationService {
           details,
         });
       }
+
+      this.trackSenlerGroupActivity(instance.senlerGroupId.toString());
 
       message.payload = this.withSenlerVarsFormatting(instance);
 
@@ -331,6 +336,56 @@ export class IntegrationService {
         await this.senlerService.sendCallbackOnWebhookRequest(message.payload, true);
         channel.nack(originalMessage as any, false, false);
       }
+    }
+  }
+
+  public async getSenlerGroupsActiveStats(): Promise<{
+    groupsActiveD1: number;
+    groupsActiveD3: number;
+    groupsActiveD7: number;
+    groupsActiveD14: number;
+    groupsActiveD30: number;
+  }> {
+    const client: RedisClientType = this.redis.getClient();
+    const nowMs = Date.now();
+    const now = Math.floor(nowMs / 1000);
+
+    const lastCleanup = await client.get(this.ACTIVE_STATS_LAST_CLEANUP_KEY);
+    const lastCleanupMs = parseInt(lastCleanup ?? '0', 10);
+    const fiveMinutesMs = timeToMilliseconds({ minutes: 5 });
+    if (isNaN(lastCleanupMs) || nowMs - lastCleanupMs > fiveMinutesMs) {
+      const cutoff = now - timeToSeconds({ days: 30 });
+      await client.zRemRangeByScore(this.ACTIVE_STATS_KEY, '-inf', cutoff);
+      await client.set(this.ACTIVE_STATS_LAST_CLEANUP_KEY, nowMs.toString(), { EX: timeToSeconds({ days: 1 }) });
+    }
+
+    const periods = {
+      d1: timeToSeconds({ days: 1 }),
+      d3: timeToSeconds({ days: 3 }),
+      d7: timeToSeconds({ days: 7 }),
+      d14: timeToSeconds({ days: 14 }),
+      d30: timeToSeconds({ days: 30 }),
+    };
+
+    const [groupsActiveD1, groupsActiveD3, groupsActiveD7, groupsActiveD14, groupsActiveD30] = await Promise.all([
+      client.zCount(this.ACTIVE_STATS_KEY, now - periods.d1, '+inf'),
+      client.zCount(this.ACTIVE_STATS_KEY, now - periods.d3, '+inf'),
+      client.zCount(this.ACTIVE_STATS_KEY, now - periods.d7, '+inf'),
+      client.zCount(this.ACTIVE_STATS_KEY, now - periods.d14, '+inf'),
+      client.zCount(this.ACTIVE_STATS_KEY, now - periods.d30, '+inf'),
+    ]);
+
+    return { groupsActiveD1, groupsActiveD3, groupsActiveD7, groupsActiveD14, groupsActiveD30 };
+  }
+
+  public async trackSenlerGroupActivity(senlerGroupId: string): Promise<void> {
+    try {
+      const client: RedisClientType = this.redis.getClient();
+      const now = Math.floor(Date.now() / 1000);
+
+      await client.zAdd(this.ACTIVE_STATS_KEY, { score: now, value: senlerGroupId });
+    } catch (err) {
+      this.logger.error('Ошибка сохранения статистики', { error: convertExceptionToString(err), senlerGroupId });
     }
   }
 

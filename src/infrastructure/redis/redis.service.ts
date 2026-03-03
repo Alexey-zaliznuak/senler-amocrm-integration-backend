@@ -296,6 +296,10 @@ export class RedisService implements OnModuleInit {
     }
   }
 
+  public getClient() {
+    return this.client;
+  }
+
   public async ensureIncrementSlicingWindowScript() {
     if (!this.incrementSlidingWindowScriptHash) {
       this.incrementSlidingWindowScriptHash = await this.client.scriptLoad(INCREMENT_SLIDING_WINDOW_RATE_LUA_SCRIPT);
