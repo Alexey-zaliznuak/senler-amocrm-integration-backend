@@ -30,10 +30,6 @@ export class RateLimitsService {
    */
   async updateRateLimitAndThrowIfNeed(domainName: string, increment?: number) {
     increment = increment ?? 1;
-    if (!domainName) {
-      this.logger.warn('updateRateLimitAndThrowIfNeed вызван с пустым domainName, пропускаем проверку лимита');
-      return;
-    }
     const profile = await this.prisma.amoCrmProfile.findUniqueWithCache({ where: { domainName } });
 
     if (!profile) {
