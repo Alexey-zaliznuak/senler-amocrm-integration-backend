@@ -114,7 +114,7 @@ export type CreateLeadDto = {
 };
 
 export type GetContactRequest = {
-  contactId: string | number;
+  contactId: number;
   tokens: AmoCrmTokens;
   amoCrmDomainName: string;
 };

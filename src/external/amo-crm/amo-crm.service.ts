@@ -269,10 +269,6 @@ export class AmoCrmService {
   @UpdateRateLimitAndThrowIfNeed()
   @HandleAccessTokenExpiration()
   async GetContactById(data: GetContactRequest): Promise<GetContactResponse> {
-    const params = new URLSearchParams();
-
-    params.append('with', 'custom_fields_values');
-
     const response = await this.axios.get<any>(`https://${data.amoCrmDomainName}/api/v4/contacts/${data.contactId}`, {
       headers: {
         Authorization: `Bearer ${data.tokens.accessToken}`,
