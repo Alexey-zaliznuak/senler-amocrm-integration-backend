@@ -221,7 +221,7 @@ export class IntegrationService {
         price: payload.publicBotStepSettings.amoCrmTransferringSettings.price
           ? +payload.publicBotStepSettings.amoCrmTransferringSettings.price
           : undefined,
-        createContact: payload.publicBotStepSettings.amoCrmTransferringSettings.createContact,
+        createContact: payload.publicBotStepSettings.amoCrmTransferringSettings.createContact ?? false,
         statusId: payload.publicBotStepSettings.amoCrmTransferringSettings.statusId ?? undefined,
         pipelineId: payload.publicBotStepSettings.amoCrmTransferringSettings.pipelineId ?? undefined,
         responsibleUserId: payload.publicBotStepSettings.amoCrmTransferringSettings.responsibleUserId ?? undefined,
