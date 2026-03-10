@@ -48,8 +48,9 @@ export class AmoCrmTransferringSettingsDto {
 
   @ApiProperty({ description: 'Создать контакт для сделки' })
   @Transform(({ value }) => value ?? false, { toClassOnly: true })
+  @ValidateIf(obj => obj.createContact != null)
   @IsBoolean()
-  createContact: boolean;
+  createContact: boolean | null;
 }
 
 export class PublicBotStepSettingsDto {
