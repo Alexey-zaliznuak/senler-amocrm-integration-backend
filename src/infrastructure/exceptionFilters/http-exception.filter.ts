@@ -1,4 +1,4 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { LOGGER } from '../logging/logging.config';
@@ -14,10 +14,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
 
     const exceptionMessage = this.getExceptionMessage(exception);
+    const details = this.getExceptionDetails(exception);
 
     if (status != HttpStatus.NOT_FOUND) {
       this.logger.error(`Handled exception: HTTP ${status} ${exception.name}:`, {
         exceptionMessage,
+        details,
         stack: exception.stack,
       });
     }
@@ -27,6 +29,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       message: exceptionMessage,
+      ...(details !== undefined && { details }),
     });
   }
 
@@ -38,5 +41,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     return exception.message;
+  }
+
+  private getExceptionDetails(exception: HttpException): unknown {
+    const exceptionResponse = exception.getResponse();
+
+    if (typeof exceptionResponse === 'object' && exceptionResponse['details'] !== undefined) {
+      return exceptionResponse['details'];
+    }
+
+    return undefined;
   }
 }
