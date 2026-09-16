@@ -9,6 +9,7 @@ import {
 import { SenlerGroup } from '@prisma/client';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { AmoCrmService } from 'src/external/amo-crm';
+import { parseAmoCrmAccountDomain } from 'src/external/amo-crm/amo-crm-domain';
 import { SenlerService } from 'src/external/senler/senler.service';
 import { PRISMA } from 'src/infrastructure/database/database.config';
 import { PrismaExtendedClientType } from 'src/infrastructure/database/database.service';
@@ -80,13 +81,18 @@ export class SenlerGroupsService {
   }
 
   async getOrCreateAmoCrmProfile(data: { amoCrmDomainName: string; amoCrmAuthorizationCode: string }) {
+    const amoCrmDomainName = parseAmoCrmAccountDomain(data.amoCrmDomainName);
+    if (!amoCrmDomainName) {
+      throw new BadRequestException('Домен аккаунта amoCRM должен соответствовать шаблону *.amocrm.ru');
+    }
+
     const tokens = await this.amoCrmService.getAccessAndRefreshTokens({
-      amoCrmDomainName: data.amoCrmDomainName,
+      amoCrmDomainName,
       code: data.amoCrmAuthorizationCode,
     });
 
-    const existingProfile = await this.prisma.amoCrmProfile.findUnique({ 
-      where: { domainName: data.amoCrmDomainName } 
+    const existingProfile = await this.prisma.amoCrmProfile.findUnique({
+      where: { domainName: amoCrmDomainName },
     });
 
     if (existingProfile) {
@@ -115,7 +121,7 @@ export class SenlerGroupsService {
       data: {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
-        domainName: data.amoCrmDomainName,
+        domainName: amoCrmDomainName,
       },
     });
   }

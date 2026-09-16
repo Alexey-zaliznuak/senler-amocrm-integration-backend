@@ -30,6 +30,7 @@ export const appConfigValidationSchema = Joi.object({
   AMO_CRM_CLIENT_ID: Joi.string().required(),
   AMO_CRM_CLIENT_SECRET: Joi.string().required(),
   AMO_CRM_REDIRECT_URI: Joi.string().uri().required(),
+  AMO_CRM_OAUTH_SESSION_TTL_SEC: Joi.number().default(AppConfig.AMO_CRM_OAUTH_SESSION_TTL_SEC),
 
   SENLER_CLIENT_ID: Joi.string().required(),
   SENLER_CLIENT_SECRET: Joi.string().required(),
