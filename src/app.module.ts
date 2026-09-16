@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AmocrmOauthModule } from './domain/amocrmOauth/amocrm-oauth.module';
 import { IntegrationModule } from './domain/integration/integration.module';
 import { IntegrationStepTemplatesModule } from './domain/integrationStepTemplates/integration-step-template.module';
 import { MetricsModule } from './domain/metrics/metrics.module';
@@ -38,6 +39,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     IntegrationModule,
     IntegrationStepTemplatesModule,
     MetricsModule,
+    AmocrmOauthModule,
 
     // Infrastructure
     LoggingModule.forRoot(),

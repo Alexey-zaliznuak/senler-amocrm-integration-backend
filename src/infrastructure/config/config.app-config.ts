@@ -43,6 +43,8 @@ export const AppConfig = {
   AMO_CRM_CLIENT_ID: process.env.AMO_CRM_CLIENT_ID,
   AMO_CRM_CLIENT_SECRET: process.env.AMO_CRM_CLIENT_SECRET,
   AMO_CRM_REDIRECT_URI: process.env.AMO_CRM_REDIRECT_URI,
+
+  AMO_CRM_OAUTH_SESSION_TTL_SEC: parseInt(process.env.AMO_CRM_OAUTH_SESSION_TTL_SEC) || 900,
 };
 
 export type AppConfigType = typeof AppConfig;
