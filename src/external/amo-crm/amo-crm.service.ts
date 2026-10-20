@@ -40,7 +40,7 @@ import {
 import { HandleAccessTokenExpiration } from './handlers/expired-token.decorator';
 import { RefreshTokensService } from './handlers/handle-tokens-expiration.service';
 import { UpdateRateLimitAndThrowIfNeed } from './handlers/rate-limit.decorator';
-import { RateLimitsService } from './rate-limit.service';
+import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS, RateLimitsService } from './rate-limit.service';
 
 export enum AmoCrmApiErrorHumanMessages {
   PAYMENT_OR_LIMIT_UPDATE_REQUIRED = 'Аккаунт не оплачен или был превышен один из его лимитов, обратитесь в техподдержку amoCRM',
@@ -415,7 +415,17 @@ export class AmoCrmService {
     // Reuse options so a refreshed token is used for subsequent pages too.
     const options = { amoCrmDomainName, tokens, page: 1 };
     while (true) {
-      const data = await this.getLeadFieldsPage(options);
+      let data: GetLeadFieldsResponse | null;
+      try {
+        data = await this.getLeadFieldsPage(options);
+      } catch (error) {
+        if (!(error instanceof AmoCrmError) || error.type !== AmoCrmExceptionType.TOO_MANY_REQUESTS) {
+          throw error;
+        }
+        // Keep collected fields and retry the same page after the rate window expires.
+        await new Promise(resolve => setTimeout(resolve, AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS * 1000));
+        continue;
+      }
       const pageFields = data?._embedded?.custom_fields ?? [];
       fields.push(...pageFields);
       if (!pageFields.length || !(data._links?.next?.href || options.page < data._page_count)) {

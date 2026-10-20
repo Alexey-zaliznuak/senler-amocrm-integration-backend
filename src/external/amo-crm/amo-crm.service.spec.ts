@@ -1,6 +1,8 @@
 import { AxiosError } from 'axios';
+import { AmoCrmError, AmoCrmExceptionType } from './amo-crm.dto';
 import { AmoCrmService } from './amo-crm.service';
 import { FieldDto } from './get-workspace-info.dto';
+import { AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS } from './rate-limit.service';
 
 describe('AmoCrmService custom fields pagination', () => {
   const options = {
@@ -33,6 +35,43 @@ describe('AmoCrmService custom fields pagination', () => {
       {} as any,
       { updateRateLimitAndThrowIfNeed: checkRateLimit } as any
     );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it.each([1, 2, 3])('waits through repeated rate limit rejections on page %i without losing fields', async blockedPage => {
+    jest.useFakeTimers();
+    for (let number = 1; number <= 3; number++) {
+      if (number === blockedPage) {
+        checkRateLimit.mockRejectedValueOnce(new AmoCrmError(AmoCrmExceptionType.TOO_MANY_REQUESTS, true));
+        checkRateLimit.mockRejectedValueOnce(new AmoCrmError(AmoCrmExceptionType.TOO_MANY_REQUESTS, true));
+      }
+      checkRateLimit.mockResolvedValueOnce(undefined);
+      get.mockResolvedValueOnce(page(fields.slice((number - 1) * 250, number * 250), number, number < 3));
+    }
+
+    const result = service.getLeadFields(options);
+    const windowMs = AMO_CRM_RATE_LIMIT_WINDOW_IN_SECONDS * 1000;
+    await jest.advanceTimersByTimeAsync(0);
+    expect(get).toHaveBeenCalledTimes(blockedPage - 1);
+    await jest.advanceTimersByTimeAsync(windowMs - 1);
+    expect(get).toHaveBeenCalledTimes(blockedPage - 1);
+    await jest.advanceTimersByTimeAsync(1);
+    expect(get).toHaveBeenCalledTimes(blockedPage - 1);
+    await jest.advanceTimersByTimeAsync(windowMs);
+
+    expect(await result).toEqual(fields);
+    expect(checkRateLimit).toHaveBeenCalledTimes(5);
+    expect(get.mock.calls.map(([, config]) => config.params.page)).toEqual([1, 2, 3]);
+  });
+
+  it('propagates unrelated rate limiter errors without waiting', async () => {
+    const error = new Error('Redis unavailable');
+    checkRateLimit.mockRejectedValueOnce(error);
+    await expect(service.getLeadFields(options)).rejects.toBe(error);
+    expect(get).not.toHaveBeenCalled();
   });
 
   it.each([0, 1, 250, 251, 500, 501])('returns all %i fields and checks the rate limit for each page', async count => {
