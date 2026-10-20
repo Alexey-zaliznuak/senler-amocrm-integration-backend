@@ -62,6 +62,17 @@ export interface GetUsersResponse {
   };
 }
 
+export interface GetLeadFieldsResponse {
+  _page: number;
+  _page_count?: number;
+  _links?: {
+    next?: { href: string } | null;
+  };
+  _embedded: {
+    custom_fields: FieldDto[];
+  };
+}
+
 export class LinkDto {
   @ApiProperty({ description: 'URL ссылки' })
   @IsUrl()
