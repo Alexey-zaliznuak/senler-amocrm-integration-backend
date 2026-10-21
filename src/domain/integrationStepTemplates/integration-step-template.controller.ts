@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
 import {
   CreateIntegrationStepTemplateRequestDto,
   CreateIntegrationStepTemplateResponseDto,
@@ -12,6 +13,7 @@ import {
 import { IntegrationStepTemplatesService } from './integration-step-template.service';
 
 @Controller('integrationStepTemplates')
+@UseGuards(IntegrationSignGuard)
 export class IntegrationStepTemplatesController {
   constructor(private readonly integrationStepTemplatesService: IntegrationStepTemplatesService) {}
 
