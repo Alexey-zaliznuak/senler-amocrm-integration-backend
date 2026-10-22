@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { createHash } from 'crypto';
 import request from 'supertest';
 import { IntegrationController } from '../../domain/integration/integration.controller';
 import { IntegrationService } from '../../domain/integration/integration.service';
@@ -31,7 +32,7 @@ describe('Signature audit HTTP coverage', () => {
     const module = await Test.createTestingModule({
       controllers: [SenlerGroupsController, IntegrationController, IntegrationStepTemplatesController],
       providers: [
-        { provide: CONFIG, useValue: { INTEGRATION_SECRET: 'test-secret' } },
+        { provide: CONFIG, useValue: { INTEGRATION_SECRET: 'test-secret', SENLER_CLIENT_SECRET: 'test-senler-app-secret' } },
         { provide: LOGGER, useValue: { info } },
         ...[SenlerGroupsService, IntegrationService, IntegrationStepTemplatesService].map(provide => ({
           provide,
@@ -68,8 +69,23 @@ describe('Signature audit HTTP coverage', () => {
     expect(info).toHaveBeenCalledWith('SIGN UNSUCCESS', expect.objectContaining({ reason: 'missing_sign' }));
   });
 
+  it('verifies iframe signatures with the Senler application secret', async () => {
+    const sign = createHash('md5').update('12345Bot_steptest-senler-app-secret').digest('hex');
+    await request(app.getHttpServer())
+      .get('/senlerGroups/345')
+      .query({ field: 'senlerGroupId', user_id: '12', group_id: '345', context: 'Bot_step', sign })
+      .expect(200);
+    expect(info).toHaveBeenCalledTimes(1);
+    expect(info).toHaveBeenCalledWith('SIGN SUCCESS', expect.objectContaining({ variant: 'standard', dryRun: true }));
+  });
+
   it('retains webhook authorization without applying the iframe guard', async () => {
     await request(app.getHttpServer()).post('/integration/botStepWebhook').send({}).expect(403);
+    await request(app.getHttpServer())
+      .post('/integration/botStepWebhook')
+      .send({})
+      .set('x-integration-secret', 'test-senler-app-secret')
+      .expect(403);
     await request(app.getHttpServer())
       .post('/integration/botStepWebhook')
       .send({})

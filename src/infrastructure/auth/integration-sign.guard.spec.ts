@@ -5,7 +5,7 @@ import { AppConfigType } from '../config/config.app-config';
 import { IntegrationSignGuard } from './integration-sign.guard';
 
 describe('IntegrationSignGuard (observation only)', () => {
-  const secret = 'test-integration-secret';
+  const secret = 'test-senler-app-secret';
   const params = { user_id: '0012', group_id: '345', context: 'Bot_step', channel_type_id: '0' };
   const md5 = (value: string) => createHash('md5').update(value).digest('hex');
   let info: jest.Mock;
@@ -21,7 +21,7 @@ describe('IntegrationSignGuard (observation only)', () => {
 
   beforeEach(() => {
     info = jest.fn();
-    config = { INTEGRATION_SECRET: secret } as AppConfigType;
+    config = { SENLER_CLIENT_SECRET: secret, INTEGRATION_SECRET: 'different-webhook-secret' } as AppConfigType;
     guard = new IntegrationSignGuard(config, { info } as unknown as Logger);
   });
 
@@ -37,9 +37,8 @@ describe('IntegrationSignGuard (observation only)', () => {
     expect(JSON.stringify(info.mock.calls)).not.toContain(md5(input));
   });
 
-  it('uses the integration secret, not the Senler OAuth client secret', () => {
-    config.SENLER_CLIENT_SECRET = 'different-oauth-secret';
-    guard.canActivate(contextFor({ ...params, sign: md5(`0012345Bot_step${config.SENLER_CLIENT_SECRET}`) }));
+  it.each(['0012345Bot_step', '0012345Bot_step0', '0012345'])('does not accept a webhook-secret signature for %s', prefix => {
+    expect(guard.canActivate(contextFor({ ...params, sign: md5(`${prefix}${config.INTEGRATION_SECRET}`) }))).toBe(true);
     expect(info).toHaveBeenCalledWith('SIGN UNSUCCESS', expect.objectContaining({ reason: 'signature_mismatch' }));
   });
 
@@ -78,13 +77,13 @@ describe('IntegrationSignGuard (observation only)', () => {
   });
 
   it('allows requests when the secret is unavailable', () => {
-    config.INTEGRATION_SECRET = undefined;
+    config.SENLER_CLIENT_SECRET = undefined;
     expect(guard.canActivate(contextFor({ ...params, sign: 'a'.repeat(32) }))).toBe(true);
     expect(info).toHaveBeenCalledWith('SIGN UNSUCCESS', expect.objectContaining({ reason: 'missing_secret' }));
   });
 
   it('allows requests when verification throws', () => {
-    Object.defineProperty(config, 'INTEGRATION_SECRET', {
+    Object.defineProperty(config, 'SENLER_CLIENT_SECRET', {
       get: () => {
         throw new Error('test');
       },

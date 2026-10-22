@@ -59,7 +59,7 @@ export class IntegrationSignGuard implements CanActivate {
       return { success: false, reason: 'invalid_sign_format' };
     }
 
-    const secret = this.config.INTEGRATION_SECRET;
+    const secret = this.config.SENLER_CLIENT_SECRET;
     if (!secret) {
       return { success: false, reason: 'missing_secret' };
     }
