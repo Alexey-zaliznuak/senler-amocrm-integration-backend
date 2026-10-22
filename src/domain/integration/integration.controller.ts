@@ -3,16 +3,12 @@ import { ApiBody, ApiResponse } from '@nestjs/swagger';
 import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
+import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
 import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
-import {
-  BotStepWebhookDto,
-  ChangeAmoCrmAccountRequestDto,
-  SenlerGroupIdQueryDto,
-  TransferMessage,
-} from './dto/integration.dto';
+import { BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, SenlerGroupIdQueryDto, TransferMessage } from './dto/integration.dto';
 
 @Controller('integration')
 export class IntegrationController {
@@ -27,6 +23,7 @@ export class IntegrationController {
   }
 
   @Delete('/change-amocrm-account')
+  @UseGuards(IntegrationSignGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBody({ type: ChangeAmoCrmAccountRequestDto })
   async changeAmoCrmAccount(@Body() body: ChangeAmoCrmAccountRequestDto) {
@@ -39,6 +36,7 @@ export class IntegrationController {
   }
 
   @Get('amocrm-workspace-info')
+  @UseGuards(IntegrationSignGuard)
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ type: AmoCrmWorkspaceInfoDto })
   async getAmoCrmWorkspaceInfo(@Query() query: SenlerGroupIdQueryDto): Promise<AmoCrmWorkspaceInfoDto> {
@@ -46,12 +44,14 @@ export class IntegrationController {
   }
 
   @Get('AmoCrmErrors')
+  @UseGuards(IntegrationSignGuard)
   @HttpCode(HttpStatus.OK)
   async getAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<string> {
     return await this.integrationService.getSenlerGroupErrorMessage(query.senlerGroupId);
   }
 
   @Delete('AmoCrmErrors')
+  @UseGuards(IntegrationSignGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAmoCrmErrors(@Query() query: SenlerGroupIdQueryDto): Promise<void> {
     await this.integrationService.deleteSenlerGroupErrorMessages(query.senlerGroupId);

@@ -1,5 +1,18 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
   GetSenlerGroupResponseDto,
@@ -9,6 +22,7 @@ import {
 import { SenlerGroupsService } from './senler-groups.service';
 
 @Controller('senlerGroups')
+@UseGuards(IntegrationSignGuard)
 export class SenlerGroupsController {
   constructor(private readonly senlerGroupsService: SenlerGroupsService) {}
 
