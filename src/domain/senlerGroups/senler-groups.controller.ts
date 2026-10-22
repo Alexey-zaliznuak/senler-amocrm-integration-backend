@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
+import { SignScope } from 'src/infrastructure/auth/integration-sign-scope.decorator';
 import { CreateSenlerGroupRequestDto, CreateSenlerGroupResponseDto } from './dto/create-senler-group.dto';
 import {
   GetSenlerGroupResponseDto,
@@ -23,10 +24,12 @@ import { SenlerGroupsService } from './senler-groups.service';
 
 @Controller('senlerGroups')
 @UseGuards(IntegrationSignGuard)
+@SignScope('group-identifier')
 export class SenlerGroupsController {
   constructor(private readonly senlerGroupsService: SenlerGroupsService) {}
 
   @Post('')
+  @SignScope('group-body')
   @HttpCode(HttpStatus.CREATED)
   @ApiResponse({
     status: HttpStatus.CREATED,

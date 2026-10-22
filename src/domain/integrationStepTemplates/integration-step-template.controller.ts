@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBody, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
+import { SignScope } from 'src/infrastructure/auth/integration-sign-scope.decorator';
 import {
   CreateIntegrationStepTemplateRequestDto,
   CreateIntegrationStepTemplateResponseDto,
@@ -14,18 +15,19 @@ import { IntegrationStepTemplatesService } from './integration-step-template.ser
 
 @Controller('integrationStepTemplates')
 @UseGuards(IntegrationSignGuard)
+@SignScope('template-identifier')
 export class IntegrationStepTemplatesController {
   constructor(private readonly integrationStepTemplatesService: IntegrationStepTemplatesService) {}
 
   @Get(':identifier/')
-  @ApiQuery({ name: 'id' })
   @ApiParam({ name: 'identifier' })
   @ApiResponse({ type: GetIntegrationStepTemplateResponseDto })
-  async getById(@Param('id') id: string): Promise<GetIntegrationStepTemplateResponseDto> {
+  async getById(@Param('identifier') id: string): Promise<GetIntegrationStepTemplateResponseDto> {
     return await this.integrationStepTemplatesService.getById(id);
   }
 
   @Post('')
+  @SignScope('template-body')
   @HttpCode(HttpStatus.CREATED)
   @ApiBody({ type: CreateIntegrationStepTemplateRequestDto })
   @ApiResponse({

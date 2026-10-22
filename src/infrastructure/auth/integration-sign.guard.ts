@@ -1,50 +1,67 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { createHash, timingSafeEqual } from 'crypto';
 import { Logger } from 'winston';
 import { AppConfigType } from '../config/config.app-config';
 import { CONFIG } from '../config/config.module';
+import { PRISMA } from '../database/database.config';
+import { PrismaExtendedClientType } from '../database/database.service';
 import { LOGGER } from '../logging/logging.config';
 import { CustomRequest } from '../requests';
+import { INTEGRATION_SIGN_SCOPE, IntegrationSignScope } from './integration-sign-scope.decorator';
 
 type SignCheck = {
   success: boolean;
   variant?: 'standard' | 'legacy_with_channel' | 'legacy_without_context';
+  groupId?: number;
   reason?: string;
 };
 
-/** Observation only: signature failures MUST NOT change the response during rollout. */
+/** Verifies the iframe signature and binds it to the requested Senler group. */
 @Injectable()
 export class IntegrationSignGuard implements CanActivate {
   constructor(
     @Inject(CONFIG) private readonly config: AppConfigType,
-    @Inject(LOGGER) private readonly logger: Logger
+    @Inject(LOGGER) private readonly logger: Logger,
+    @Inject(PRISMA) private readonly prisma: PrismaExtendedClientType,
+    private readonly reflector: Reflector
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     let result: SignCheck = { success: false, reason: 'verification_error' };
     let request: CustomRequest | undefined;
 
     try {
       request = context.switchToHttp().getRequest<CustomRequest>();
       result = this.checkSignature(request);
+      if (result.success) {
+        const scope = this.reflector.getAllAndOverride<IntegrationSignScope>(INTEGRATION_SIGN_SCOPE, [
+          context.getHandler(),
+          context.getClass(),
+        ]);
+        if (!(await this.hasResourceAccess(request, result.groupId, scope))) {
+          result = { ...result, success: false, reason: 'resource_not_in_group' };
+        }
+      }
     } catch {
-      // Malformed input or a verification error must not interrupt a production request.
+      // Verification/ownership errors must never authorize a request.
+      result = { success: false, reason: 'verification_error' };
     }
 
     try {
       (request?.logger ?? this.logger).info(result.success ? 'SIGN SUCCESS' : 'SIGN UNSUCCESS', {
         context: IntegrationSignGuard.name,
-        dryRun: true,
+        dryRun: false,
         method: request?.method,
         path: request?.path,
         variant: result.variant,
         reason: result.reason,
       });
     } catch {
-      // Logging failures must not turn this observation-only guard into an access check.
+      // A logger failure must not change the authorization result.
     }
 
-    return true;
+    return result.success;
   }
 
   private checkSignature(request: CustomRequest): SignCheck {
@@ -101,6 +118,52 @@ export class IntegrationSignGuard implements CanActivate {
 
     const supplied = Buffer.from(sign, 'hex');
     const match = candidates.find(candidate => timingSafeEqual(createHash('md5').update(candidate.value).digest(), supplied));
-    return match ? { success: true, variant: match.variant } : { success: false, reason: 'signature_mismatch' };
+    if (!match) return { success: false, reason: 'signature_mismatch' };
+
+    const groupId = this.parseGroupId(params.group_id);
+    return groupId === undefined
+      ? { success: false, reason: 'invalid_group_id' }
+      : { success: true, variant: match.variant, groupId };
+  }
+
+  private parseGroupId(value: unknown): number | undefined {
+    if (typeof value !== 'number' && (typeof value !== 'string' || !/^\d+$/.test(value))) return undefined;
+    const groupId = Number(value);
+    return Number.isSafeInteger(groupId) && groupId > 0 ? groupId : undefined;
+  }
+
+  private async hasResourceAccess(request: CustomRequest, groupId: number, scope?: IntegrationSignScope): Promise<boolean> {
+    switch (scope) {
+      case 'group-body':
+        return this.parseGroupId(request.body?.senlerGroupId) === groupId;
+      case 'group-query':
+        return this.parseGroupId(request.query?.senlerGroupId) === groupId;
+      case 'group-identifier': {
+        if (request.query?.field === 'senlerGroupId') {
+          return this.parseGroupId(request.params?.identifier) === groupId;
+        }
+        if (request.query?.field !== 'id') return false;
+        return this.groupBelongsToSignature(request.params?.identifier, groupId);
+      }
+      case 'template-body':
+        return this.groupBelongsToSignature(request.body?.senlerGroupId, groupId);
+      case 'template-identifier': {
+        const id = request.params?.identifier;
+        if (typeof id !== 'string' || !id) return false;
+        const template = await this.prisma.integrationStepTemplate.findUnique({
+          where: { id },
+          select: { senlerGroup: { select: { senlerGroupId: true } } },
+        });
+        return template?.senlerGroup.senlerGroupId === groupId;
+      }
+      default:
+        return false;
+    }
+  }
+
+  private async groupBelongsToSignature(id: unknown, groupId: number): Promise<boolean> {
+    if (typeof id !== 'string' || !id) return false;
+    const group = await this.prisma.senlerGroup.findUnique({ where: { id }, select: { senlerGroupId: true } });
+    return group?.senlerGroupId === groupId;
   }
 }

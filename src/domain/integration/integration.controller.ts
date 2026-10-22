@@ -4,6 +4,7 @@ import * as amqp from 'amqplib';
 import { IntegrationService } from 'src/domain/integration/integration.service';
 import { IntegrationSecretGuard } from 'src/infrastructure/auth/integration-secret.guard';
 import { IntegrationSignGuard } from 'src/infrastructure/auth/integration-sign.guard';
+import { SignScope } from 'src/infrastructure/auth/integration-sign-scope.decorator';
 import { AppConfig } from 'src/infrastructure/config/config.app-config';
 import { AmqpSerializedMessage } from 'src/infrastructure/rabbitmq/events/amqp.service';
 import { AmqpEventPattern } from 'src/infrastructure/rabbitmq/events/decorator';
@@ -11,6 +12,7 @@ import { AmoCrmWorkspaceInfoDto } from './dto/get-workspace-info.dto';
 import { BotStepWebhookDto, ChangeAmoCrmAccountRequestDto, SenlerGroupIdQueryDto, TransferMessage } from './dto/integration.dto';
 
 @Controller('integration')
+@SignScope('group-query')
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
@@ -24,6 +26,7 @@ export class IntegrationController {
 
   @Delete('/change-amocrm-account')
   @UseGuards(IntegrationSignGuard)
+  @SignScope('group-body')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBody({ type: ChangeAmoCrmAccountRequestDto })
   async changeAmoCrmAccount(@Body() body: ChangeAmoCrmAccountRequestDto) {
